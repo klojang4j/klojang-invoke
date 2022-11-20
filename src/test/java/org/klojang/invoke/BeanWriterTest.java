@@ -2,7 +2,7 @@ package org.klojang.invoke;
 
 import org.junit.Test;
 import org.klojang.check.fallible.FallibleBiFunction;
-import org.klojang.util.util.MapBuilder;
+import org.klojang.path.util.MapBuilder;
 
 import java.time.LocalDate;
 import java.util.List;

@@ -2,7 +2,7 @@ package org.klojang.path;
 
 import org.junit.Test;
 import org.klojang.util.ArrayMethods;
-import org.klojang.util.util.MapBuilder;
+import org.klojang.path.util.MapBuilder;
 
 import java.util.Arrays;
 import java.util.List;
