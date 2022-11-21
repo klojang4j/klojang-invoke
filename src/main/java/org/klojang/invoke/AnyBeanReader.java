@@ -71,7 +71,7 @@ public final class AnyBeanReader {
     try {
       return (U) getter.read(bean);
     } catch (Throwable exc) {
-      throw InvokeException.wrap(exc, bean, getter);
+      throw Private.wrap(exc, bean, getter);
     }
   }
 

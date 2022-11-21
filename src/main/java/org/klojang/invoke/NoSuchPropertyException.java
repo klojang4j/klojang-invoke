@@ -2,6 +2,7 @@ package org.klojang.invoke;
 
 import org.klojang.check.Check;
 import org.klojang.util.ClassMethods;
+import org.klojang.util.InvokeException;
 
 import static org.klojang.util.ArrayMethods.pack;
 import static org.klojang.util.ObjectMethods.isEmpty;

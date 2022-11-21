@@ -1,9 +1,9 @@
 package org.klojang.path;
 
-import org.klojang.util.invoke.BeanWriter;
-import org.klojang.util.invoke.IllegalAssignmentException;
-import org.klojang.util.invoke.NoPublicSettersException;
-import org.klojang.util.invoke.NoSuchPropertyException;
+import org.klojang.invoke.BeanWriter;
+import org.klojang.invoke.IllegalAssignmentException;
+import org.klojang.invoke.NoPublicSettersException;
+import org.klojang.invoke.NoSuchPropertyException;
 
 import static org.klojang.util.ObjectMethods.isEmpty;
 import static org.klojang.path.PathWalkerException.*;

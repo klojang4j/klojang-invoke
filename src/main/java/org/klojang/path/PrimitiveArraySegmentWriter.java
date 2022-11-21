@@ -2,11 +2,11 @@ package org.klojang.path;
 
 import java.util.OptionalInt;
 
-import static org.klojang.invoke.x.InvokeUtils.getArrayLength;
-import static org.klojang.invoke.x.InvokeUtils.setArrayElement;
-import static org.klojang.util.NumberMethods.toInt;
 import static org.klojang.path.PathWalkerException.indexExpected;
 import static org.klojang.path.PathWalkerException.indexOutOfBounds;
+import static org.klojang.util.InvokeMethods.getArrayLength;
+import static org.klojang.util.InvokeMethods.setArrayElement;
+import static org.klojang.util.NumberMethods.toInt;
 
 final class PrimitiveArraySegmentWriter extends
     SegmentWriter<Object> {

@@ -1,7 +1,7 @@
 package org.klojang.invoke;
 
 import org.klojang.check.Check;
-import org.klojang.invoke.x.InvokeUtils;
+import org.klojang.util.InvokeMethods;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -12,6 +12,7 @@ import java.util.Map;
 import static java.util.Map.Entry;
 import static java.util.Map.entry;
 import static org.klojang.check.CommonChecks.empty;
+import static org.klojang.util.InvokeMethods.getPropertyNameFromSetter;
 
 /**
  * Provides and caches {@link Setter setters} for classes.
@@ -40,11 +41,11 @@ public final class SetterFactory {
   public Map<String, Setter> getSetters(Class<?> clazz) {
     Map<String, Setter> setters = cache.get(clazz);
     if (setters == null) {
-      List<Method> methods = InvokeUtils.getSetters(clazz);
+      List<Method> methods = InvokeMethods.getSetters(clazz);
       Check.that(methods).isNot(empty(), () -> new NoPublicSettersException(clazz));
       List<Entry<String, Setter>> entries = new ArrayList<>(methods.size());
       for (Method m : methods) {
-        String prop = InvokeUtils.getPropertyNameFromSetter(m);
+        String prop = getPropertyNameFromSetter(m);
         entries.add(entry(prop, new Setter(m, prop)));
       }
       setters = Map.ofEntries(entries.toArray(Entry[]::new));

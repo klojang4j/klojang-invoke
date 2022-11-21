@@ -1,7 +1,7 @@
 package org.klojang.path;
 
 import org.junit.Test;
-import org.klojang.util.path.Path;
+import org.klojang.path.Path;
 
 import java.util.Iterator;
 

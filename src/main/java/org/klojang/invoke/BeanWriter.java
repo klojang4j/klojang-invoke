@@ -3,7 +3,6 @@ package org.klojang.invoke;
 import org.klojang.check.Check;
 import org.klojang.check.Tag;
 import org.klojang.check.fallible.FallibleBiFunction;
-import org.klojang.util.Morph;
 import org.klojang.util.TypeConversionException;
 
 import java.util.HashMap;
@@ -26,29 +25,6 @@ import static org.klojang.invoke.NoSuchPropertyException.noSuchProperty;
  * @author Ayco Holleman
  */
 public final class BeanWriter<T> {
-
-  /**
-   * Returns a {@code BeanWriter} that allows for "loose typing" of the values to be
-   * assigned to the bean's properties. A {@link Morph} object will be used to adapt
-   * input values to the type of the destination property. You can optionally specify
-   * an array of properties that you intend to write. If you specify a zero-length
-   * array, all properties will be writable. If you intend to use this
-   * {@code BeanWriter} to repetitively write just one or two properties on bulky
-   * bean types, explicitly specifying the properties you intend to write might make
-   * the {@code BeanWriter} slightly more efficient.
-   *
-   * @param <U> The type of the bean
-   * @param beanClass the bean class
-   * @param properties the properties you allow to be written
-   * @return a {@code BeanWriter} with "loose typing" behavior
-   */
-  public static <U> BeanWriter<U> getTolerantWriter(Class<U> beanClass,
-      String... properties) {
-    return new BeanWriter<>(beanClass,
-        (setter, value) -> Morph.convert(value, setter.getParamType()),
-        INCLUDE,
-        properties);
-  }
 
   private final Class<T> beanClass;
   private final FallibleBiFunction<Setter, Object, Object, Throwable> converter;

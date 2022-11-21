@@ -1,7 +1,7 @@
 package org.klojang.invoke;
 
 import org.klojang.check.Check;
-import org.klojang.invoke.x.InvokeUtils;
+import org.klojang.util.InvokeMethods;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import java.util.Map;
 import static java.util.Map.Entry;
 import static java.util.Map.entry;
 import static org.klojang.check.CommonChecks.empty;
-import static org.klojang.invoke.x.InvokeUtils.getPropertyNameFromGetter;
+import static org.klojang.util.InvokeMethods.getPropertyNameFromGetter;
 
 /**
  * Provides and caches {@link Getter getters} for classes.
@@ -47,7 +47,7 @@ public final class GetterFactory {
   public Map<String, Getter> getGetters(Class<?> clazz, boolean strict) {
     Map<String, Getter> getters = cache.get(clazz);
     if (getters == null) {
-      List<Method> methods = InvokeUtils.getGetters(clazz, strict);
+      List<Method> methods = InvokeMethods.getGetters(clazz, strict);
       Check.that(methods).isNot(empty(), () -> new NoPublicGettersException(clazz));
       List<Entry<String, Getter>> entries = new ArrayList<>(methods.size());
       for (Method m : methods) {

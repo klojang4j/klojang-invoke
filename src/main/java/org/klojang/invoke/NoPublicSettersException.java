@@ -1,5 +1,7 @@
 package org.klojang.invoke;
 
+import org.klojang.util.InvokeException;
+
 /**
  * Thrown if a {@link BeanWriter} is created for a class with zero public setters, or
  * if they were all excluded while constructing the {@code BeanWriter}.

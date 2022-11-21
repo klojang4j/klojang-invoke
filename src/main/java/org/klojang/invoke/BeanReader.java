@@ -2,6 +2,7 @@ package org.klojang.invoke;
 
 import org.klojang.check.Check;
 import org.klojang.check.Tag;
+import org.klojang.util.InvokeException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -113,7 +114,7 @@ public final class BeanReader<T> {
     try {
       return (U) getter.read(bean);
     } catch (Throwable exc) {
-      throw InvokeException.wrap(exc, bean, getter);
+      throw Private.wrap(exc, bean, getter);
     }
   }
 

@@ -1,6 +1,7 @@
 package org.klojang.invoke;
 
 import org.klojang.util.ClassMethods;
+import org.klojang.util.InvokeException;
 
 import static org.klojang.util.ClassMethods.simpleClassName;
 import static org.klojang.util.ObjectMethods.ifNotNull;

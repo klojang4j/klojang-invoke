@@ -3,7 +3,7 @@ package org.klojang.path.util;
 import org.klojang.check.Check;
 import org.klojang.check.Tag;
 import org.klojang.check.aux.Result;
-import org.klojang.util.path.Path;
+import org.klojang.path.Path;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
