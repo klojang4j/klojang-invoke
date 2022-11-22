@@ -2,7 +2,6 @@ package org.klojang.invoke;
 
 import org.klojang.check.Check;
 import org.klojang.check.Tag;
-import org.klojang.util.InvokeException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -88,9 +87,9 @@ public final class BeanReader<T> {
       boolean strictNaming,
       IncludeExclude includeExclude,
       String... properties) {
-    Check.notNull(beanClass, Tags.BEAN_CLASS);
-    Check.notNull(includeExclude, Tags.INCLUDE_EXCLUDE);
-    Check.that(properties, Tags.PROPERTIES).is(deepNotNull());
+    Check.notNull(beanClass, Private.BEAN_CLASS);
+    Check.notNull(includeExclude, Private.INCLUDE_EXCLUDE);
+    Check.that(properties, Private.PROPERTIES).is(deepNotNull());
     this.beanClass = beanClass;
     this.getters = getGetters(strictNaming, includeExclude, properties);
   }

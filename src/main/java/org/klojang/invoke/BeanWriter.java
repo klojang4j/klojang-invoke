@@ -85,10 +85,10 @@ public final class BeanWriter<T> {
   public BeanWriter(Class<T> beanClass,
       IncludeExclude includeExclude,
       String... properties) {
-    this.beanClass = Check.notNull(beanClass, Tags.BEAN_CLASS).ok();
+    this.beanClass = Check.notNull(beanClass, Private.BEAN_CLASS).ok();
     this.converter = null;
-    Check.notNull(includeExclude, Tags.INCLUDE_EXCLUDE);
-    Check.notNull(properties, Tags.PROPERTIES);
+    Check.notNull(includeExclude, Private.INCLUDE_EXCLUDE);
+    Check.notNull(properties, Private.PROPERTIES);
     this.setters = getSetters(includeExclude, properties);
   }
 
@@ -126,10 +126,10 @@ public final class BeanWriter<T> {
       FallibleBiFunction<Setter, Object, Object, Throwable> converter,
       IncludeExclude includeExclude,
       String... properties) {
-    this.beanClass = Check.notNull(beanClass, Tags.BEAN_CLASS).ok();
-    this.converter = Check.notNull(converter, Tags.CONVERTER).ok();
-    Check.notNull(includeExclude, Tags.INCLUDE_EXCLUDE);
-    Check.notNull(properties, Tags.PROPERTIES);
+    this.beanClass = Check.notNull(beanClass, Private.BEAN_CLASS).ok();
+    this.converter = Check.notNull(converter, Private.CONVERTER).ok();
+    Check.notNull(includeExclude, Private.INCLUDE_EXCLUDE);
+    Check.notNull(properties, Private.PROPERTIES);
     this.setters = getSetters(includeExclude, properties);
   }
 
@@ -164,8 +164,8 @@ public final class BeanWriter<T> {
    *     {@code java.lang.invoke} package
    */
   public void copy(T fromBean, T toBean) throws Throwable {
-    Check.notNull(fromBean, Tags.SOURCE_BEAN);
-    Check.notNull(toBean, Tags.TARGET_BEAN);
+    Check.notNull(fromBean, Private.SOURCE_BEAN);
+    Check.notNull(toBean, Private.TARGET_BEAN);
     BeanReader<T> reader = getBeanReader();
     for (Setter setter : setters.values()) {
       set(toBean, setter, reader.read(fromBean, setter.getProperty()));
@@ -183,8 +183,8 @@ public final class BeanWriter<T> {
    *     {@code java.lang.invoke} package
    */
   public void copyNonNull(T fromBean, T toBean) throws Throwable {
-    Check.notNull(fromBean, Tags.SOURCE_BEAN);
-    Check.notNull(toBean, Tags.TARGET_BEAN);
+    Check.notNull(fromBean, Private.SOURCE_BEAN);
+    Check.notNull(toBean, Private.TARGET_BEAN);
     BeanReader<T> reader = getBeanReader();
     for (Setter setter : setters.values()) {
       Object v = reader.read(fromBean, setter.getProperty());
@@ -205,8 +205,8 @@ public final class BeanWriter<T> {
    *     {@code java.lang.invoke} package
    */
   public void enrich(T fromBean, T toBean) throws Throwable {
-    Check.notNull(fromBean, Tags.SOURCE_BEAN);
-    Check.notNull(toBean, Tags.TARGET_BEAN);
+    Check.notNull(fromBean, Private.SOURCE_BEAN);
+    Check.notNull(toBean, Private.TARGET_BEAN);
     BeanReader<T> reader = getBeanReader();
     for (Setter setter : setters.values()) {
       Object v = reader.read(fromBean, setter.getProperty());
@@ -233,8 +233,8 @@ public final class BeanWriter<T> {
    */
   public void copy(Map<String, ?> fromMap, T toBean)
       throws IllegalAssignmentException, Throwable {
-    Check.notNull(fromMap, Tags.SOURCE_MAP);
-    Check.notNull(toBean, Tags.TARGET_BEAN);
+    Check.notNull(fromMap, Private.SOURCE_MAP);
+    Check.notNull(toBean, Private.TARGET_BEAN);
     for (Map.Entry<String, ?> e : fromMap.entrySet()) {
       if (e.getKey() != null) {
         Setter setter = setters.get(e.getKey());
@@ -260,8 +260,8 @@ public final class BeanWriter<T> {
    *     {@code java.lang.invoke} package
    */
   public void copyNonNull(Map<String, ?> fromMap, T toBean) throws Throwable {
-    Check.notNull(fromMap, Tags.SOURCE_MAP);
-    Check.notNull(toBean, Tags.TARGET_BEAN);
+    Check.notNull(fromMap, Private.SOURCE_MAP);
+    Check.notNull(toBean, Private.TARGET_BEAN);
     for (Map.Entry<String, ?> e : fromMap.entrySet()) {
       if (e.getValue() != null && e.getKey() != null) {
         Setter setter = setters.get(e.getKey());
@@ -289,8 +289,8 @@ public final class BeanWriter<T> {
    */
   public void enrich(Map<String, ?> fromMap, T toBean)
       throws IllegalAssignmentException, Throwable {
-    Check.notNull(fromMap, Tags.SOURCE_MAP);
-    Check.notNull(toBean, Tags.TARGET_BEAN);
+    Check.notNull(fromMap, Private.SOURCE_MAP);
+    Check.notNull(toBean, Private.TARGET_BEAN);
     BeanReader<T> reader = getBeanReader();
     for (Map.Entry<String, ?> e : fromMap.entrySet()) {
       if (e.getValue() != null && e.getKey() != null) {
