@@ -1,18 +1,18 @@
 package org.klojang.invoke;
 
 import org.klojang.check.Check;
-import org.klojang.util.InvokeMethods;
+import org.klojang.util.ArrayMethods;
+import org.klojang.util.ClassMethods;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import static java.lang.Character.isUpperCase;
+import static java.lang.Character.toLowerCase;
+import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Map.Entry;
 import static java.util.Map.entry;
 import static org.klojang.check.CommonChecks.empty;
-import static org.klojang.util.InvokeMethods.getPropertyNameFromGetter;
 
 /**
  * Provides and caches {@link Getter getters} for classes.
@@ -27,6 +27,10 @@ public final class GetterFactory {
   public static final GetterFactory INSTANCE = new GetterFactory();
 
   private final Map<Class<?>, Map<String, Getter>> cache = new HashMap<>();
+
+  private static final Set<String> NON_GETTERS = Set.of("getClass",
+      "toString",
+      "hashCode");
 
   private GetterFactory() {}
 
@@ -47,7 +51,7 @@ public final class GetterFactory {
   public Map<String, Getter> getGetters(Class<?> clazz, boolean strict) {
     Map<String, Getter> getters = cache.get(clazz);
     if (getters == null) {
-      List<Method> methods = InvokeMethods.getGetters(clazz, strict);
+      List<Method> methods = getMethods(clazz, strict);
       Check.that(methods).isNot(empty(), () -> new NoPublicGettersException(clazz));
       List<Entry<String, Getter>> entries = new ArrayList<>(methods.size());
       for (Method m : methods) {
@@ -58,6 +62,74 @@ public final class GetterFactory {
       cache.put(clazz, getters);
     }
     return getters;
+  }
+
+  private static List<Method> getMethods(Class<?> clazz, boolean strict) {
+    Method[] methods = clazz.getMethods();
+    List<Method> getters = new ArrayList<>();
+    for (Method m : methods) {
+      if (isStatic(m.getModifiers())) {
+        continue;
+      } else if (m.getParameterCount() != 0) {
+        continue;
+      } else if (m.getReturnType() == void.class) {
+        continue;
+      } else if (NON_GETTERS.contains(m.getName())) {
+        continue;
+      } else if (strict && !clazz.isRecord() && !validGetterName(m)) {
+        continue;
+      }
+      getters.add(m);
+    }
+    return getters;
+  }
+
+  private static String getPropertyNameFromGetter(Method m, boolean strict) {
+    if (m.getDeclaringClass().isRecord()) {
+      return m.getName();
+    }
+    String n = m.getName();
+    if ((m.getReturnType() == boolean.class || m.getReturnType() == Boolean.class)
+        && n.length() > 2
+        && n.startsWith("is")
+        && isUpperCase(n.charAt(2))) {
+      return extractName(n, 2);
+    } else if (n.length() > 3 && n.startsWith("get") && isUpperCase(n.charAt(3))) {
+      return extractName(n, 3);
+    }
+    if (!strict) {
+      return n;
+    }
+    throw notAProperty(m);
+  }
+
+  private static String extractName(String n, int from) {
+    StringBuilder sb = new StringBuilder(n.length() - 3);
+    sb.append(n.substring(from));
+    sb.setCharAt(0, toLowerCase(sb.charAt(0)));
+    return sb.toString();
+  }
+
+  private static boolean validGetterName(Method m) {
+    String n = m.getName();
+    if (n.length() > 4 && n.startsWith("get") && isUpperCase(n.charAt(3))) {
+      return true;
+    }
+    if (n.length() > 3 && n.startsWith("is") && isUpperCase(n.charAt(2))) {
+      return m.getReturnType() == boolean.class
+          || m.getReturnType() == Boolean.class;
+    }
+    return false;
+  }
+
+  private static IllegalArgumentException notAProperty(Method m) {
+    String fmt = "method %s %s(%s) in class %s is not a getter";
+    String rt = ClassMethods.simpleClassName(m.getReturnType());
+    String clazz = ClassMethods.className(m.getDeclaringClass());
+    String params = ArrayMethods.implode(m.getParameterTypes(),
+        ClassMethods::simpleClassName);
+    String msg = String.format(fmt, rt, m.getName(), params, clazz);
+    return new IllegalArgumentException(msg);
   }
 
 }

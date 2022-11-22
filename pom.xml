@@ -87,7 +87,6 @@
         <!-- ==================================================================== -->
         <klojang-check.version>2.0.0</klojang-check.version>
         <klojang-util.version>1.0.0</klojang-util.version>
-        <!--klojang-collections.version>1.0.0</klojang-collections.version-->
         <junit.version>4.13.2</junit.version>
 
 
@@ -105,11 +104,6 @@
             <artifactId>klojang-util</artifactId>
             <version>${klojang-util.version}</version>
         </dependency>
-        <!--dependency>
-            <groupId>org.klojang</groupId>
-            <artifactId>klojang-collections</artifactId>
-            <version>${klojang-collections.version}</version>
-        </dependency-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
