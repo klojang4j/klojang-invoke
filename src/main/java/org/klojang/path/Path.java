@@ -4,7 +4,7 @@ import org.klojang.check.Check;
 import org.klojang.check.Tag;
 import org.klojang.check.aux.Emptyable;
 import org.klojang.util.ArrayMethods;
-import org.klojang.util.NumberMethods;
+import org.klojang.convert.NumberMethods;
 import org.klojang.util.StringMethods;
 
 import java.util.ArrayList;

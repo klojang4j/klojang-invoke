@@ -3,7 +3,7 @@ package org.klojang.path;
 import java.util.OptionalInt;
 
 import static org.klojang.path.PathWalkerException.*;
-import static org.klojang.util.NumberMethods.toInt;
+import static org.klojang.convert.NumberMethods.toInt;
 
 final class ArraySegmentWriter extends SegmentWriter<Object[]> {
 

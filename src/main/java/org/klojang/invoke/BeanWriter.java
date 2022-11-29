@@ -3,7 +3,7 @@ package org.klojang.invoke;
 import org.klojang.check.Check;
 import org.klojang.check.Tag;
 import org.klojang.check.fallible.FallibleBiFunction;
-import org.klojang.util.TypeConversionException;
+import org.klojang.convert.TypeConversionException;
 
 import java.util.HashMap;
 import java.util.Map;

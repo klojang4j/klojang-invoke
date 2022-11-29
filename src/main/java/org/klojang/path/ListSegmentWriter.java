@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.OptionalInt;
 
 import static org.klojang.path.PathWalkerException.*;
-import static org.klojang.util.NumberMethods.toInt;
+import static org.klojang.convert.NumberMethods.toInt;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 final class ListSegmentWriter extends SegmentWriter<List> {

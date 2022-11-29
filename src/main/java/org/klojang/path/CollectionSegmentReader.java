@@ -6,7 +6,7 @@ import java.util.OptionalInt;
 
 import static org.klojang.path.PathWalkerException.indexExpected;
 import static org.klojang.path.PathWalkerException.indexOutOfBounds;
-import static org.klojang.util.NumberMethods.toInt;
+import static org.klojang.convert.NumberMethods.toInt;
 
 @SuppressWarnings("rawtypes")
 final class CollectionSegmentReader extends SegmentReader<Collection> {

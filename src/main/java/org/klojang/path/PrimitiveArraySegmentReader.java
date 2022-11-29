@@ -6,7 +6,7 @@ import static org.klojang.path.PathWalkerException.indexExpected;
 import static org.klojang.path.PathWalkerException.indexOutOfBounds;
 import static org.klojang.util.InvokeMethods.getArrayElement;
 import static org.klojang.util.InvokeMethods.getArrayLength;
-import static org.klojang.util.NumberMethods.toInt;
+import static org.klojang.convert.NumberMethods.toInt;
 
 final class PrimitiveArraySegmentReader extends
     SegmentReader<Object> {
