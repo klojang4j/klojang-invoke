@@ -1,6 +1,7 @@
 package org.klojang.invoke;
 
 import org.junit.Test;
+import org.klojang.util.InvokeException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -96,7 +97,73 @@ public class BeanReaderTest {
     assertEquals(7, (int) reader.read(tr, "foo"));
     assertEquals("eight", reader.read(tr, "bar"));
     assertEquals(ld, reader.read(tr, "bozo"));
+  }
 
+  @Test
+  public void test07() {
+    Person p0 = new Person();
+    p0.setId(42);
+    p0.setFirstName("John");
+    p0.setLastName("Smith");
+    p0.setHobbies(List.of("Soccer", "Tennis"));
+    p0.setLastModified(LocalDate.of(2022, 03, 07));
+    BeanReader<Person> reader = BeanReader.forClass(Person.class)
+        .withInt("id")
+        .withString("firstName", "lastName")
+        .with(LocalDate.class, "lastModified")
+        .with(List.class, "hobbies").build();
+    assertEquals(42, (int) reader.read(p0, "id"));
+    assertEquals(p0.getFirstName(), reader.read(p0, "firstName"));
+    assertEquals(p0.getLastName(), reader.read(p0, "lastName"));
+    assertEquals(p0.getHobbies(), reader.read(p0, "hobbies"));
+    assertEquals(p0.getLastModified(), reader.read(p0, "lastModified"));
+  }
+
+  @Test(expected = InvokeException.class)
+  public void test08() {
+    // getPrivateData() exists, but is private
+    BeanReader.forClass(Person.class).withInt("privateData");
+  }
+
+  @Test(expected = InvokeException.class)
+  public void test09() {
+    // no such method
+    BeanReader.forClass(Person.class).withInt("skoobidoobi");
+  }
+
+  @Test(expected = InvokeException.class)
+  public void test10() {
+    BeanReader.forClass(Person.class).withString("id");
+  }
+
+  @Test(expected = InvokeException.class)
+  public void test11() {
+    BeanReader.forClass(Person.class).withInt("id", "id");
+  }
+
+  @Test(expected = InvokeException.class)
+  public void test12() {
+    BeanReader.forClass(Person.class).withInt("id").with(int.class, "id");
+  }
+
+  @Test
+  public void test13() {
+    Person p0 = new Person();
+    p0.setId(42);
+    p0.setFirstName("John");
+    p0.setLastName("Smith");
+    p0.setHobbies(List.of("Soccer", "Tennis"));
+    p0.setLastModified(LocalDate.of(2022, 03, 07));
+    BeanReader<Person> reader = BeanReader.forClass(Person.class)
+        .withGetter(int.class, "getId")
+        .withGetter(String.class, "getFirstName", "getLastName")
+        .withGetter(LocalDate.class, "getLastModified")
+        .withGetter(List.class, "getHobbies").build();
+    assertEquals(42, (int) reader.read(p0, "id"));
+    assertEquals(p0.getFirstName(), reader.read(p0, "firstName"));
+    assertEquals(p0.getLastName(), reader.read(p0, "lastName"));
+    assertEquals(p0.getHobbies(), reader.read(p0, "hobbies"));
+    assertEquals(p0.getLastModified(), reader.read(p0, "lastModified"));
   }
 
 }

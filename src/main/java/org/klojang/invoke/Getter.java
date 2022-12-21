@@ -14,18 +14,24 @@ import static java.lang.invoke.MethodHandles.lookup;
  */
 public final class Getter {
 
-  private final Method method;
+  private final Class<?> returnType;
   private final MethodHandle mh;
   private final String property;
 
   Getter(Method method, String property) {
-    this.method = method;
+    this.returnType = method.getReturnType();
     this.property = property;
     try {
       this.mh = lookup().unreflect(method);
     } catch (IllegalAccessException e) {
       throw ExceptionMethods.uncheck(e);
     }
+  }
+
+  Getter(MethodHandle mh, String property, Class<?> returnType) {
+    this.mh = mh;
+    this.property = property;
+    this.returnType = returnType;
   }
 
   /**
@@ -43,7 +49,7 @@ public final class Getter {
    * @return the type of the property
    */
   public Class<?> getReturnType() {
-    return method.getReturnType();
+    return returnType;
   }
 
   /**

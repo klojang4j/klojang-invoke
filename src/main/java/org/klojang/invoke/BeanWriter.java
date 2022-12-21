@@ -15,11 +15,12 @@ import static org.klojang.invoke.IncludeExclude.INCLUDE;
 import static org.klojang.invoke.NoSuchPropertyException.noSuchProperty;
 
 /**
- * A dynamic bean writer class. This class uses the {@code java.lang.invoke} package
- * instead of reflection to read bean properties. Yet it still uses reflection to
- * identify the public getters of the bean class. Therefore, if you use this class
- * from within a Java module you must open the module to the naturalis-common
- * module.
+ * A dynamic bean writer class. This class uses method handles instead of reflection
+ * to write bean properties. However, it still uses reflection to figure out what
+ * those properties are in the first place. Therefore, if you use this class from
+ * within a Java module you must open the module to the klojang-invoke module.
+ * Reflection is used only transiently. No reflection objects are cached. They are
+ * disposed of once the required information has been extracted from them.
  *
  * @param <T> The type of the bean
  * @author Ayco Holleman

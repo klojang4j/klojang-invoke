@@ -13,12 +13,14 @@ import java.lang.reflect.Method;
  */
 public final class Setter {
 
-  private final Method method;
+  private final Class<?> declaredIn;
+  private final Class<?> paramType;
   private final MethodHandle mh;
   private final String property;
 
   Setter(Method method, String property) {
-    this.method = method;
+    this.declaredIn = method.getDeclaringClass();
+    this.paramType = method.getParameterTypes()[0];
     this.property = property;
     try {
       this.mh = MethodHandles.lookup().unreflect(method);
@@ -28,9 +30,9 @@ public final class Setter {
   }
 
   /**
-   * Returns the name of the property.
+   * Returns the name of the property being set by this {@code Setter}.
    *
-   * @return the name of the property
+   * @return the name of the property being set by this {@code Setter}
    */
   public String getProperty() {
     return property;
@@ -42,7 +44,7 @@ public final class Setter {
    * @return the type of the property
    */
   public Class<?> getParamType() {
-    return method.getParameterTypes()[0];
+    return paramType;
   }
 
   /**
@@ -80,7 +82,7 @@ public final class Setter {
    */
   public IllegalAssignmentException illegalAssignment(Object value) {
     return new IllegalAssignmentException(
-        method.getDeclaringClass(),
+        declaredIn,
         property,
         getParamType(),
         value);

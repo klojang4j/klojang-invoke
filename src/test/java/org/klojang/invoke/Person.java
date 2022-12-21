@@ -150,4 +150,13 @@ public class Person {
   public void setSomeCharSequence(CharSequence someCharSequence) {
     this.someCharSequence = someCharSequence;
   }
+
+  private int getPrivateData() {
+    return 7;
+  }
+
+  private void setPrivateData(int data) {
+    // ...
+  }
+
 }
