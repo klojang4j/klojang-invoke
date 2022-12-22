@@ -15,9 +15,10 @@ import static org.klojang.check.CommonChecks.keyIn;
 /**
  * A {@code Builder} class for {@link BeanReader} instances. Use this class if the
  * bean class resides in a Java 9+ module that does not allow reflective access to
- * its classes.
+ * its classes, or if you need or prefer 100% reflection-free bean readers for other
+ * reasons.
  *
- * @param <T>
+ * @param <T> the type of the objects to be read by the {@code BeanReader}.
  */
 public final class BeanReaderBuilder<T> {
 
@@ -30,9 +31,7 @@ public final class BeanReaderBuilder<T> {
   }
 
   /**
-   * Registers the specified properties as properties of type {@code int}. The
-   * properties must correspond to public getters on the bean class for which to
-   * create the {@link BeanReader}.
+   * Registers the specified names as {@code int} properties on the bean class.
    *
    * @param properties the property names
    * @return this instance
@@ -42,9 +41,7 @@ public final class BeanReaderBuilder<T> {
   }
 
   /**
-   * Registers the specified properties as properties of type {@code String}. The
-   * properties must correspond to public getters on the bean class for which to
-   * create the {@link BeanReader}.
+   * Registers the specified names as {@code String} properties on the bean class.
    *
    * @param properties the property names
    * @return this instance
@@ -54,11 +51,9 @@ public final class BeanReaderBuilder<T> {
   }
 
   /**
-   * Registers the specified properties as properties of the specified type. The
-   * properties must correspond to public getters on the bean class for which to
-   * create the {@link BeanReader}. If the bean class is a {@code record} type, there
-   * is no difference between calling this method and calling
-   * {@link #withGetter(Class, String...) withGetter()}.
+   * Registers the specified names as properties of the specified type. If the bean
+   * class is a {@code record} type, there is no difference between calling this
+   * method and calling {@link #withGetter(Class, String...) withGetter()}.
    *
    * @param type the type of the properties
    * @param properties the property names
@@ -78,11 +73,12 @@ public final class BeanReaderBuilder<T> {
   }
 
   /**
-   * Registers the specified names as getters with the specified return type.
-   * Especially meant to register getters with names that do not conform to the
-   * JavaBeans naming conventions. The names are supposed to be the complete method
-   * name of a public getter on the bean class. For example: "getLastName". If the
-   * bean class is a {@code record} type, there is no difference between calling this
+   * Registers the specified method names as getters with the specified return type.
+   * You can use this method to register getter-type methods (zero parameters,
+   * non-void return type) with names that do not conform to the JavaBeans naming
+   * conventions. The provided names are supposed to be <i>complete</i> method names
+   * of public getters on the bean class. For example: "getLastName". If the bean
+   * class is a {@code record} type, there is no difference between calling this
    * method and calling {@link #with(Class, String...) with()}.
    *
    * @param returnType the return type of the specified getters

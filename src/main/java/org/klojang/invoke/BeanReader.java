@@ -14,14 +14,15 @@ import static org.klojang.invoke.NoSuchPropertyException.noSuchProperty;
 /**
  * A dynamic bean reader class. This class uses method handles instead of reflection
  * to read bean properties. However, it still uses reflection to figure out what
- * those properties are in the first place. Therefore, if you use this class from
- * within a Java module you must open the module to the klojang-invoke module.
- * Reflection is used only transiently. No reflection objects are cached. They are
- * disposed of once the required information has been extracted from them.
+ * those properties are in the first place. Therefore, if you use a
+ * {@code BeanReader} to read beans residing in a Java 9+ module, that module must be
+ * "open" to reflective access. Reflection is used only transiently. No reflection
+ * objects are cached. They are disposed of once the required information has been
+ * extracted from them.
  *
- * <p>If you do not want to open up your module for reflection, you can use the
- * {@link #forClass(Class) forClass()} method to obtain a {@link BeanReaderBuilder}.
- * This class enables reflection-free configuration of {@link BeanReader} instances
+ * <p>If you prefer, you can use the {@link BeanReaderBuilder} class to configure
+ * {@link BeanReader} instances in a completely reflection-free manner. You obtain a
+ * {@code BeanReaderBuilder} via {@link #forClass(Class) BeanReader.forClass()}.
  *
  * @param <T> The type of the bean
  * @author Ayco Holleman
@@ -30,7 +31,7 @@ public final class BeanReader<T> {
 
   /**
    * Returns a {@code Builder} for {@code BeanReader} instances. Note that the
-   * specified bean class can be also be a {@code record} or {@code enum} type.
+   * specified type may just as well be a {@code record} or {@code enum} type.
    *
    * @param beanClass the class for which to create a {@code BeanReader}
    * @param <T> the type of the objects to be read
