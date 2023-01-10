@@ -10,7 +10,7 @@ import java.util.Map;
 
 import static java.lang.Character.*;
 import static java.lang.invoke.MethodType.methodType;
-import static org.klojang.check.CommonChecks.keyIn;
+import static org.klojang.check.CommonChecks.*;
 
 /**
  * A {@code Builder} class for {@link BeanReader} instances. Use this class if the
@@ -22,12 +22,12 @@ import static org.klojang.check.CommonChecks.keyIn;
  */
 public final class BeanReaderBuilder<T> {
 
-  private final Class<T> beanClass;
+  private final Class<T> clazz;
 
   private final Map<String, Getter> getters = new HashMap<>();
 
   BeanReaderBuilder(Class<T> beanClass) {
-    this.beanClass = beanClass;
+    this.clazz = beanClass;
   }
 
   /**
@@ -102,15 +102,18 @@ public final class BeanReaderBuilder<T> {
    * Returns a new {@code BeanReader} for instances of type {@code T}.
    *
    * @return a new {@code BeanReader} for instances of type {@code T}
+   * @throws NoPublicGettersException if no properties have been added yet via
+   *     the various {@code with***} methods
    */
-  public BeanReader<T> build() {
-    return new BeanReader<>(beanClass, Map.copyOf(getters));
+  public BeanReader<T> build() throws NoPublicGettersException {
+    Check.that(getters).isNot(empty(), () -> new NoPublicGettersException(clazz));
+    return new BeanReader<>(clazz, Map.copyOf(getters));
   }
 
   private Getter getGetter(String property, String method, Class<?> type) {
     try {
       MethodHandle mh = MethodHandles.publicLookup()
-          .findVirtual(beanClass, method, methodType(type));
+          .findVirtual(clazz, method, methodType(type));
       return new Getter(mh, property, type);
     } catch (NoSuchMethodException | IllegalAccessException e) {
       throw new InvokeException(e.toString());
@@ -118,7 +121,7 @@ public final class BeanReaderBuilder<T> {
   }
 
   private String getPropertyFromMethodName(String method, Class<?> type) {
-    if (beanClass.isRecord()) {
+    if (clazz.isRecord()) {
       return method;
     }
     if ((type == boolean.class || type == Boolean.class)
@@ -135,7 +138,7 @@ public final class BeanReaderBuilder<T> {
   }
 
   private String getMethodNameFromProperty(String prop, Class<?> type) {
-    if (beanClass.isRecord()) {
+    if (clazz.isRecord()) {
       return prop;
     }
     String methodName;
