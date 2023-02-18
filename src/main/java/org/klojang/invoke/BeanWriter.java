@@ -308,7 +308,7 @@ public final class BeanWriter<T> {
    *
    * @return The type of the objects this {@code BeanWriter} can write to
    */
-  public Class<? super T> getBeanClass() {
+  public Class<T> getBeanClass() {
     return beanClass;
   }
 

@@ -23,7 +23,7 @@ public final class Setter {
     this.paramType = method.getParameterTypes()[0];
     this.property = property;
     try {
-      this.mh = MethodHandles.lookup().unreflect(method);
+      this.mh = MethodHandles.publicLookup().unreflect(method);
     } catch (IllegalAccessException e) {
       throw ExceptionMethods.uncheck(e);
     }

@@ -16,7 +16,8 @@ import static org.klojang.check.CommonChecks.*;
  * A {@code Builder} class for {@link BeanReader} instances. Use this class if the
  * bean class resides in a Java 9+ module that does not allow reflective access to
  * its classes, or if you need or prefer 100% reflection-free bean readers for other
- * reasons.
+ * reasons. You obtain a {@code BeanReaderBuilder} instance through
+ * {@link BeanReader#forClass(Class) BeanReader.forClass()}.
  *
  * @param <T> the type of the objects to be read by the {@code BeanReader}.
  */

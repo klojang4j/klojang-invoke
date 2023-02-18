@@ -41,7 +41,7 @@ public final class BeanReader<T> {
     return new BeanReaderBuilder<>(beanClass);
   }
 
-  private final Class<? super T> beanClass;
+  private final Class<T> beanClass;
   private final Map<String, Getter> getters;
 
   /**
@@ -54,7 +54,7 @@ public final class BeanReader<T> {
    * @param beanClass the bean class
    * @param properties the properties to be included/excluded
    */
-  public BeanReader(Class<? super T> beanClass, String... properties) {
+  public BeanReader(Class<T> beanClass, String... properties) {
     this(beanClass, true, INCLUDE, properties);
   }
 
@@ -70,7 +70,7 @@ public final class BeanReader<T> {
    *     properties
    * @param properties the properties to be included/excluded
    */
-  public BeanReader(Class<? super T> beanClass,
+  public BeanReader(Class<T> beanClass,
       IncludeExclude includeExclude,
       String... properties) {
     this(beanClass, true, includeExclude, properties);
@@ -101,7 +101,7 @@ public final class BeanReader<T> {
    *     specified properties
    * @param properties the properties to be included/excluded
    */
-  public BeanReader(Class<? super T> beanClass,
+  public BeanReader(Class<T> beanClass,
       boolean strictNaming,
       IncludeExclude includeExclude,
       String... properties) {
@@ -145,7 +145,7 @@ public final class BeanReader<T> {
    *
    * @return the class of the objects {@code BeanReader} can read
    */
-  public Class<? super T> getBeanClass() {
+  public Class<T> getBeanClass() {
     return beanClass;
   }
 

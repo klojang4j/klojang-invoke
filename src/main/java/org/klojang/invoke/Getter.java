@@ -5,7 +5,7 @@ import org.klojang.util.ExceptionMethods;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
 
-import static java.lang.invoke.MethodHandles.lookup;
+import static java.lang.invoke.MethodHandles.*;
 
 /**
  * Represents a getter for a single property.
@@ -22,7 +22,7 @@ public final class Getter {
     this.returnType = method.getReturnType();
     this.property = property;
     try {
-      this.mh = lookup().unreflect(method);
+      this.mh = publicLookup().unreflect(method);
     } catch (IllegalAccessException e) {
       throw ExceptionMethods.uncheck(e);
     }
