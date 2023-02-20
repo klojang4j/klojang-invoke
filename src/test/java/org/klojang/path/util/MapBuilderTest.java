@@ -4,11 +4,10 @@ import org.junit.Test;
 import org.klojang.check.aux.Result;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
-import static org.klojang.path.util.MapBuilder.PathBlockedException;
+import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.klojang.path.util.MapBuilder.PathBlockedException;
 
 public class MapBuilderTest {
 
@@ -513,6 +512,34 @@ public class MapBuilderTest {
     assertEquals("car", mw.where());
     mw = mw.up("");
     assertEquals("", mw.where());
+  }
+
+  @Test
+  public void add00() {
+    MapBuilder mw = new MapBuilder();
+    mw.add("foo", 1);
+    mw.add("foo", 2);
+    mw.add("foo", 3);
+    List l = (List) mw.createMap().get("foo");
+    assertEquals(List.of(1, 2, 3), l);
+  }
+
+  @Test
+  public void add01() {
+    MapBuilder mw = new MapBuilder();
+    mw.set("foo", new HashSet<>());
+    mw.add("foo", 1);
+    mw.add("foo", 2);
+    mw.add("foo", 3);
+    Set s = (Set) mw.createMap().get("foo");
+    assertEquals(Set.of(1, 2, 3), s);
+  }
+
+  @Test(expected = PathBlockedException.class)
+  public void add02() {
+    MapBuilder mw = new MapBuilder();
+    mw.set("foo", "hello world");
+    mw.add("foo", 1);
   }
 
 }

@@ -5,8 +5,7 @@ import org.klojang.check.Tag;
 import org.klojang.check.aux.Result;
 import org.klojang.path.Path;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.klojang.check.CommonChecks.*;
 import static org.klojang.check.CommonExceptions.STATE;
@@ -69,6 +68,10 @@ public final class MapBuilder {
 
     private PathBlockedException(Path path, Object value) {
       super(createMessage(path, value));
+    }
+
+    private PathBlockedException(String msg) {
+      super(msg);
     }
 
     private static String createMessage(Path path, Object value) {
@@ -165,6 +168,32 @@ public final class MapBuilder {
   }
 
   /**
+   * <p>Appends the specified element to the {@code Collection} found at the
+   * specified path. If the path has not been set yet, it will first be set to an
+   * empty list, to which the element will be added. If the path is set to a
+   * non-{@code Collection} type, a {@link PathBlockedException} is thrown.
+   *
+   * @param path the path
+   * @param element the element to add to the collection found or created at the
+   *     specified path
+   * @return this {@code MapBuilder}
+   */
+  public MapBuilder add(String path, Object element) {
+    Check.notNull(path, Tag.PATH);
+    Result<Object> result = poll(path);
+    if (result.isAvailable()) {
+      Check.on(PathBlockedException::new, result.get(), path)
+          .is(instanceOf(), Collection.class)
+          .then(o -> ((Collection) o).add(element));
+    } else {
+      List list = new ArrayList();
+      list.add(element);
+      set(path, list);
+    }
+    return this;
+  }
+
+  /**
    * Returns a {@link Result} object containing the value of the specified path, or
    * {@link Result#notAvailable} if the path is not set.
    *
@@ -192,8 +221,8 @@ public final class MapBuilder {
 
   /**
    * Returns a {@code MapBuilder} for the map at the specified path. Once this method
-   * has been called, <i>all</i> paths subsequently specified (including for
-   * subsequent calls to {@code in}) will be taken relative to the specified path. If
+   * has been called, <i>all subsequently specified paths</i> (including for
+   * subsequent calls to {@code in()}) are taken relative to the specified path. If
    * there is no map yet at the specified path, it will be created. Ancestral maps
    * will be created as well, as and when needed. If any of the segments in the path
    * (including the last segment) has already been set, a
@@ -336,7 +365,10 @@ public final class MapBuilder {
    * @return the {@code Map} resulting from the write actions
    */
   public Map<String, Object> createMap() {
-    return createMap(this);
+    MapBuilder mb = this;
+    for (; mb.parent != null; mb = mb.parent)
+      ;
+    return createMap(mb);
   }
 
   /**
@@ -392,7 +424,7 @@ public final class MapBuilder {
     Object val = writer.map.get(key);
     if (val instanceof MapBuilder nested) {
       if (path.size() == 1) {
-        return Result.of(nested.createMap());
+        return Result.of(createMap(nested));
       }
       return poll(nested, path.shift());
     } else if (path.size() == 1 && val != null) {
