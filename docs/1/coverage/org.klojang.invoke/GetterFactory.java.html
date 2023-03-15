@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GetterFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Klojang Invoke</a> &gt; <a href="index.source.html" class="el_package">org.klojang.invoke</a> &gt; <span class="el_source">GetterFactory.java</span></div><h1>GetterFactory.java</h1><pre class="source lang-java linenums">package org.klojang.invoke;
+
+import org.klojang.check.Check;
+import org.klojang.util.ArrayMethods;
+import org.klojang.util.ClassMethods;
+
+import java.lang.reflect.Method;
+import java.util.*;
+
+import static java.lang.Character.isUpperCase;
+import static java.lang.Character.toLowerCase;
+import static java.lang.reflect.Modifier.isStatic;
+import static java.util.Map.Entry;
+import static java.util.Map.entry;
+import static org.klojang.check.CommonChecks.empty;
+
+/**
+ * Provides and caches {@link Getter getters} for classes.
+ *
+ * @author Ayco Holleman
+ */
+public final class GetterFactory {
+
+  /**
+   * The one and only instance of {@code GetterFactory}.
+   */
+<span class="fc" id="L27">  public static final GetterFactory INSTANCE = new GetterFactory();</span>
+
+<span class="fc" id="L29">  private final Map&lt;Class&lt;?&gt;, Map&lt;String, Getter&gt;&gt; cache = new HashMap&lt;&gt;();</span>
+
+<span class="fc" id="L31">  private static final Set&lt;String&gt; NON_GETTERS = Set.of(&quot;getClass&quot;,</span>
+      &quot;toString&quot;,
+      &quot;hashCode&quot;);
+
+<span class="fc" id="L35">  private GetterFactory() {}</span>
+
+  /**
+   * Returns the public {@link Getter getters} for the specified class. The returned
+   * {@code Map} maps property names to {@code Getter} instances.
+   *
+   * @param clazz the class for which to retrieve the public getters
+   * @param strict if {@code false}, all methods with a zero-length parameter
+   *     list and a non-{@code void} return type, except {@code getClass()},
+   *     {@code hashCode()} and {@code toString()}, will be regarded as getters.
+   *     Otherwise JavaBeans naming conventions will be applied regarding which
+   *     methods qualify as getters, with the exception that methods returning a
+   *     {@link Boolean} are allowed to have a name starting with &quot;is&quot;.
+   * @return the public getters of the specified class
+   * @throws IllegalAssignmentException if the does not have any public getters
+   */
+  public Map&lt;String, Getter&gt; getGetters(Class&lt;?&gt; clazz, boolean strict) {
+<span class="fc" id="L52">    Map&lt;String, Getter&gt; getters = cache.get(clazz);</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">    if (getters == null) {</span>
+<span class="fc" id="L54">      List&lt;Method&gt; methods = getMethods(clazz, strict);</span>
+<span class="pc" id="L55">      Check.that(methods).isNot(empty(), () -&gt; new NoPublicGettersException(clazz));</span>
+<span class="fc" id="L56">      List&lt;Entry&lt;String, Getter&gt;&gt; entries = new ArrayList&lt;&gt;(methods.size());</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">      for (Method m : methods) {</span>
+<span class="fc" id="L58">        String prop = getPropertyNameFromGetter(m, strict);</span>
+<span class="fc" id="L59">        entries.add(entry(prop, new Getter(m, prop)));</span>
+<span class="fc" id="L60">      }</span>
+<span class="fc" id="L61">      getters = Map.ofEntries(entries.toArray(Entry[]::new));</span>
+<span class="fc" id="L62">      cache.put(clazz, getters);</span>
+    }
+<span class="fc" id="L64">    return getters;</span>
+  }
+
+  private static List&lt;Method&gt; getMethods(Class&lt;?&gt; clazz, boolean strict) {
+<span class="fc" id="L68">    Method[] methods = clazz.getMethods();</span>
+<span class="fc" id="L69">    List&lt;Method&gt; getters = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">    for (Method m : methods) {</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">      if (isStatic(m.getModifiers())) {</span>
+<span class="nc" id="L72">        continue;</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">      } else if (m.getParameterCount() != 0) {</span>
+<span class="fc" id="L74">        continue;</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">      } else if (m.getReturnType() == void.class) {</span>
+<span class="fc" id="L76">        continue;</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">      } else if (NON_GETTERS.contains(m.getName())) {</span>
+<span class="fc" id="L78">        continue;</span>
+<span class="pc bpc" id="L79" title="2 of 6 branches missed.">      } else if (strict &amp;&amp; !clazz.isRecord() &amp;&amp; !validGetterName(m)) {</span>
+<span class="nc" id="L80">        continue;</span>
+      }
+<span class="fc" id="L82">      getters.add(m);</span>
+    }
+<span class="fc" id="L84">    return getters;</span>
+  }
+
+  private static String getPropertyNameFromGetter(Method m, boolean strict) {
+<span class="fc bfc" id="L88" title="All 2 branches covered.">    if (m.getDeclaringClass().isRecord()) {</span>
+<span class="fc" id="L89">      return m.getName();</span>
+    }
+<span class="fc" id="L91">    String n = m.getName();</span>
+<span class="pc bpc" id="L92" title="1 of 4 branches missed.">    if ((m.getReturnType() == boolean.class || m.getReturnType() == Boolean.class)</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        &amp;&amp; n.length() &gt; 2</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        &amp;&amp; n.startsWith(&quot;is&quot;)</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        &amp;&amp; isUpperCase(n.charAt(2))) {</span>
+<span class="fc" id="L96">      return extractName(n, 2);</span>
+<span class="pc bpc" id="L97" title="3 of 6 branches missed.">    } else if (n.length() &gt; 3 &amp;&amp; n.startsWith(&quot;get&quot;) &amp;&amp; isUpperCase(n.charAt(3))) {</span>
+<span class="fc" id="L98">      return extractName(n, 3);</span>
+    }
+<span class="nc bnc" id="L100" title="All 2 branches missed.">    if (!strict) {</span>
+<span class="nc" id="L101">      return n;</span>
+    }
+<span class="nc" id="L103">    throw notAProperty(m);</span>
+  }
+
+  private static String extractName(String n, int from) {
+<span class="fc" id="L107">    StringBuilder sb = new StringBuilder(n.length() - 3);</span>
+<span class="fc" id="L108">    sb.append(n.substring(from));</span>
+<span class="fc" id="L109">    sb.setCharAt(0, toLowerCase(sb.charAt(0)));</span>
+<span class="fc" id="L110">    return sb.toString();</span>
+  }
+
+  private static boolean validGetterName(Method m) {
+<span class="fc" id="L114">    String n = m.getName();</span>
+<span class="pc bpc" id="L115" title="2 of 6 branches missed.">    if (n.length() &gt; 4 &amp;&amp; n.startsWith(&quot;get&quot;) &amp;&amp; isUpperCase(n.charAt(3))) {</span>
+<span class="fc" id="L116">      return true;</span>
+    }
+<span class="pc bpc" id="L118" title="3 of 6 branches missed.">    if (n.length() &gt; 3 &amp;&amp; n.startsWith(&quot;is&quot;) &amp;&amp; isUpperCase(n.charAt(2))) {</span>
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">      return m.getReturnType() == boolean.class</span>
+<span class="pc bnc" id="L120" title="All 2 branches missed.">          || m.getReturnType() == Boolean.class;</span>
+    }
+<span class="nc" id="L122">    return false;</span>
+  }
+
+  private static IllegalArgumentException notAProperty(Method m) {
+<span class="nc" id="L126">    String fmt = &quot;method %s %s(%s) in class %s is not a getter&quot;;</span>
+<span class="nc" id="L127">    String rt = ClassMethods.simpleClassName(m.getReturnType());</span>
+<span class="nc" id="L128">    String clazz = ClassMethods.className(m.getDeclaringClass());</span>
+<span class="nc" id="L129">    String params = ArrayMethods.implode(m.getParameterTypes(),</span>
+        ClassMethods::simpleClassName);
+<span class="nc" id="L131">    String msg = String.format(fmt, rt, m.getName(), params, clazz);</span>
+<span class="nc" id="L132">    return new IllegalArgumentException(msg);</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

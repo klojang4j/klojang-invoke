@@ -1,3 +1,6 @@
+/**
+ * Dynamic invocation utilities.
+ */
 module org.klojang.invoke {
 
   exports org.klojang.invoke;

@@ -1,0 +1,37 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+Klojang Invoke,org.klojang.path.util,MapBuilder.PathBlockedException,0,34,0,2,0,8,0,4,0,3
+Klojang Invoke,org.klojang.path.util,MapBuilder,4,590,1,37,0,128,1,52,0,34
+Klojang Invoke,org.klojang.path,ArraySegmentWriter,9,53,2,6,1,14,2,4,0,2
+Klojang Invoke,org.klojang.path,CollectionSegmentReader,12,50,4,6,2,10,4,3,0,2
+Klojang Invoke,org.klojang.path,SegmentReader,0,18,0,2,0,7,0,3,0,2
+Klojang Invoke,org.klojang.path,BeanSegmentReader,24,41,0,2,5,8,0,3,0,2
+Klojang Invoke,org.klojang.path,KeyDeserializationException,0,7,0,0,0,4,0,2,0,2
+Klojang Invoke,org.klojang.path,ObjectWriter,2,144,1,15,1,29,1,10,0,3
+Klojang Invoke,org.klojang.path,MapSegmentReader,15,43,0,6,3,9,0,5,0,2
+Klojang Invoke,org.klojang.path,PathWalker,0,295,1,5,0,52,1,19,0,17
+Klojang Invoke,org.klojang.path,MapSegmentWriter,7,42,0,2,1,13,0,3,0,2
+Klojang Invoke,org.klojang.path,PathWalkerException,0,463,0,2,0,55,0,28,0,27
+Klojang Invoke,org.klojang.path,ErrorCode,0,75,0,0,0,13,0,1,0,1
+Klojang Invoke,org.klojang.path,ObjectReader,8,105,1,13,2,18,1,9,0,3
+Klojang Invoke,org.klojang.path,BeanSegmentWriter,21,53,1,1,3,15,1,2,0,2
+Klojang Invoke,org.klojang.path,Path,4,686,4,57,0,120,4,66,0,39
+Klojang Invoke,org.klojang.path,PrimitiveArraySegmentWriter,0,47,1,5,0,12,1,4,0,2
+Klojang Invoke,org.klojang.path,PrimitiveArraySegmentReader,12,41,3,3,2,9,3,2,0,2
+Klojang Invoke,org.klojang.path,ArraySegmentReader,6,41,1,3,1,8,1,3,0,2
+Klojang Invoke,org.klojang.path,Path.new Iterator() {...},0,42,0,4,0,5,0,5,0,3
+Klojang Invoke,org.klojang.path,ListSegmentWriter,9,46,0,4,2,12,0,4,0,2
+Klojang Invoke,org.klojang.path,SegmentWriter,0,18,0,2,0,7,0,3,0,2
+Klojang Invoke,org.klojang.invoke,IncludeExclude,0,22,0,2,0,4,0,3,0,2
+Klojang Invoke,org.klojang.invoke,Private,3,25,0,0,1,5,1,1,1,1
+Klojang Invoke,org.klojang.invoke,AnyBeanReader,6,52,0,0,2,13,0,5,0,5
+Klojang Invoke,org.klojang.invoke,NoPublicSettersException,0,6,0,0,0,2,0,1,0,1
+Klojang Invoke,org.klojang.invoke,BeanReaderBuilder,56,245,18,14,11,46,15,12,1,10
+Klojang Invoke,org.klojang.invoke,NoSuchPropertyException,2,35,1,1,1,7,1,3,0,3
+Klojang Invoke,org.klojang.invoke,BeanWriter,27,437,7,37,6,95,12,31,5,16
+Klojang Invoke,org.klojang.invoke,SetterFactory,45,191,4,20,7,37,5,17,1,9
+Klojang Invoke,org.klojang.invoke,Getter,7,36,0,0,3,13,1,4,1,4
+Klojang Invoke,org.klojang.invoke,Setter,4,61,0,4,2,19,0,7,0,5
+Klojang Invoke,org.klojang.invoke,BeanReader,17,137,0,4,3,33,2,13,2,11
+Klojang Invoke,org.klojang.invoke,GetterFactory,63,255,20,36,12,49,20,18,2,8
+Klojang Invoke,org.klojang.invoke,NoPublicGettersException,6,0,0,0,2,0,1,0,1,0
+Klojang Invoke,org.klojang.invoke,IllegalAssignmentException,0,46,0,0,0,14,0,6,0,6

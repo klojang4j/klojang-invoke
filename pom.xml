@@ -7,7 +7,7 @@
 
     <groupId>org.klojang</groupId>
     <artifactId>klojang-invoke</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>Klojang Invoke</name>
@@ -85,9 +85,9 @@
         <!-- *** Check for updates: mvn versions:display-dependency-updates   *** -->
         <!-- *** Check dependencies: mvn dependency:analyze                   *** -->
         <!-- ==================================================================== -->
-        <klojang-check.version>2.1.0</klojang-check.version>
-        <klojang-util.version>1.1.1</klojang-util.version>
-        <klojang-convert.version>1.0.0</klojang-convert.version>
+        <klojang-check.version>2.1.1</klojang-check.version>
+        <klojang-util.version>1.1.2</klojang-util.version>
+        <klojang-convert.version>1.0.1</klojang-convert.version>
         <junit.version>4.13.2</junit.version>
 
 
@@ -228,7 +228,19 @@
                 <configuration>
                     <filesets>
                         <fileset>
-                            <directory>public</directory>
+                            <directory>docs/1/api</directory>
+                            <includes>
+                                <include>**/*</include>
+                            </includes>
+                        </fileset>
+                        <fileset>
+                            <directory>docs/1/coverage</directory>
+                            <includes>
+                                <include>**/*</include>
+                            </includes>
+                        </fileset>
+                        <fileset>
+                            <directory>docs/1/vulnerabilities</directory>
                             <includes>
                                 <include>**/*</include>
                             </includes>
@@ -339,7 +351,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${maven-javadoc-plugin.version}</version>
@@ -349,13 +361,72 @@
                         <configuration>
                             <windowtitle>Klojang Invoke</windowtitle>
                             <excludePackageNames>org.klojang.invoke.x</excludePackageNames>
+                            <links>
+                                <link>https://klojang4j.github.io/klojang-check/2/api/</link>
+                                <link>https://klojang4j.github.io/klojang-util/1/api/</link>
+                                <link>https://klojang4j.github.io/klojang-convert/1/api/</link>
+                            </links>
                         </configuration>
                         <goals>
                             <goal>jar</goal>
                         </goals>
                     </execution>
                 </executions>
-            </plugin-->
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>publish-javadoc</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>docs/1/api</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>target/apidocs</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>publish-test-coverage</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>docs/1/coverage</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>target/site/jacoco</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>publish-vulnerabilities</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>docs/1/vulnerabilities</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>target</directory>
+                                    <includes>
+                                        <include>dependency-check-report.html</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>

@@ -37,7 +37,7 @@ public final class BeanWriter<T> {
    * array, all properties will be writable. If you intend to use this
    * {@code BeanWriter} to repetitively write just one or two properties on bulky
    * bean types, explicitly specifying the properties you intend to write might make
-   * the {@code BeanWriter slightly more efficient.
+   * the {@code BeanWriter} slightly more efficient.
    *
    * @param beanClass the bean class
    * @param properties the properties to be written
@@ -274,7 +274,7 @@ public final class BeanWriter<T> {
   }
 
   /**
-   * Overwrites all properties in the specified bean whose value is {@codd null} with
+   * Overwrites all properties in the specified bean whose value is {@code null} with
    * the corresponding values in the specified map. Non-null properties in the target
    * bean are left alone.
    *
