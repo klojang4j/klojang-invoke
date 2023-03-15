@@ -14,7 +14,7 @@ import static org.klojang.util.ObjectMethods.ifNull;
 import static org.klojang.util.ObjectMethods.replaceIf;
 
 /**
- * <p>An elaborate {@code Builder} for {@code Map<String, Object>} pseudo-objects. A
+ * <p>An elaborate builder class for Map&lt;String, Object&gt; pseudo-objects. A
  * {@code MapBuilder} lets you write deeply nested values without having to create
  * the intermediate maps first. If they are missing, they will tacitly be created.
  * Map keys must not be {@code null} or an empty string. Map values can be anything,
