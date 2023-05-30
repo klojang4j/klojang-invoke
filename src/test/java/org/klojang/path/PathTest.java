@@ -1,7 +1,6 @@
 package org.klojang.path;
 
 import org.junit.Test;
-import org.klojang.path.Path;
 
 import java.util.Iterator;
 
@@ -34,10 +33,11 @@ public class PathTest {
   @Test
   public void parse02() {
     Path path = Path.from("identifications.awk^^.ward.scientificName");
-    assertEquals("01", 3, path.size());
+    assertEquals("01", 4, path.size());
     assertEquals("02", "identifications", path.segment(0));
-    assertEquals("03", "awk^.ward", path.segment(1));
-    assertEquals("04", "scientificName", path.segment(2));
+    assertEquals("03", "awk^", path.segment(1));
+    assertEquals("04", "ward", path.segment(2));
+    assertEquals("05", "scientificName", path.segment(3));
   }
 
   @Test
@@ -45,7 +45,7 @@ public class PathTest {
     Path path = Path.from("identifications.^^^..scientificName");
     assertEquals("01", 3, path.size());
     assertEquals("02", "identifications", path.segment(0));
-    assertEquals("03", "^^.", path.segment(1));
+    assertEquals("03", "^.", path.segment(1));
     assertEquals("04", "scientificName", path.segment(2));
   }
 
@@ -61,9 +61,10 @@ public class PathTest {
   @Test
   public void parse05() {
     Path path = Path.from("identifications.^awk^^^^ward^^.scientificName");
-    assertEquals("01", 2, path.size());
+    assertEquals("01", 3, path.size());
     assertEquals("02", "identifications", path.segment(0));
-    assertEquals("03", "^awk^^^^ward^.scientificName", path.segment(1));
+    assertEquals("03", "^awk^^ward^", path.segment(1));
+    assertEquals("04", "scientificName", path.segment(2));
   }
 
   @Test
@@ -80,7 +81,7 @@ public class PathTest {
     Path path = Path.from("identifications.^^0.scientificName");
     assertEquals("01", 3, path.size());
     assertEquals("02", "identifications", path.segment(0));
-    assertEquals("03", "^^0", path.segment(1));
+    assertEquals("03", "^0", path.segment(1));
     assertEquals("04", "scientificName", path.segment(2));
   }
 
@@ -89,7 +90,7 @@ public class PathTest {
     Path path = Path.from("identifications.^^^0.scientificName");
     assertEquals("01", 3, path.size());
     assertEquals("02", "identifications", path.segment(0));
-    assertEquals("03", "^^^0", path.segment(1));
+    assertEquals("03", "^^0", path.segment(1));
     assertEquals("04", "scientificName", path.segment(2));
   }
 
@@ -98,49 +99,120 @@ public class PathTest {
     Path path = Path.from("identifications.^^^0.^0");
     assertEquals("01", 3, path.size());
     assertEquals("02", "identifications", path.segment(0));
-    assertEquals("03", "^^^0", path.segment(1));
+    assertEquals("03", "^^0", path.segment(1));
     assertNull("04", path.segment(2));
   }
 
   @Test
-  public void escape() {
+  public void parse10() {
+    Path path = Path.from("identifications.");
+    assertEquals("01", 2, path.size());
+    assertEquals("02", "identifications", path.segment(0));
+    assertEquals("03", "", path.segment(1));
+  }
+
+  @Test
+  public void parse11() {
+    Path path = Path.from("identifications..");
+    assertEquals("01", 3, path.size());
+    assertEquals("02", "identifications", path.segment(0));
+    assertEquals("03", "", path.segment(1));
+    assertEquals("04", "", path.segment(2));
+  }
+
+  @Test
+  public void parse12() {
+    Path path = Path.from("identifications...");
+    assertEquals("01", 4, path.size());
+    assertEquals("02", "identifications", path.segment(0));
+    assertEquals("03", "", path.segment(1));
+    assertEquals("04", "", path.segment(2));
+    assertEquals("05", "", path.segment(3));
+  }
+
+  @Test
+  public void parse13() {
+    Path path = Path.from(".identifications");
+    assertEquals("01", 2, path.size());
+    assertEquals("02", "", path.segment(0));
+    assertEquals("03", "identifications", path.segment(1));
+  }
+
+  @Test
+  public void parse14() {
+    Path path = Path.from("..identifications");
+    assertEquals("01", 3, path.size());
+    assertEquals("02", "", path.segment(0));
+    assertEquals("03", "", path.segment(1));
+    assertEquals("04", "identifications", path.segment(2));
+  }
+
+  @Test
+  public void parse15() {
+    Path path = Path.from(".^0.");
+    assertEquals("01", 3, path.size());
+    assertEquals("02", "", path.segment(0));
+    assertNull("03", path.segment(1));
+    assertEquals("04", "", path.segment(2));
+  }
+
+  @Test
+  public void parse16() {
+    Path path = Path.from("");
+    assertEquals("01", 0, path.size());
+  }
+
+  @Test
+  public void parse17() {
+    Path path = Path.from(".");
+    assertEquals("01", 2, path.size());
+    assertEquals("02", "", path.segment(0));
+    assertEquals("03", "", path.segment(1));
+  }
+
+  @Test
+  public void escape00() {
     String segment = "identifications";
-    assertTrue("01", segment == Path.escape(segment));
+    assertSame("01", segment, Path.escape(segment));
     assertEquals("02", "identifications^.", Path.escape("identifications."));
     assertEquals("03", "i^.dentifications", Path.escape("i.dentifications"));
     assertEquals("04", "^.identifications", Path.escape(".identifications"));
     assertEquals("05", "^.^identifications", Path.escape(".^identifications"));
     assertEquals("06", "^^.identifications", Path.escape("^.identifications"));
     assertEquals("07", "^0", Path.escape(null));
+    assertEquals("08", "^^0", Path.escape("^0"));
+    assertEquals("09", "^.", Path.escape("."));
+    assertEquals("10", "^", Path.escape("^"));
+    assertEquals("11", "", Path.escape(""));
   }
 
   @Test
   public void getPurePath() {
     Path path = Path.from("identifications.0.scientificName.fullScientificName");
     assertEquals(
-        "01",
-        "identifications.scientificName.fullScientificName",
-        path.getCanonicalPath().toString());
+          "01",
+          "identifications.scientificName.fullScientificName",
+          path.getCanonicalPath().toString());
   }
 
   @Test
   public void append() {
     Path path = Path.from("identifications.0");
     assertEquals(
-        "01",
-        Path.from("identifications.0.scientificName"),
-        path.append("scientificName"));
+          "01",
+          Path.from("identifications.0.scientificName"),
+          path.append("scientificName"));
   }
 
   @Test
   public void shift() {
     Path path = Path.from("identifications.0.scientificName.fullScientificName");
     assertEquals("01",
-        Path.from("0.scientificName.fullScientificName"),
-        (path = path.shift()));
+          Path.from("0.scientificName.fullScientificName"),
+          (path = path.shift()));
     assertEquals("02",
-        Path.from("scientificName.fullScientificName"),
-        (path = path.shift()));
+          Path.from("scientificName.fullScientificName"),
+          (path = path.shift()));
     assertEquals("03", Path.from("fullScientificName"), (path = path.shift()));
     assertTrue("04", (path = path.shift()) == Path.empty());
   }
@@ -175,8 +247,8 @@ public class PathTest {
     assertEquals("01", Path.from("scientificName"), p.subPath(2, 1));
     assertEquals("02", Path.from("0.scientificName"), p.subPath(1, 2));
     assertEquals("03",
-        Path.from("identifications.0.scientificName"),
-        p.subPath(0, 3));
+          Path.from("identifications.0.scientificName"),
+          p.subPath(0, 3));
     assertEquals("04", Path.from("0.scientificName"), p.subPath(1));
   }
 
