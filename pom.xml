@@ -7,13 +7,19 @@
 
     <groupId>org.klojang</groupId>
     <artifactId>klojang-invoke</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <packaging>jar</packaging>
 
     <name>Klojang Invoke</name>
+
     <description>
-        Dynamic invocation utilities
+        Klojang Invoke is a Java module focused on path-based object access and dynamic
+        invocation. Its central classes are the Path class and the PathWalker class. The
+        Path class captures a path through an object graph. For example
+        "employee.address.city". The PathWalker class lets you read from and write to
+        a wide variety of types using Path objects.
     </description>
+
     <url>https://klojang4j.github.io/klojang-invoke/</url>
 
     <licenses>

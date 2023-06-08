@@ -1,7 +1,10 @@
 /**
- * A module centered around path-based object access and dynamic invocation. Its
- * centerpiece is the {@link org.klojang.path.PathWalker} class, which can read from
- * and write to a wide varieties of types.
+ * <i>Klojang Invoke</i> is a module focused on path-based object access and dynamic
+ * invocation. Its central classes are the {@link org.klojang.path.Path Path} class and
+ * the {@link org.klojang.path.PathWalker PathWalker} class. The {@code Path} class
+ * captures a path through an object graph. For example {@code employee.address.city}.
+ * The {@code PathWalker} class lets you read from and write to a wide variety of types
+ * using {@code path} objects.
  */
 module org.klojang.invoke {
 

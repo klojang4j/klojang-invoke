@@ -23,14 +23,15 @@ import static org.klojang.util.ArrayMethods.implode;
 
 /**
  * Specifies a path to a value within an object. For example:
- * {@code employee.address.city}. Path segments are separated by the dot character ('.').
- * Array indices are specified as separate path segments. For example:
- * {@code employees.3.address.city} (the city component of the address of the fourth
- * employee in a list or array of {@code Employee} instances). Non-numeric segments can be
- * either bean properties or map keys. Therefore the {@code Path} class does not impose
- * any constraints on what constitutes a valid path segment. A map key, after all, can be
- * anything &#8212; including {@code null} and the empty string. Of course, if the path
- * segment represents a JavaBean property, it must be a valid Java identifier.
+ * {@code employee.address.city}. A path string consists of path segments separated by the
+ * dot character ('.'). Array indices are specified as separate path segments. For
+ * example: {@code employees.3.address.city} &#8212; the city component of the address of
+ * the fourth employee in a list or array of {@code Employee} instances. Non-numeric
+ * segments can be either bean properties or map keys. Therefore the {@code Path} class
+ * does not impose any constraints on what constitutes a valid path segment. A map key,
+ * after all, can be anything &#8212; including {@code null} and the empty string. Of
+ * course, if the path segment represents a JavaBean property, it must be a valid Java
+ * identifier.
  *
  * <h2>Escaping</h2>
  * <p>These are the escaping rules when specifying path strings:
@@ -48,8 +49,8 @@ import static org.klojang.util.ArrayMethods.implode;
  *      {@code "super^^awkward"}. If the escape character is not followed by a dot or
  *      another escape character, it is just that character. You <b>must</b> escape the
  *      escape character, however, if the <i>entire</i> path segment happens to be the
- *      escape sequence for {@code null} values ({@code "^0"}). Thus, in the odd case you
- *      have a key with value {@code "^0"}, escape it to {@code "^^0"}.
+ *      escape sequence for {@code null} ({@code "^0"}). Thus, in the odd case you have a
+ *      key with value {@code "^0"}, escape it to {@code "^^0"}.
  * </ul>
  *
  * <p>You can let the {@link #escape(String) escape} method do the escaping for you. Do
@@ -203,7 +204,7 @@ public final class Path implements Comparable<Path>, Iterable<String>, Emptyable
 
   /**
    * Escapes the specified path segment. Do not escape path segments when passing them
-   * individually to one of the static factory methods. Only use this method to construct
+   * individually to one of the static factory methods. Only use this method to assemble
    * complete path strings from individual path segments. Generally you don't need this
    * method when specifying path strings, unless one or more path segments contain a dot
    * ('.') or the escape character ('^') itself. The argument may be {@code null}, in
@@ -218,15 +219,22 @@ public final class Path implements Comparable<Path>, Iterable<String>, Emptyable
     } else if (segment.equals(NULL_SEGMENT)) {
       return ESC + NULL_SEGMENT;
     }
-    StringBuilder sb = new StringBuilder(segment.length() + 3);
-    segment.chars().forEach(i -> {
-      char c = (char) i;
+    int x = segment.indexOf(SEP);
+    if (x == -1) {
+      return segment;
+    }
+    StringBuilder sb = new StringBuilder(segment.length() + 3)
+          .append(segment.substring(0, x))
+          .append(ESC)
+          .append(SEP);
+    for (int i = x + 1; i < segment.length(); ++i) {
+      char c = segment.charAt(i);
       switch (c) {
         case SEP -> sb.append(ESC).append(SEP);
         default -> sb.append(c);
       }
-    });
-    return sb.length() == segment.length() ? segment : sb.toString();
+    }
+    return sb.toString();
   }
 
   private final String[] elems;

@@ -11,13 +11,14 @@ import static org.klojang.check.CommonChecks.*;
 import static org.klojang.check.CommonProperties.length;
 
 /**
- * A {@code PathWalker} lets you read and write deeply nested values using {@link Path} objects. It
- * can read almost any type of object it encounters as it walks down the path towards the last path
- * segment: JavaBeans, maps, collections, arrays, scalars, and opaque types like {@code String}. It
- * can also write to most of them. A {@code PathWalker} can be useful when processing large batches
- * of sparsely populated maps or objects and/or it doesn't really matter whether a deeply nested
- * value is {@code null} or just not present at all. By default, the {@code PathWalker} will return
- * {@code null} in either case (although you can change this).
+ * A {@code PathWalker} lets you read and write deeply nested values using {@link Path}
+ * objects. It can read almost any type of object it encounters as it walks down the path
+ * towards the last path segment: JavaBeans, maps, collections, arrays and scalar values.
+ * It can also write to most of them. A {@code PathWalker} can be useful when processing
+ * large batches of sparsely populated maps or objects and/or it doesn't really matter
+ * whether a deeply nested value is {@code null} or just not present at all. By default,
+ * the {@code PathWalker} will return {@code null} in either case (although you can change
+ * this).
  *
  * @author Ayco Holleman
  */
@@ -67,10 +68,10 @@ public final class PathWalker {
    * Creates a {@code PathWalker} for the specified paths.
    *
    * @param paths The action to take if a path could not be read or written
-   * @param suppressExceptions If {@code true}, the {@code read} methods will return {@code null}
-   *     for paths that could not be read. The {@code write} methods will quietly return without
-   *     having written the value. If {@code false}, a {@link PathWalkerException} will be thrown
-   *     detailing the error.
+   * @param suppressExceptions If {@code true}, the {@code read} methods will return
+   * {@code null} for paths that could not be read. The {@code write} methods will quietly
+   * return without having written the value. If {@code false}, a
+   * {@link PathWalkerException} will be thrown detailing the error.
    */
   public PathWalker(List<Path> paths, boolean suppressExceptions) {
     Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());
@@ -83,14 +84,18 @@ public final class PathWalker {
    * Creates a {@code PathWalker} for the specified paths.
    *
    * @param paths The paths to walk
-   * @param suppressExceptions If {@code true}, the {@code read} methods will return {@code null}
-   *     for paths that could not be read. The {@code write} methods will quietly return without
-   *     having written the value. If {@code false}, a {@link PathWalkerException} will be thrown
-   *     detailing the error.
-   * @param keyDeserializer A function that converts path segments to map keys. You need to provide
-   *     this if the host objects are, or contain, {@link Map} instances with non-string keys.
+   * @param suppressExceptions If {@code true}, the {@code read} methods will return
+   * {@code null} for paths that could not be read. The {@code write} methods will quietly
+   * return without having written the value. If {@code false}, a
+   * {@link PathWalkerException} will be thrown detailing the error.
+   * @param keyDeserializer A function that converts path segments to map keys. You need
+   * to provide this if the host objects are, or contain, {@link Map} instances with
+   * non-string keys.
    */
-  public PathWalker(List<Path> paths, boolean suppressExceptions, KeyDeserializer keyDeserializer) {
+  public PathWalker(
+        List<Path> paths,
+        boolean suppressExceptions,
+        KeyDeserializer keyDeserializer) {
     Check.that(paths, PATHS).is(deepNotEmpty());
     Check.notNull(keyDeserializer, "keyDeserializer");
     this.paths = paths.toArray(Path[]::new);
@@ -100,7 +105,7 @@ public final class PathWalker {
 
   // For internal use
   PathWalker(Path path, boolean suppressExceptions, KeyDeserializer keyDeserializer) {
-    this.paths = new Path[] {path};
+    this.paths = new Path[]{path};
     this.se = suppressExceptions;
     this.kd = keyDeserializer;
   }
@@ -110,8 +115,8 @@ public final class PathWalker {
    *
    * @param host the object to read the values from
    * @return the values of all paths specified through the constructor
-   * @throws PathWalkerException If {@code suppressExceptions} is false and the {@code PathWalker}
-   *     fails to retrieve the values of one or more paths.
+   * @throws PathWalkerException If {@code suppressExceptions} is false and the
+   * {@code PathWalker} fails to retrieve the values of one or more paths.
    */
   public Object[] readValues(Object host) throws PathWalkerException {
     ObjectReader reader = new ObjectReader(se, kd);
@@ -122,10 +127,11 @@ public final class PathWalker {
    * Reads the values of all paths specified through the constructor.
    *
    * @param host the object to read the path values from
-   * @param output an array into which to place the values. The length of the output array must be
-   *     equal to, or greater than the number of paths specified through the constructor.
-   * @throws PathWalkerException If {@code suppressExceptions} is false and the {@code PathWalker}
-   *     fails to retrieve the values of one or more paths.
+   * @param output an array into which to place the values. The length of the output array
+   * must be equal to, or greater than the number of paths specified through the
+   * constructor.
+   * @throws PathWalkerException If {@code suppressExceptions} is false and the
+   * {@code PathWalker} fails to retrieve the values of one or more paths.
    */
   public void readValues(Object host, Object[] output) throws PathWalkerException {
     Check.notNull(output, Tag.OUTPUT).has(length(), gte(), paths.length);
@@ -140,33 +146,33 @@ public final class PathWalker {
    *
    * @param host the object from which to read the values
    * @param output The {@code Map} into which to put the values
-   * @throws PathWalkerException If {@code suppressExceptions} is false and the {@code PathWalker}
-   *     fails to retrieve the values of one or more paths.
+   * @throws PathWalkerException If {@code suppressExceptions} is false and the
+   * {@code PathWalker} fails to retrieve the values of one or more paths.
    */
   public void readValues(Object host, Map<Path, Object> output) throws
-      PathWalkerException {
+                                                                PathWalkerException {
     Check.notNull(output, Tag.OUTPUT);
     ObjectReader reader = new ObjectReader(se, kd);
     Arrays.stream(paths).forEach(p -> output.put(p, reader.read(host, p, 0)));
   }
 
   /**
-   * Reads the value of the first path specified through the constructor. Convenient if you
-   * specified just one path.
+   * Reads the value of the first path specified through the constructor. Convenient if
+   * you specified just one path.
    *
    * @param <T> The type of the value being returned
    * @param host the object from which to read the value
    * @return the value of the first path specified through the constructor
-   * @throws PathWalkerException If {@code suppressExceptions} is false and the {@code PathWalker}
-   *     fails to retrieve the value of the first path.
+   * @throws PathWalkerException If {@code suppressExceptions} is false and the
+   * {@code PathWalker} fails to retrieve the value of the first path.
    */
   public <T> T read(Object host) {
     return (T) new ObjectReader(se, kd).read(host, paths[0], 0);
   }
 
   /**
-   * Sets the values of the paths specified through the constructor. The provided array of values
-   * must have the same length as the number of paths.
+   * Sets the values of the paths specified through the constructor. The provided array of
+   * values must have the same length as the number of paths.
    *
    * @param host the object to which to write the values
    * @param values The values to write
@@ -185,8 +191,8 @@ public final class PathWalker {
   }
 
   /**
-   * Sets the value of the first path specified through the constructor. Convenient if you specified
-   * just one path.
+   * Sets the value of the first path specified through the constructor. Convenient if you
+   * specified just one path.
    *
    * @param host the object to write the value to
    * @param value The value to write
