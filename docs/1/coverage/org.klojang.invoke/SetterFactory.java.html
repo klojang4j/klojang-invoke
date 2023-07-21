@@ -3,6 +3,7 @@
 import org.klojang.check.Check;
 import org.klojang.util.ArrayMethods;
 import org.klojang.util.ClassMethods;
+import org.klojang.util.CollectionMethods;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -27,11 +28,11 @@ public final class SetterFactory {
   /**
    * The one and only instance of {@code SetterFactory}.
    */
-<span class="fc" id="L30">  public static final SetterFactory INSTANCE = new SetterFactory();</span>
+<span class="fc" id="L31">  public static final SetterFactory INSTANCE = new SetterFactory();</span>
 
-<span class="fc" id="L32">  private final Map&lt;Class&lt;?&gt;, Map&lt;String, Setter&gt;&gt; cache = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L33">  private final Map&lt;Class&lt;?&gt;, Map&lt;String, Setter&gt;&gt; cache = new HashMap&lt;&gt;();</span>
 
-<span class="fc" id="L34">  private SetterFactory() {}</span>
+<span class="fc" id="L35">  private SetterFactory() {}</span>
 
   /**
    * Returns the public {@link Setter setters} for the specified class. The returned
@@ -42,67 +43,65 @@ public final class SetterFactory {
    * @throws IllegalAssignmentException If the does not have any public setters
    */
   public Map&lt;String, Setter&gt; getSetters(Class&lt;?&gt; clazz) {
-<span class="fc" id="L45">    Map&lt;String, Setter&gt; setters = cache.get(clazz);</span>
-<span class="fc bfc" id="L46" title="All 2 branches covered.">    if (setters == null) {</span>
-<span class="fc" id="L47">      List&lt;Method&gt; methods = getMethods(clazz);</span>
-<span class="fc" id="L48">      Check.that(methods).isNot(empty(), () -&gt; new NoPublicSettersException(clazz));</span>
-<span class="fc" id="L49">      List&lt;Entry&lt;String, Setter&gt;&gt; entries = new ArrayList&lt;&gt;(methods.size());</span>
-<span class="fc bfc" id="L50" title="All 2 branches covered.">      for (Method m : methods) {</span>
-<span class="fc" id="L51">        String prop = getPropertyNameFromSetter(m);</span>
-<span class="fc" id="L52">        entries.add(entry(prop, new Setter(m, prop)));</span>
-<span class="fc" id="L53">      }</span>
-<span class="fc" id="L54">      setters = Map.ofEntries(entries.toArray(Entry[]::new));</span>
-<span class="fc" id="L55">      cache.put(clazz, setters);</span>
+<span class="fc" id="L46">    Map&lt;String, Setter&gt; setters = cache.get(clazz);</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">    if (setters == null) {</span>
+<span class="fc" id="L48">      List&lt;Method&gt; methods = getMethods(clazz);</span>
+<span class="fc" id="L49">      Check.that(methods).isNot(empty(), () -&gt; new NoPublicSettersException(clazz));</span>
+<span class="fc" id="L50">      List&lt;Entry&lt;String, Setter&gt;&gt; entries = new ArrayList&lt;&gt;(methods.size());</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">      for (Method m : methods) {</span>
+<span class="fc" id="L52">        String prop = getPropertyNameFromSetter(m);</span>
+<span class="fc" id="L53">        entries.add(entry(prop, new Setter(m, prop)));</span>
+<span class="fc" id="L54">      }</span>
+<span class="fc" id="L55">      setters = Map.ofEntries(entries.toArray(Entry[]::new));</span>
+<span class="fc" id="L56">      cache.put(clazz, setters);</span>
     }
-<span class="fc" id="L57">    return setters;</span>
+<span class="fc" id="L58">    return setters;</span>
   }
 
   private static List&lt;Method&gt; getMethods(Class&lt;?&gt; beanClass) {
-<span class="fc" id="L61">    Method[] methods = beanClass.getMethods();</span>
-<span class="fc" id="L62">    List&lt;Method&gt; setters = new ArrayList&lt;&gt;();</span>
-<span class="fc bfc" id="L63" title="All 2 branches covered.">    for (Method m : methods) {</span>
-<span class="fc bfc" id="L64" title="All 2 branches covered.">      if (isStatic(m.getModifiers())) {</span>
-<span class="fc" id="L65">        continue;</span>
-<span class="fc bfc" id="L66" title="All 2 branches covered.">      } else if (m.getParameterCount() != 1) {</span>
-<span class="fc" id="L67">        continue;</span>
-<span class="fc bfc" id="L68" title="All 2 branches covered.">      } else if (m.getReturnType() != void.class) {</span>
-<span class="fc" id="L69">        continue;</span>
-<span class="fc bfc" id="L70" title="All 2 branches covered.">      } else if (!validSetterName(m)) {</span>
-<span class="fc" id="L71">        continue;</span>
+<span class="fc" id="L62">    Method[] methods = beanClass.getMethods();</span>
+<span class="fc" id="L63">    List&lt;Method&gt; setters = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">    for (Method m : methods) {</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">      if (!beanClass.isRecord()</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">            &amp;&amp; !isStatic(m.getModifiers())</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">            &amp;&amp; m.getParameterCount() == 1</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">            &amp;&amp; m.getReturnType() == void.class</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">            &amp;&amp; isValidSetterName(m)</span>
+      ) {
+<span class="fc" id="L71">        setters.add(m);</span>
       }
-<span class="fc" id="L73">      setters.add(m);</span>
     }
-<span class="fc" id="L75">    return setters;</span>
+<span class="fc" id="L74">    return setters;</span>
   }
 
   private static String getPropertyNameFromSetter(Method m) {
-<span class="fc" id="L79">    String n = m.getName();</span>
-<span class="pc bpc" id="L80" title="2 of 4 branches missed.">    if (n.startsWith(&quot;set&quot;) &amp;&amp; isUpperCase(n.charAt(3))) {</span>
-<span class="fc" id="L81">      return extractName(n, 3);</span>
+<span class="fc" id="L78">    String n = m.getName();</span>
+<span class="pc bpc" id="L79" title="2 of 4 branches missed.">    if (n.startsWith(&quot;set&quot;) &amp;&amp; isUpperCase(n.charAt(3))) {</span>
+<span class="fc" id="L80">      return extractName(n, 3);</span>
     }
-<span class="nc" id="L83">    throw notAProperty(m);</span>
+<span class="nc" id="L82">    throw notAProperty(m);</span>
   }
 
   private static String extractName(String n, int from) {
-<span class="fc" id="L87">    StringBuilder sb = new StringBuilder(n.length() - 3);</span>
-<span class="fc" id="L88">    sb.append(n.substring(from));</span>
-<span class="fc" id="L89">    sb.setCharAt(0, toLowerCase(sb.charAt(0)));</span>
-<span class="fc" id="L90">    return sb.toString();</span>
+<span class="fc" id="L86">    StringBuilder sb = new StringBuilder(n.length() - 3);</span>
+<span class="fc" id="L87">    sb.append(n.substring(from));</span>
+<span class="fc" id="L88">    sb.setCharAt(0, toLowerCase(sb.charAt(0)));</span>
+<span class="fc" id="L89">    return sb.toString();</span>
   }
 
   private static IllegalArgumentException notAProperty(Method m) {
-<span class="nc" id="L94">    String fmt = &quot;method %s %s(%s) in class %s is not a setter&quot;;</span>
-<span class="nc" id="L95">    String rt = ClassMethods.simpleClassName(m.getReturnType());</span>
-<span class="nc" id="L96">    String clazz = ClassMethods.className(m.getDeclaringClass());</span>
-<span class="nc" id="L97">    String params = ArrayMethods.implode(m.getParameterTypes(),</span>
-        ClassMethods::simpleClassName);
-<span class="nc" id="L99">    String msg = String.format(fmt, rt, m.getName(), params, clazz);</span>
-<span class="nc" id="L100">    return new IllegalArgumentException(msg);</span>
+<span class="nc" id="L93">    String fmt = &quot;method %s %s(%s) in class %s is not a setter&quot;;</span>
+<span class="nc" id="L94">    String rt = ClassMethods.simpleClassName(m.getReturnType());</span>
+<span class="nc" id="L95">    String clazz = ClassMethods.className(m.getDeclaringClass());</span>
+<span class="nc" id="L96">    String params = ArrayMethods.implode(m.getParameterTypes(),</span>
+          ClassMethods::simpleClassName);
+<span class="nc" id="L98">    String msg = String.format(fmt, rt, m.getName(), params, clazz);</span>
+<span class="nc" id="L99">    return new IllegalArgumentException(msg);</span>
   }
 
-  private static boolean validSetterName(Method m) {
-<span class="fc" id="L104">    String n = m.getName();</span>
-<span class="pc bpc" id="L105" title="2 of 6 branches missed.">    return n.length() &gt; 3 &amp;&amp; n.startsWith(&quot;set&quot;) &amp;&amp; isUpperCase(n.charAt(3));</span>
+  private static boolean isValidSetterName(Method m) {
+<span class="fc" id="L103">    String n = m.getName();</span>
+<span class="pc bpc" id="L104" title="2 of 6 branches missed.">    return n.length() &gt; 3 &amp;&amp; n.startsWith(&quot;set&quot;) &amp;&amp; isUpperCase(n.charAt(3));</span>
   }
 
 }
