@@ -3,6 +3,7 @@ package org.klojang.invoke;
 import org.klojang.check.Check;
 import org.klojang.util.ArrayMethods;
 import org.klojang.util.ClassMethods;
+import org.klojang.util.CollectionMethods;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -61,16 +62,14 @@ public final class SetterFactory {
     Method[] methods = beanClass.getMethods();
     List<Method> setters = new ArrayList<>();
     for (Method m : methods) {
-      if (isStatic(m.getModifiers())) {
-        continue;
-      } else if (m.getParameterCount() != 1) {
-        continue;
-      } else if (m.getReturnType() != void.class) {
-        continue;
-      } else if (!validSetterName(m)) {
-        continue;
+      if (!beanClass.isRecord()
+            && !isStatic(m.getModifiers())
+            && m.getParameterCount() == 1
+            && m.getReturnType() == void.class
+            && isValidSetterName(m)
+      ) {
+        setters.add(m);
       }
-      setters.add(m);
     }
     return setters;
   }
@@ -95,12 +94,12 @@ public final class SetterFactory {
     String rt = ClassMethods.simpleClassName(m.getReturnType());
     String clazz = ClassMethods.className(m.getDeclaringClass());
     String params = ArrayMethods.implode(m.getParameterTypes(),
-        ClassMethods::simpleClassName);
+          ClassMethods::simpleClassName);
     String msg = String.format(fmt, rt, m.getName(), params, clazz);
     return new IllegalArgumentException(msg);
   }
 
-  private static boolean validSetterName(Method m) {
+  private static boolean isValidSetterName(Method m) {
     String n = m.getName();
     return n.length() > 3 && n.startsWith("set") && isUpperCase(n.charAt(3));
   }
