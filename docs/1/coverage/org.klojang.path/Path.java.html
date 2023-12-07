@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Path.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Klojang Invoke</a> &gt; <a href="index.source.html" class="el_package">org.klojang.path</a> &gt; <span class="el_source">Path.java</span></div><h1>Path.java</h1><pre class="source lang-java linenums">package org.klojang.path;
+
+import org.klojang.check.Check;
+import org.klojang.check.Tag;
+import org.klojang.check.aux.Emptyable;
+import org.klojang.util.ArrayMethods;
+import org.klojang.util.ObjectMethods;
+import org.klojang.util.StringMethods;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.stream.Stream;
+
+import static java.lang.System.arraycopy;
+import static java.util.Arrays.copyOfRange;
+import static org.klojang.check.CommonChecks.indexOf;
+import static org.klojang.check.CommonChecks.lt;
+import static org.klojang.check.CommonExceptions.INDEX;
+import static org.klojang.util.ArrayMethods.EMPTY_STRING_ARRAY;
+import static org.klojang.util.ArrayMethods.implode;
+
+/**
+ * Specifies a path to a value within an object. For example:
+ * {@code employee.address.city}. A path string consists of path segments separated by the
+ * dot character ('.'). Array indices are specified as separate path segments. For
+ * example: {@code employees.3.address.city} &amp;#8212; the city component of the address of
+ * the fourth employee in a list or array of {@code Employee} instances. Non-numeric
+ * segments can be either bean properties or map keys. Therefore the {@code Path} class
+ * does not impose any constraints on what constitutes a valid path segment. A map key,
+ * after all, can be anything &amp;#8212; including {@code null} and the empty string. Of
+ * course, if the path segment represents a JavaBean property, it must be a valid Java
+ * identifier.
+ *
+ * &lt;h2&gt;Escaping&lt;/h2&gt;
+ * &lt;p&gt;These are the escaping rules when specifying path strings:
+ * &lt;ul&gt;
+ *   &lt;li&gt;If a map key happens to contain the segment separator ('.'), it must be
+ *      escaped using the circumflex character ('^'). So key {@code &quot;my.awkward.map.key&quot;}
+ *      should be escaped to {@code &quot;my^.awkward^.map^.key&quot;}.
+ *  &lt;li&gt;For a map key with value {@code null}, use this escape sequence: {@code &quot;^0&quot;}. So
+ *      {@code &quot;lookups.^0&quot;} represents the {@code null} key in the {@code lookups} map.
+ *  &lt;li&gt;If a segment needs to represent a map key whose value is the empty string,
+ *      simply make it a zero-length segment: {@code &quot;lookups..name&quot;}. This implies that a
+ *      path string that ends with a dot in fact ends with an empty (zero-length) segment.
+ *  &lt;li&gt;The escape character ('^') itself &lt;b&gt;may&lt;/b&gt; be escaped. Thus, key
+ *      {@code &quot;super^awkward&quot;} can be represented either as {@code &quot;super^awkward&quot;} or as
+ *      {@code &quot;super^^awkward&quot;}. If the escape character is not followed by a dot or
+ *      another escape character, it is just that character. You &lt;b&gt;must&lt;/b&gt; escape the
+ *      escape character, however, if the &lt;i&gt;entire&lt;/i&gt; path segment happens to be the
+ *      escape sequence for {@code null} ({@code &quot;^0&quot;}). Thus, in the odd case you have a
+ *      key with value {@code &quot;^0&quot;}, escape it to {@code &quot;^^0&quot;}.
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;You can let the {@link #escape(String) escape} method do the escaping for you. Do
+ * not escape path segments when passing them individually (as a {@code String} array) to
+ * the constructor. Only escape them when passing a complete path string.
+ *
+ * @author Ayco Holleman
+ */
+public final class Path implements Comparable&lt;Path&gt;, Iterable&lt;String&gt;, Emptyable {
+
+<span class="fc" id="L64">  private static final Path EMPTY_PATH = new Path();</span>
+
+  // segment separator
+  private static final char SEP = '.';
+
+  // escape character
+  private static final char ESC = '^';
+
+  // escape sequence to use for null keys
+  private static final String NULL_SEGMENT = &quot;^0&quot;;
+
+  /**
+   * Returns a new {@code Path} instance for the specified path string.
+   *
+   * @param path the path string from which to create a {@code Path}
+   * @return a new {@code Path} instance for the specified path string
+   */
+  public static Path from(String path) {
+<span class="fc" id="L82">    Check.notNull(path, Tag.PATH);</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">    if (path.isEmpty()) {</span>
+<span class="fc" id="L84">      return EMPTY_PATH;</span>
+    }
+<span class="fc" id="L86">    return new Path(path);</span>
+  }
+
+  /**
+   * Returns a {@code Path} consisting of the specified segments. &lt;i&gt;Do not escape the
+   * segments.&lt;/i&gt; The array may contain {@code null} values as well as empty strings.
+   *
+   * @param segments the path segments
+   * @return a {@code Path} consisting of the specified segments
+   */
+  public static Path from(String[] segments) {
+<span class="fc" id="L97">    Check.notNull(segments);</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">    return segments.length == 0 ? EMPTY_PATH : new Path(segments);</span>
+  }
+
+  /**
+   * Returns an empty {@code Path} instance, consisting of zero path segments.
+   *
+   * @return an empty {@code Path} instance, consisting of zero path segments
+   */
+  public static Path empty() {
+<span class="fc" id="L107">    return EMPTY_PATH;</span>
+  }
+
+  /**
+   * Returns a {@code Path} consisting of a single segment. &lt;i&gt;Do not escape the
+   * segment.&lt;/i&gt;
+   *
+   * @param segment the one and only segment of the {@code Path}
+   * @return a {@code Path} consisting of a single segment
+   */
+  public static Path of(String segment) {
+<span class="fc" id="L118">    return new Path(new String[]{segment});</span>
+  }
+
+  /**
+   * Returns a {@code Path} consisting of the specified segments. &lt;i&gt;Do not escape the
+   * segments.&lt;/i&gt;
+   *
+   * @param segment0 the 1st segment
+   * @param segment1 the 2nd segment
+   * @return a {@code Path} consisting of the specified segments
+   */
+  public static Path of(String segment0, String segment1) {
+<span class="fc" id="L130">    return new Path(new String[]{segment0, segment1});</span>
+  }
+
+  /**
+   * Returns a {@code Path} consisting of the specified segments. &lt;i&gt;Do not escape the
+   * segments.&lt;/i&gt;
+   *
+   * @param segment0 the 1st segment
+   * @param segment1 the 2nd segment
+   * @param segment2 the 3rd segment
+   * @return a {@code Path} consisting of the specified segments
+   */
+  public static Path of(String segment0, String segment1, String segment2) {
+<span class="fc" id="L143">    return new Path(new String[]{segment0, segment1, segment2});</span>
+  }
+
+  /**
+   * Returns a {@code Path} consisting of the specified segments. &lt;i&gt;Do not escape the
+   * segments.&lt;/i&gt;
+   *
+   * @param segment0 the 1st segment
+   * @param segment1 the 2nd segment
+   * @param segment2 the 3rd segment
+   * @param segment3 the 4th segment
+   * @return a {@code Path} consisting of the specified segments
+   */
+  public static Path of(
+        String segment0,
+        String segment1,
+        String segment2,
+        String segment3) {
+<span class="fc" id="L161">    return new Path(new String[]{segment0, segment1, segment2, segment3});</span>
+  }
+
+  /**
+   * Returns a {@code Path} consisting of the specified segments. &lt;i&gt;Do not escape the
+   * segments.&lt;/i&gt;
+   *
+   * @param segment0 the 1st segment
+   * @param segment1 the 2nd segment
+   * @param segment2 the 3rd segment
+   * @param segment3 the 4th segment
+   * @param segment4 the 5th segment
+   * @return a {@code Path} consisting of the specified segments
+   */
+  public static Path of(
+        String segment0,
+        String segment1,
+        String segment2,
+        String segment3,
+        String segment4) {
+<span class="fc" id="L181">    return new Path(new String[]{segment0, segment1, segment2, segment3, segment4});</span>
+  }
+
+  /**
+   * Returns a {@code Path} consisting of the specified segments. &lt;i&gt;Do not escape the
+   * segments.&lt;/i&gt;
+   *
+   * @param segments the path segments
+   * @return a {@code Path} consisting of the specified segments
+   */
+  public static Path of(String... segments) {
+<span class="fc" id="L192">    return from(segments);</span>
+  }
+
+  /**
+   * Returns a copy of the specified path.
+   *
+   * @param other the {@code Path} to copy.
+   * @return a copy of the specified path
+   */
+  public static Path copyOf(Path other) {
+<span class="pc bpc" id="L202" title="1 of 2 branches missed.">    return other == EMPTY_PATH ? other : Check.notNull(other).ok(Path::new);</span>
+  }
+
+  /**
+   * Escapes the specified path segment. Do not escape path segments when passing them
+   * individually to one of the static factory methods. Only use this method to assemble
+   * complete path strings from individual path segments. Generally you don't need this
+   * method when specifying path strings, unless one or more path segments contain a dot
+   * ('.') or the escape character ('^') itself. The argument may be {@code null}, in
+   * which case the escape sequence for {@code null} ({@code &quot;^0&quot;}) is returned.
+   *
+   * @param segment the path segment to escape
+   * @return the escaped version of the segment
+   */
+  public static String escape(String segment) {
+<span class="fc bfc" id="L217" title="All 2 branches covered.">    if (segment == null) {</span>
+<span class="fc" id="L218">      return NULL_SEGMENT;</span>
+<span class="fc bfc" id="L219" title="All 2 branches covered.">    } else if (segment.equals(NULL_SEGMENT)) {</span>
+<span class="fc" id="L220">      return ESC + NULL_SEGMENT;</span>
+    }
+<span class="fc" id="L222">    int x = segment.indexOf(SEP);</span>
+<span class="fc bfc" id="L223" title="All 2 branches covered.">    if (x == -1) {</span>
+<span class="fc" id="L224">      return segment;</span>
+    }
+<span class="fc" id="L226">    StringBuilder sb = new StringBuilder(segment.length() + 3)</span>
+<span class="fc" id="L227">          .append(segment.substring(0, x))</span>
+<span class="fc" id="L228">          .append(ESC)</span>
+<span class="fc" id="L229">          .append(SEP);</span>
+<span class="fc bfc" id="L230" title="All 2 branches covered.">    for (int i = x + 1; i &lt; segment.length(); ++i) {</span>
+<span class="fc" id="L231">      char c = segment.charAt(i);</span>
+<span class="pc bpc" id="L232" title="1 of 2 branches missed.">      switch (c) {</span>
+<span class="nc" id="L233">        case SEP -&gt; sb.append(ESC).append(SEP);</span>
+<span class="fc" id="L234">        default -&gt; sb.append(c);</span>
+      }
+    }
+<span class="fc" id="L237">    return sb.toString();</span>
+  }
+
+  private final String[] elems;
+  private String str; // Caches toString()
+  private int hash; // Caches hashCode()
+
+  // Reserved for EMPTY_PATH
+<span class="fc" id="L245">  private Path() {</span>
+<span class="fc" id="L246">    elems = EMPTY_STRING_ARRAY;</span>
+<span class="fc" id="L247">  }</span>
+
+<span class="fc" id="L249">  private Path(String path) {</span>
+<span class="fc" id="L250">    elems = parse(str = path);</span>
+<span class="fc" id="L251">  }</span>
+
+<span class="fc" id="L253">  private Path(String[] segments) {</span>
+<span class="fc" id="L254">    elems = new String[segments.length];</span>
+<span class="fc" id="L255">    arraycopy(segments, 0, elems, 0, segments.length);</span>
+<span class="fc" id="L256">  }</span>
+
+<span class="fc" id="L258">  private Path(Path other) {</span>
+    // Since we are immutable we can happily share state
+<span class="fc" id="L260">    this.elems = other.elems;</span>
+<span class="fc" id="L261">    this.str = other.str;</span>
+<span class="fc" id="L262">    this.hash = other.hash;</span>
+<span class="fc" id="L263">  }</span>
+
+  /**
+   * Returns the path segment at the specified index. Specify a negative index to retrieve
+   * a segment relative to end of the {@code Path} (-1 would return the last path
+   * segment).
+   *
+   * @param index the array index of the path segment
+   * @return the path segment at the specified index.
+   */
+  public String segment(int index) {
+<span class="fc bfc" id="L274" title="All 2 branches covered.">    if (index &lt; 0) {</span>
+<span class="fc" id="L275">      return Check.that(elems.length + index)</span>
+<span class="fc" id="L276">            .is(indexOf(), elems)</span>
+<span class="fc" id="L277">            .mapToObj(x -&gt; elems[x]);</span>
+    }
+<span class="fc" id="L279">    return Check.that(index).is(indexOf(), elems).mapToObj(x -&gt; elems[x]);</span>
+  }
+
+  /**
+   * Returns a new {@code Path} starting with the segment at the specified array index.
+   * Specify a negative index to count back from the last segment of the {@code Path} (-1
+   * returns the last path segment).
+   *
+   * @param offset the index of the first segment of the new {@code Path}
+   * @return a new {@code Path} starting with the segment at the specified array index
+   */
+  public Path subPath(int offset) {
+<span class="fc bfc" id="L291" title="All 2 branches covered.">    int from = offset &lt; 0 ? elems.length + offset : offset;</span>
+<span class="fc" id="L292">    Check.that(from).is(lt(), elems.length);</span>
+<span class="fc" id="L293">    return new Path(copyOfRange(elems, from, elems.length));</span>
+  }
+
+  /**
+   * Returns a new {@code Path} consisting of {@code length} segments starting with
+   * segment {@code offset}. The {@code offset} argument may be negative to specify a
+   * segment relative to the end of the {@code Path}. Thus, -1 specifies the last segment
+   * of the {@code Path}.
+   *
+   * @param offset the index of the first segment to extract
+   * @param length the number of segments to extract
+   * @return a new {@code Path} consisting of {@code len} segments starting with segment
+   * {@code from}.
+   */
+  public Path subPath(int offset, int length) {
+<span class="fc bfc" id="L308" title="All 2 branches covered.">    if (offset &lt; 0) {</span>
+<span class="fc" id="L309">      offset = elems.length + offset;</span>
+    }
+<span class="fc" id="L311">    Check.offsetLength(elems.length, offset, length);</span>
+<span class="fc" id="L312">    return new Path(copyOfRange(elems, offset, offset + length));</span>
+  }
+
+  /**
+   * Returns a {@code Path} with all segments of this {@code Path} except the first
+   * segment. If the path is empty, this method returns {@code null}. If it consists of a
+   * single segment, this method returns {@link #EMPTY_PATH}.
+   *
+   * @return a {@code Path} with all segments of this {@code Path} except the first
+   * segment
+   */
+  public Path shift() {
+<span class="pc bpc" id="L324" title="1 of 3 branches missed.">    return switch (elems.length) {</span>
+<span class="nc" id="L325">      case 0 -&gt; null;</span>
+<span class="fc" id="L326">      case 1 -&gt; EMPTY_PATH;</span>
+<span class="fc" id="L327">      default -&gt; new Path(copyOfRange(elems, 1, elems.length));</span>
+    };
+  }
+
+  /**
+   * Returns a {@code Path} with all segments of this {@code Path} except the last
+   * segment. If the path is empty, this method returns {@code null}. If it consists of a
+   * single segment, this method returns {@link #EMPTY_PATH}.
+   *
+   * @return the parent of this {@code Path}
+   */
+  public Path parent() {
+<span class="fc bfc" id="L339" title="All 3 branches covered.">    return switch (elems.length) {</span>
+<span class="fc" id="L340">      case 0 -&gt; null;</span>
+<span class="fc" id="L341">      case 1 -&gt; EMPTY_PATH;</span>
+<span class="fc" id="L342">      default -&gt; new Path(copyOfRange(elems, 0, elems.length - 1));</span>
+    };
+  }
+
+  /**
+   * Returns a new {@code Path} containing only the segments of this {@code Path} that are
+   * not array indices.
+   *
+   * @return a new {@code Path} without any array indices
+   */
+  public Path getCanonicalPath() {
+<span class="fc" id="L353">    String[] canonical = stream()</span>
+<span class="fc bfc" id="L354" title="All 2 branches covered.">          .filter(s -&gt; !s.chars().allMatch(Character::isDigit)</span>
+<span class="pc bpc" id="L355" title="1 of 2 branches missed.">                || new BigInteger(s).intValueExact() &lt; 0)</span>
+<span class="fc" id="L356">          .toArray(String[]::new);</span>
+<span class="pc bpc" id="L357" title="1 of 2 branches missed.">    return canonical.length == 0 ? EMPTY_PATH : new Path(canonical);</span>
+  }
+
+  /**
+   * Returns a new {@code Path} representing the concatenation of this {@code Path} and
+   * the specified {@code Path}.
+   *
+   * @param path the path to append to this {@code Path}
+   * @return a new {@code Path} representing the concatenation of this {@code Path} and
+   * the specified {@code Path}
+   */
+  public Path append(String path) {
+<span class="fc" id="L369">    Check.notNull(path);</span>
+<span class="fc" id="L370">    return append(new Path(parse(path)));</span>
+  }
+
+  /**
+   * Returns a new {@code Path} consisting of the segments of this {@code Path} plus the
+   * segments of the specified {@code Path}.
+   *
+   * @param other the {@code Path} to append to this {@code Path}.
+   * @return a new {@code Path} consisting of the segments of this {@code Path} plus the
+   * segments of the specified {@code Path}
+   */
+  public Path append(Path other) {
+<span class="fc" id="L382">    Check.notNull(other);</span>
+<span class="fc" id="L383">    return new Path(ArrayMethods.concat(elems, other.elems));</span>
+  }
+
+  /**
+   * Returns a new {@code Path} with the path segment at the specified array index set to
+   * the new value.
+   *
+   * @param index the array index of the segment to replace
+   * @param newValue the new segment
+   * @return a new {@code Path} with the path segment at the specified array index set to
+   * the new value
+   */
+  public Path replace(int index, String newValue) {
+<span class="fc" id="L396">    Check.on(INDEX, index, Tag.INDEX).is(indexOf(), elems);</span>
+<span class="fc" id="L397">    String[] copy = Arrays.copyOf(elems, elems.length);</span>
+<span class="fc" id="L398">    copy[index] = newValue;</span>
+<span class="fc" id="L399">    return new Path(copy);</span>
+  }
+
+  /**
+   * Returns a {@code Path} in which the order of the segments is reversed.
+   *
+   * @return a {@code Path} in which the order of the segments is reversed
+   */
+  public Path reverse() {
+    String[] elems;
+<span class="fc bfc" id="L409" title="All 2 branches covered.">    if ((elems = this.elems).length &gt; 1) {</span>
+<span class="fc" id="L410">      String[] segments = new String[elems.length];</span>
+<span class="fc" id="L411">      int x = elems.length;</span>
+<span class="fc bfc" id="L412" title="All 2 branches covered.">      for (int i = 0; i &lt; elems.length; ++i) {</span>
+<span class="fc" id="L413">        segments[i] = elems[--x];</span>
+      }
+<span class="fc" id="L415">      return new Path(segments);</span>
+    }
+<span class="fc" id="L417">    return this;</span>
+  }
+
+  /**
+   * Returns an {@code Iterator} over the path segments.
+   *
+   * @return an {@code Iterator} over the path segments
+   */
+  @Override
+  public Iterator&lt;String&gt; iterator() {
+<span class="fc" id="L427">    return new Iterator&lt;&gt;() {</span>
+      private int i;
+
+      public boolean hasNext() {
+<span class="fc bfc" id="L431" title="All 2 branches covered.">        return i &lt; elems.length;</span>
+      }
+
+      public String next() {
+<span class="fc bfc" id="L435" title="All 2 branches covered.">        if (i &lt; elems.length) {</span>
+<span class="fc" id="L436">          return elems[i++];</span>
+        }
+<span class="fc" id="L438">        throw new IndexOutOfBoundsException(i);</span>
+      }
+    };
+  }
+
+  /**
+   * Returns a {@code Stream} of path segments.
+   *
+   * @return a {@code Stream} of path segments
+   */
+  public Stream&lt;String&gt; stream() {
+<span class="fc" id="L449">    return Arrays.stream(elems);</span>
+  }
+
+  /**
+   * Returns the number of segments in this {@code Path}.
+   *
+   * @return the number of segments in this {@code Path}
+   */
+  public int size() {
+<span class="fc" id="L458">    return elems.length;</span>
+  }
+
+  /**
+   * Returns {@code true} if this is an empty {@code Path}, consisting of zero segments.
+   *
+   * @return {@code true} if this is an empty {@code Path}, consisting of zero segments
+   */
+  @Override
+  public boolean isEmpty() {
+<span class="fc bfc" id="L468" title="All 2 branches covered.">    return elems.length == 0;</span>
+  }
+
+  /**
+   * Returns {@code true} if this is a non-empty {@code Path}, consisting only of
+   * non-null, non-empty of path segments.
+   *
+   * @return {@code true} if this is a non-empty {@code Path}, consisting only of
+   * non-null, non-empty of path segments
+   */
+  @Override
+  public boolean isDeepNotEmpty() {
+<span class="fc" id="L480">    return ObjectMethods.isDeepNotEmpty(elems);</span>
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+<span class="fc" id="L485">    return this == obj</span>
+<span class="fc bfc" id="L486" title="All 6 branches covered.">          || (obj instanceof Path p &amp;&amp; Arrays.equals(elems, p.elems));</span>
+  }
+
+  @Override
+  public int hashCode() {
+<span class="pc bpc" id="L491" title="1 of 2 branches missed.">    if (hash == 0) {</span>
+<span class="fc" id="L492">      hash = Arrays.deepHashCode(elems);</span>
+    }
+<span class="fc" id="L494">    return hash;</span>
+  }
+
+  @Override
+  public int compareTo(Path other) {
+<span class="fc" id="L499">    Check.notNull(other);</span>
+<span class="fc" id="L500">    return Arrays.compare(elems, other.elems);</span>
+  }
+
+  /**
+   * Returns this {@code Path} as a string, properly escaped.
+   *
+   * @return this {@code Path} as a string, properly escaped
+   */
+  @Override
+  public String toString() {
+<span class="fc bfc" id="L510" title="All 2 branches covered.">    if (str == null) {</span>
+<span class="fc" id="L511">      str = implode(elems, Path::escape, &quot;.&quot;, 0, elems.length);</span>
+    }
+<span class="fc" id="L513">    return str;</span>
+  }
+
+  private static String[] parse(String path) {
+<span class="fc" id="L517">    ArrayList&lt;String&gt; elems = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L518">    StringBuilder sb = new StringBuilder();</span>
+<span class="fc" id="L519">    int len = path.length();</span>
+<span class="fc bfc" id="L520" title="All 2 branches covered.">    for (int i = 0; i &lt; len; i++) {</span>
+<span class="fc bfc" id="L521" title="All 3 branches covered.">      switch (path.charAt(i)) {</span>
+        case SEP -&gt; {
+<span class="fc" id="L523">          elems.add(sb.toString());</span>
+<span class="fc" id="L524">          sb.setLength(0);</span>
+<span class="fc" id="L525">        }</span>
+        case ESC -&gt; {
+<span class="fc bfc" id="L527" title="All 2 branches covered.">          if (i &lt; len - 1) {</span>
+<span class="fc" id="L528">            char c = path.charAt(i + 1);</span>
+<span class="fc bfc" id="L529" title="All 4 branches covered.">            if (c == SEP || c == ESC) {</span>
+<span class="fc" id="L530">              sb.append(c);</span>
+<span class="fc" id="L531">              ++i;</span>
+<span class="fc bfc" id="L532" title="All 2 branches covered.">            } else if (c == '0'</span>
+<span class="fc bfc" id="L533" title="All 4 branches covered.">                  &amp;&amp; sb.length() == 0</span>
+<span class="pc bpc" id="L534" title="1 of 2 branches missed.">                  &amp;&amp; (i == len - 2 || path.charAt(i + 2) == SEP)) {</span>
+<span class="fc" id="L535">              elems.add(null);</span>
+<span class="fc" id="L536">              sb.setLength(0);</span>
+<span class="fc" id="L537">              i += 2;</span>
+            } else {
+<span class="fc" id="L539">              sb.append(ESC);</span>
+            }
+<span class="fc" id="L541">          } else {</span>
+<span class="fc" id="L542">            sb.append(ESC);</span>
+          }
+<span class="fc" id="L544">        }</span>
+<span class="fc" id="L545">        default -&gt; sb.append(path.charAt(i));</span>
+      }
+    }
+<span class="fc bfc" id="L548" title="All 2 branches covered.">    if (sb.length() &gt; 0) {</span>
+<span class="fc" id="L549">      elems.add(sb.toString());</span>
+<span class="fc bfc" id="L550" title="All 2 branches covered.">    } else if (path.charAt(len - 1) == SEP) {</span>
+<span class="fc" id="L551">      elems.add(StringMethods.EMPTY_STRING);</span>
+    }
+<span class="fc" id="L553">    return elems.toArray(String[]::new);</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

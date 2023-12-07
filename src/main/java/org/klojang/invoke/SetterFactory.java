@@ -3,23 +3,17 @@ package org.klojang.invoke;
 import org.klojang.check.Check;
 import org.klojang.util.ArrayMethods;
 import org.klojang.util.ClassMethods;
-import org.klojang.util.CollectionMethods;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.lang.Character.isUpperCase;
 import static java.lang.Character.toLowerCase;
 import static java.lang.reflect.Modifier.isStatic;
-import static java.util.Map.Entry;
-import static java.util.Map.entry;
 import static org.klojang.check.CommonChecks.empty;
 
 /**
- * Provides and caches {@link Setter setters} for classes.
+ * Assembles, caches and supplies {@link Setter setters} for classes.
  *
  * @author Ayco Holleman
  */
@@ -32,11 +26,13 @@ public final class SetterFactory {
 
   private final Map<Class<?>, Map<String, Setter>> cache = new HashMap<>();
 
-  private SetterFactory() {}
+  private SetterFactory() { }
 
   /**
    * Returns the public {@link Setter setters} for the specified class. The returned
-   * {@code Map} maps property names to {@code Setter} instances.
+   * {@code Map} maps property names to {@code Setter} instances. The order of the keys
+   * within the map is determined by the order of the methods returned by
+   * {@link Class#getMethods()}.
    *
    * @param clazz The class for which to retrieve the public setters
    * @return The public setters of the specified class
@@ -47,13 +43,12 @@ public final class SetterFactory {
     if (setters == null) {
       List<Method> methods = getMethods(clazz);
       Check.that(methods).isNot(empty(), () -> new NoPublicSettersException(clazz));
-      List<Entry<String, Setter>> entries = new ArrayList<>(methods.size());
+      Map<String, Setter> map = LinkedHashMap.newLinkedHashMap(methods.size());
       for (Method m : methods) {
         String prop = getPropertyNameFromSetter(m);
-        entries.add(entry(prop, new Setter(m, prop)));
+        map.put(prop, new Setter(m, prop));
       }
-      setters = Map.ofEntries(entries.toArray(Entry[]::new));
-      cache.put(clazz, setters);
+      cache.put(clazz, setters = Collections.unmodifiableMap(map));
     }
     return setters;
   }

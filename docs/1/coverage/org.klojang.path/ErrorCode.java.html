@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ErrorCode.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Klojang Invoke</a> &gt; <a href="index.source.html" class="el_package">org.klojang.path</a> &gt; <span class="el_source">ErrorCode.java</span></div><h1>ErrorCode.java</h1><pre class="source lang-java linenums">package org.klojang.path;
+
+/**
+ * Symbolic constants for read/write failures.
+ */
+<span class="fc" id="L6">public enum ErrorCode {</span>
+
+  /**
+   * Indicates that the {@code PathWalker} had arrived on a list or array, so
+   * expected the next segment in the {@code Path} to be an array index, but found
+   * something other than an integer.
+   */
+<span class="fc" id="L13">  INDEX_EXPECTED,</span>
+  /**
+   * Indicates that the {@code PathWalker} encountered an array index in the
+   * {@code Path}, but the value of the preceding path segment was something other
+   * than a list or array.
+   */
+<span class="fc" id="L19">  INDEX_NOT_ALLOWED,</span>
+  /**
+   * Indicates that the {@code PathWalker} encountered an array index in the
+   * {@code Path} that was out of bounds for the list or array it was processing.
+   */
+<span class="fc" id="L24">  INDEX_OUT_OF_BOUNDS,</span>
+  /**
+   * Indicates that the {@code PathWalker} encountered a segment that did not
+   * correspond to any (accessible) property of the JavaBean it was processing.
+   */
+<span class="fc" id="L29">  NO_SUCH_PROPERTY,</span>
+  /**
+   * Indicates that the {@code PathWalker} encountered a segment that did not
+   * correspond to any key of the {@code Map} it was processing. This code is only
+   * returned by the {@code read} methods of the {@code PathWalker} class. The
+   * {@code write} methods just add the key to the map.
+   */
+<span class="fc" id="L36">  NO_SUCH_KEY,</span>
+  /**
+   * Indicates that a {@link KeyDeserializer} failed to deserialize a path segment
+   * into a map key.
+   */
+<span class="fc" id="L41">  KEY_DESERIALIZATION_FAILED,</span>
+  /**
+   * Indicates that the {@code PathWalker} encountered a
+   * {@link Path#NULL_SEGMENT null segment} or an empty segment while not processing
+   * a {@code Map}. ({@code null} and the empty string can only possibly be valid as
+   * map keys.)
+   */
+<span class="fc" id="L48">  EMPTY_SEGMENT,</span>
+  /**
+   * Indicates that the {@code Path} continued after having reached a terminal value
+   * (like {@code null} or a primitive value) or an opaque value (like a
+   * {@code String}).
+   */
+<span class="fc" id="L54">  TERMINAL_VALUE,</span>
+  /**
+   * Indicates that the {@code PathWalker} encountered a value that it doesn't know
+   * how to read or write.
+   */
+<span class="fc" id="L59">  TYPE_NOT_SUPPORTED,</span>
+  /**
+   * Indicates that the {@code PathWalker} could not write a value because its type
+   * was incompatible with the target property or array.
+   */
+<span class="fc" id="L64">  TYPE_MISMATCH,</span>
+  /**
+   * Indicates that the {@code PathWalker} attempted to modify a {@code List} or
+   * {@code Map} and the {@code List} or {@code Map} responded by throwing an
+   * {@code UnsupportedOperationException}.
+   */
+<span class="fc" id="L70">  NOT_MODIFIABLE,</span>
+  /**
+   * Indicates that the {@code PathWalker} trapped an exception from underlying
+   * code.
+   */
+<span class="fc" id="L75">  EXCEPTION,</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AnyBeanReader.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Klojang Invoke</a> &gt; <a href="index.source.html" class="el_package">org.klojang.invoke</a> &gt; <span class="el_source">AnyBeanReader.java</span></div><h1>AnyBeanReader.java</h1><pre class="source lang-java linenums">package org.klojang.invoke;
+
+import org.klojang.check.Check;
+import org.klojang.check.Tag;
+
+import java.util.Map;
+
+import static org.klojang.check.CommonChecks.notNull;
+import static org.klojang.invoke.NoSuchPropertyException.noSuchProperty;
+
+/**
+ * A dynamic bean reader class for arbitrary types of beans. This class uses the
+ * {@code java.lang.invoke} package instead of reflection to read bean properties.
+ * Yet it still uses reflection to identify the getter methods of the bean class.
+ * Therefore, if you use this class from within a Java module you must open the
+ * module to the naturalis-common module.
+ *
+ * @author Ayco Holleman
+ */
+public final class AnyBeanReader {
+
+  private final boolean strict;
+
+  /**
+   * Creates a new {@code AnyBeanReader}. JavaBeans naming conventions will be
+   * applied regarding which methods qualify as getters.
+   */
+  public AnyBeanReader() {
+<span class="fc" id="L29">    this(true);</span>
+<span class="fc" id="L30">  }</span>
+
+  /**
+   * Creates a new {@code AnyBeanReader}.
+   *
+   * @param strictNaming if {@code false}, all methods with a zero-length
+   *     parameter list and a non-{@code void} return type, except
+   *     {@code getClass()}, {@code hashCode()} and {@code toString()}, will be
+   *     regarded as getters. Otherwise JavaBeans naming conventions will be applied
+   *     regarding which methods qualify as getters. By way of exception, methods
+   *     returning a {@link Boolean} are allowed to have a name starting with &quot;is&quot;
+   *     (just like methods returning a {@code boolean}). The {@code strictNaming}
+   *     parameter is quietly ignored for {@code record} classes. Records are always
+   *     processed as though {@code strictNaming} were {@code false}.
+   */
+<span class="fc" id="L45">  public AnyBeanReader(boolean strictNaming) {</span>
+<span class="fc" id="L46">    this.strict = strictNaming;</span>
+<span class="fc" id="L47">  }</span>
+
+  /**
+   * Returns the value of the specified property on the specified bean. If the
+   * property does not exist a {@link NoSuchPropertyException} is thrown.
+   *
+   * @param bean the bean instance
+   * @param property the property
+   * @param &lt;U&gt; the return type
+   * @return its value
+   * @throws NoSuchPropertyException if the specified property does not exist
+   */
+  public &lt;U&gt; U read(Object bean, String property) throws NoSuchPropertyException {
+<span class="fc" id="L60">    Check.notNull(bean, Tag.BEAN);</span>
+<span class="fc" id="L61">    Check.notNull(property, Tag.PROPERTY);</span>
+<span class="fc" id="L62">    return doRead(bean, property);</span>
+  }
+
+  @SuppressWarnings(&quot;unchecked&quot;)
+  private &lt;U&gt; U doRead(Object bean, String prop) {
+<span class="fc" id="L67">    Map&lt;String, Getter&gt; getters = GetterFactory.INSTANCE</span>
+<span class="fc" id="L68">        .getGetters(bean.getClass(), strict);</span>
+<span class="fc" id="L69">    Getter getter = getters.get(prop);</span>
+<span class="fc" id="L70">    Check.that(getter).is(notNull(), () -&gt; noSuchProperty(bean, prop)).ok();</span>
+    try {
+<span class="fc" id="L72">      return (U) getter.read(bean);</span>
+<span class="nc" id="L73">    } catch (Throwable exc) {</span>
+<span class="nc" id="L74">      throw Private.wrap(exc, bean, getter);</span>
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

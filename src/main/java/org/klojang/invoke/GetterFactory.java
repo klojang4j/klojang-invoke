@@ -10,12 +10,10 @@ import java.util.*;
 import static java.lang.Character.isUpperCase;
 import static java.lang.Character.toLowerCase;
 import static java.lang.reflect.Modifier.isStatic;
-import static java.util.Map.Entry;
-import static java.util.Map.entry;
 import static org.klojang.check.CommonChecks.empty;
 
 /**
- * Provides and caches {@link Getter getters} for classes.
+ * Assembles, caches, and supplies {@link Getter getters} for classes.
  *
  * @author Ayco Holleman
  */
@@ -29,22 +27,25 @@ public final class GetterFactory {
   private final Map<Class<?>, Map<String, Getter>> cache = new HashMap<>();
 
   private static final Set<String> NON_GETTERS = Set.of("getClass",
-      "toString",
-      "hashCode");
+        "toString",
+        "hashCode");
 
-  private GetterFactory() {}
+  private GetterFactory() { }
 
   /**
    * Returns the public {@link Getter getters} for the specified class. The returned
-   * {@code Map} maps property names to {@code Getter} instances.
+   * {@code Map} maps property names to {@code Getter} instances. The order of the keys
+   * within the map is determined by the order of the methods returned by
+   * {@link Class#getMethods()}.
    *
    * @param clazz the class for which to retrieve the public getters
-   * @param strict if {@code false}, all methods with a zero-length parameter
-   *     list and a non-{@code void} return type, except {@code getClass()},
-   *     {@code hashCode()} and {@code toString()}, will be regarded as getters.
-   *     Otherwise JavaBeans naming conventions will be applied regarding which
-   *     methods qualify as getters, with the exception that methods returning a
-   *     {@link Boolean} are allowed to have a name starting with "is".
+   * @param strict if {@code false}, all non-static methods with a zero-length parameter
+   * list and a non-{@code void} return type, except {@code getClass()},
+   * {@code hashCode()} and {@code toString()}, will be regarded as getters. Otherwise
+   * JavaBeans naming conventions will be applied regarding which methods qualify as
+   * getters, with the exception that methods returning a {@link Boolean} are allowed to
+   * have a name starting with "is". For {@code record} types, getters are collected as
+   * though with {@code strict} equal to {@code false}.
    * @return the public getters of the specified class
    * @throws IllegalAssignmentException if the does not have any public getters
    */
@@ -53,20 +54,19 @@ public final class GetterFactory {
     if (getters == null) {
       List<Method> methods = getMethods(clazz, strict);
       Check.that(methods).isNot(empty(), () -> new NoPublicGettersException(clazz));
-      List<Entry<String, Getter>> entries = new ArrayList<>(methods.size());
+      Map<String, Getter> map = LinkedHashMap.newLinkedHashMap(methods.size());
       for (Method m : methods) {
         String prop = getPropertyNameFromGetter(m, strict);
-        entries.add(entry(prop, new Getter(m, prop)));
+        map.put(prop, new Getter(m, prop));
       }
-      getters = Map.ofEntries(entries.toArray(Entry[]::new));
-      cache.put(clazz, getters);
+      cache.put(clazz, getters = Collections.unmodifiableMap(map));
     }
     return getters;
   }
 
   private static List<Method> getMethods(Class<?> clazz, boolean strict) {
     Method[] methods = clazz.getMethods();
-    List<Method> getters = new ArrayList<>();
+    List<Method> getters = new ArrayList<>(methods.length - NON_GETTERS.size());
     for (Method m : methods) {
       if (isStatic(m.getModifiers())) {
         continue;
@@ -90,9 +90,9 @@ public final class GetterFactory {
     }
     String n = m.getName();
     if ((m.getReturnType() == boolean.class || m.getReturnType() == Boolean.class)
-        && n.length() > 2
-        && n.startsWith("is")
-        && isUpperCase(n.charAt(2))) {
+          && n.length() > 2
+          && n.startsWith("is")
+          && isUpperCase(n.charAt(2))) {
       return extractName(n, 2);
     } else if (n.length() > 3 && n.startsWith("get") && isUpperCase(n.charAt(3))) {
       return extractName(n, 3);
@@ -117,7 +117,7 @@ public final class GetterFactory {
     }
     if (n.length() > 3 && n.startsWith("is") && isUpperCase(n.charAt(2))) {
       return m.getReturnType() == boolean.class
-          || m.getReturnType() == Boolean.class;
+            || m.getReturnType() == Boolean.class;
     }
     return false;
   }
@@ -127,7 +127,7 @@ public final class GetterFactory {
     String rt = ClassMethods.simpleClassName(m.getReturnType());
     String clazz = ClassMethods.className(m.getDeclaringClass());
     String params = ArrayMethods.implode(m.getParameterTypes(),
-        ClassMethods::simpleClassName);
+          ClassMethods::simpleClassName);
     String msg = String.format(fmt, rt, m.getName(), params, clazz);
     return new IllegalArgumentException(msg);
   }

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IllegalAssignmentException.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Klojang Invoke</a> &gt; <a href="index.source.html" class="el_package">org.klojang.invoke</a> &gt; <span class="el_source">IllegalAssignmentException.java</span></div><h1>IllegalAssignmentException.java</h1><pre class="source lang-java linenums">package org.klojang.invoke;
+
+import org.klojang.util.ClassMethods;
+import org.klojang.util.InvokeException;
+
+import static org.klojang.util.ClassMethods.simpleClassName;
+import static org.klojang.util.ObjectMethods.ifNotNull;
+
+/**
+ * Thrown by a {@link BeanWriter} if it failed to write a value to a property, for
+ * example because of a type mismatch.
+ */
+public final class IllegalAssignmentException extends InvokeException {
+
+  private final Class&lt;?&gt; beanClass;
+  private final String propertyName;
+  private final Class&lt;?&gt; propertyType;
+  private final Object value;
+
+  IllegalAssignmentException(Class&lt;?&gt; beanClass,
+      String propertyName,
+      Class&lt;?&gt; propertyType,
+      Object value) {
+<span class="fc" id="L24">    super(createMessage(beanClass, propertyName, propertyType, value));</span>
+<span class="fc" id="L25">    this.beanClass = beanClass;</span>
+<span class="fc" id="L26">    this.propertyName = propertyName;</span>
+<span class="fc" id="L27">    this.propertyType = propertyType;</span>
+<span class="fc" id="L28">    this.value = value;</span>
+<span class="fc" id="L29">  }</span>
+
+  private static String createMessage(Class&lt;?&gt; beanClass,
+      String propertyName,
+      Class&lt;?&gt; propertyType,
+      Object value) {
+<span class="fc" id="L35">    String valueType = ifNotNull(value, ClassMethods::simpleClassName, &quot;null&quot;);</span>
+<span class="fc" id="L36">    return &quot;illegal assignment for &quot;</span>
+<span class="fc" id="L37">        + simpleClassName(beanClass)</span>
+        + &quot;.&quot;
+        + propertyName
+        + &quot;: cannot assign &quot;
+        + valueType
+        + &quot; to &quot;
+<span class="fc" id="L43">        + simpleClassName(propertyType);</span>
+  }
+
+  /**
+   * Returns the class containing the property.
+   *
+   * @return The class containing the property
+   */
+  public Class&lt;?&gt; getBeanClass() {
+<span class="fc" id="L52">    return beanClass;</span>
+  }
+
+  /**
+   * Returns the name of the property.
+   *
+   * @return The name of the property
+   */
+  public String getPropertyName() {
+<span class="fc" id="L61">    return propertyName;</span>
+  }
+
+  /**
+   * Returns the class of the property.
+   *
+   * @return The class of the property
+   */
+  public Class&lt;?&gt; getPropertyType() {
+<span class="fc" id="L70">    return propertyType;</span>
+  }
+
+  /**
+   * Returns the value that was attempted to be assigned to the property
+   *
+   * @return The value that was attempted to be assigned to the property
+   */
+  public Object getValue() {
+<span class="fc" id="L79">    return value;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

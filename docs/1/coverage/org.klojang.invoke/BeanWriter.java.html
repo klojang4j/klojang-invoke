@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BeanWriter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Klojang Invoke</a> &gt; <a href="index.source.html" class="el_package">org.klojang.invoke</a> &gt; <span class="el_source">BeanWriter.java</span></div><h1>BeanWriter.java</h1><pre class="source lang-java linenums">package org.klojang.invoke;
+
+import org.klojang.check.Check;
+import org.klojang.check.Tag;
+import org.klojang.check.fallible.FallibleBiFunction;
+import org.klojang.convert.TypeConversionException;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import static org.klojang.check.CommonChecks.empty;
+import static org.klojang.check.CommonChecks.notNull;
+import static org.klojang.invoke.IncludeExclude.INCLUDE;
+import static org.klojang.invoke.NoSuchPropertyException.noSuchProperty;
+
+/**
+ * A dynamic bean writer class. This class uses method handles instead of reflection to
+ * write bean properties. However, it still uses reflection to figure out what those
+ * properties are in the first place. Therefore, if you use this class from within a Java
+ * module you must open the module to the klojang-invoke module. Reflection is used only
+ * transiently. No reflection objects are cached. They are disposed of once the required
+ * information has been extracted from them.
+ *
+ * @param &lt;T&gt; The type of the bean
+ * @author Ayco Holleman
+ */
+public final class BeanWriter&lt;T&gt; {
+
+  private final Class&lt;T&gt; beanClass;
+  private final FallibleBiFunction&lt;Setter, Object, Object, Throwable&gt; converter;
+  private final Map&lt;String, Setter&gt; setters;
+
+  /**
+   * Creates a {@code BeanWriter} for the specified class. You can optionally specify an
+   * array of properties that you intend to write. If you specify a zero-length array, all
+   * properties will be writable. If you intend to use this {@code BeanWriter} to
+   * repetitively write just one or two properties on bulky bean types, explicitly
+   * specifying the properties you intend to write might make the {@code BeanWriter}
+   * slightly more efficient.
+   *
+   * @param beanClass the bean class
+   * @param properties the properties to be written
+   */
+  public BeanWriter(Class&lt;T&gt; beanClass, String... properties) {
+<span class="fc" id="L46">    this(beanClass, INCLUDE, properties);</span>
+<span class="fc" id="L47">  }</span>
+
+  /**
+   * Creates a {@code BeanWriter} for the specified class. You can optionally specify an
+   * array of properties that you intend to write. If you specify a zero-length array all
+   * properties will be writable. Input values will first be converted by the specified
+   * conversion function before being assigned to properties.
+   *
+   * @param beanClass the bean class
+   * @param converter a conversion function for input values. The conversion is given the
+   * {@link Setter} for the property to be set as the first argument, and the input value
+   * as the second argument. The return value should be the actual value to assign to the
+   * property. The {@code Setter} should only be used to get the
+   * {@link Setter#getProperty() name} and {@link Setter#getParamType() type} of the
+   * property to be set. You &lt;i&gt;should not&lt;/i&gt; use it to actually
+   * {@link Setter#write(Object, Object) write} the property, as this will happen anyhow
+   * once the conversion function returns. Unless the conversion fails for extraordinary
+   * reasons, it should throw an {@link IllegalAssignmentException} upon failure. You can
+   * again use the {@code Setter} to {@link Setter#illegalAssignment(Object) generate} the
+   * exception.
+   * @param properties the properties you allow to be written
+   */
+  public BeanWriter(
+        Class&lt;T&gt; beanClass,
+        FallibleBiFunction&lt;Setter, Object, Object, Throwable&gt; converter,
+        String... properties) {
+<span class="fc" id="L73">    this(beanClass, converter, INCLUDE, properties);</span>
+<span class="fc" id="L74">  }</span>
+
+  /**
+   * Creates a {@code BeanWriter} for the specified class. You can optionally specify an
+   * array of properties that you intend or do &lt;i&gt;not&lt;/i&gt; intend to write. If you specify
+   * a zero-length array all properties will be writable.
+   *
+   * @param beanClass the bean class
+   * @param includeExclude whether to include or exclude the specified properties
+   * @param properties the properties to be included/excluded
+   */
+  public BeanWriter(
+        Class&lt;T&gt; beanClass,
+        IncludeExclude includeExclude,
+<span class="fc" id="L88">        String... properties) {</span>
+<span class="fc" id="L89">    this.beanClass = Check.notNull(beanClass, Private.BEAN_CLASS).ok();</span>
+<span class="fc" id="L90">    this.converter = null;</span>
+<span class="fc" id="L91">    Check.notNull(includeExclude, Private.INCLUDE_EXCLUDE);</span>
+<span class="fc" id="L92">    Check.notNull(properties, Private.PROPERTIES);</span>
+<span class="fc" id="L93">    this.setters = getSetters(includeExclude, properties);</span>
+<span class="fc" id="L94">  }</span>
+
+  /**
+   * Creates a {@code BeanWriter} for the specified class. You can optionally specify an
+   * array of properties that you intend or do &lt;i&gt;not&lt;/i&gt; intend to write. If you specify
+   * a zero-length array all properties will be writable. If you intend to use this
+   * {@code BeanWriter} to repetitively write just one or two properties from bulky bean
+   * types, explicitly specifying the properties you intend to write might make the
+   * {@code BeanWriter} more efficient. Input values will first be converted by the
+   * specified conversion function before being assigned to properties.
+   *
+   * &lt;p&gt;&lt;i&gt;Specifying one or more non-existent properties will not cause an
+   * exception to be thrown.&lt;/i&gt; They will be quietly ignored.
+   *
+   * @param beanClass the bean class
+   * @param converter A conversion function for input values. The conversion is given the
+   * {@link Setter} for the property to be set as the first argument, and the input value
+   * as the second argument. The return value should be the actual value to assign to the
+   * property. The {@code Setter} should only be used to get the
+   * {@link Setter#getProperty() name} and {@link Setter#getParamType() type} of the
+   * property to be set. You &lt;i&gt;should not&lt;/i&gt; use it to actually
+   * {@link Setter#write(Object, Object) write} the property, as this will happen anyhow
+   * once the conversion function returns. Unless the conversion fails for extraordinary
+   * reasons, it should throw an {@link IllegalAssignmentException} upon failure. You can
+   * again use the {@code Setter} to {@link Setter#illegalAssignment(Object) generate} the
+   * exception.
+   * @param includeExclude whether to include or exclude the specified properties
+   * @param properties the properties to be included/excluded
+   */
+  public BeanWriter(
+        Class&lt;T&gt; beanClass,
+        FallibleBiFunction&lt;Setter, Object, Object, Throwable&gt; converter,
+        IncludeExclude includeExclude,
+<span class="fc" id="L127">        String... properties) {</span>
+<span class="fc" id="L128">    this.beanClass = Check.notNull(beanClass, Private.BEAN_CLASS).ok();</span>
+<span class="fc" id="L129">    this.converter = Check.notNull(converter, Private.CONVERTER).ok();</span>
+<span class="fc" id="L130">    Check.notNull(includeExclude, Private.INCLUDE_EXCLUDE);</span>
+<span class="fc" id="L131">    Check.notNull(properties, Private.PROPERTIES);</span>
+<span class="fc" id="L132">    this.setters = getSetters(includeExclude, properties);</span>
+<span class="fc" id="L133">  }</span>
+
+  /**
+   * Sets the value of the specified property on the specified bean.
+   *
+   * @param bean The bean instance
+   * @param property The property
+   * @param value The value to set it to
+   * @throws IllegalAssignmentException If the value cannot be cast to the type of the
+   * property, or if the value is {@code null} and the property has a primitive type. This
+   * is a {@link RuntimeException}, but you might still want to catch it as it can often
+   * be handled in a meaningful way.
+   * @throws Throwable The {@code Throwable} thrown from inside the
+   * {@code java.lang.invoke} package
+   */
+  public void write(T bean, String property, Object value) throws Throwable {
+<span class="fc" id="L149">    Check.notNull(bean, Tag.BEAN);</span>
+<span class="fc" id="L150">    Setter setter = Check.notNull(property, Tag.PROPERTY).ok(setters::get);</span>
+<span class="fc" id="L151">    Check.that(setter).is(notNull(), () -&gt; noSuchProperty(bean, property));</span>
+<span class="fc" id="L152">    set(bean, setter, value);</span>
+<span class="fc" id="L153">  }</span>
+
+  /**
+   * Overwrites all properties in the second bean with the values they have in the first
+   * bean. This can potentially nullify non-null properties in the target bean.
+   *
+   * @param fromBean The bean from which to copy the values.
+   * @param toBean The bean to which to copy the values.
+   * @throws Throwable The {@code Throwable} thrown from inside the
+   * {@code java.lang.invoke} package
+   */
+  public void copy(T fromBean, T toBean) throws Throwable {
+<span class="fc" id="L165">    Check.notNull(fromBean, Private.SOURCE_BEAN);</span>
+<span class="fc" id="L166">    Check.notNull(toBean, Private.TARGET_BEAN);</span>
+<span class="fc" id="L167">    BeanReader&lt;T&gt; reader = getBeanReader();</span>
+<span class="fc bfc" id="L168" title="All 2 branches covered.">    for (Setter setter : setters.values()) {</span>
+<span class="fc" id="L169">      set(toBean, setter, reader.read(fromBean, setter.getProperty()));</span>
+<span class="fc" id="L170">    }</span>
+<span class="fc" id="L171">  }</span>
+
+  /**
+   * Copies all non-null properties from the first bean to the second bean. This can
+   * potentially overwrite non-null properties in the second bean, but it will never
+   * nullify them.
+   *
+   * @param fromBean The bean from which to copy the values.
+   * @param toBean The bean to which to copy the values.
+   * @throws Throwable The {@code Throwable} thrown from inside the
+   * {@code java.lang.invoke} package
+   */
+  public void copyNonNull(T fromBean, T toBean) throws Throwable {
+<span class="fc" id="L184">    Check.notNull(fromBean, Private.SOURCE_BEAN);</span>
+<span class="fc" id="L185">    Check.notNull(toBean, Private.TARGET_BEAN);</span>
+<span class="fc" id="L186">    BeanReader&lt;T&gt; reader = getBeanReader();</span>
+<span class="fc bfc" id="L187" title="All 2 branches covered.">    for (Setter setter : setters.values()) {</span>
+<span class="fc" id="L188">      Object v = reader.read(fromBean, setter.getProperty());</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">      if (v != null) {</span>
+<span class="fc" id="L190">        set(toBean, setter, v);</span>
+      }
+<span class="fc" id="L192">    }</span>
+<span class="fc" id="L193">  }</span>
+
+  /**
+   * Overwrites all properties in the second bean whose value is {@code null} with the
+   * values they have in the first bean. Non-null properties in the second bean are left
+   * alone.
+   *
+   * @param fromBean The bean from which to copy the values.
+   * @param toBean The bean to which to copy the values.
+   * @throws Throwable The {@code Throwable} thrown from inside the
+   * {@code java.lang.invoke} package
+   */
+  public void enrich(T fromBean, T toBean) throws Throwable {
+<span class="fc" id="L206">    Check.notNull(fromBean, Private.SOURCE_BEAN);</span>
+<span class="fc" id="L207">    Check.notNull(toBean, Private.TARGET_BEAN);</span>
+<span class="fc" id="L208">    BeanReader&lt;T&gt; reader = getBeanReader();</span>
+<span class="fc bfc" id="L209" title="All 2 branches covered.">    for (Setter setter : setters.values()) {</span>
+<span class="fc" id="L210">      Object v = reader.read(fromBean, setter.getProperty());</span>
+<span class="fc bfc" id="L211" title="All 4 branches covered.">      if (v != null &amp;&amp; reader.read(toBean, setter.getProperty()) == null) {</span>
+<span class="fc" id="L212">        set(toBean, setter, v);</span>
+      }
+<span class="fc" id="L214">    }</span>
+<span class="fc" id="L215">  }</span>
+
+  /**
+   * Overwrites all properties in the specified bean with the corresponding values in the
+   * specified map. This can potentially nullify non-null values in the target bean.
+   *
+   * @param fromMap The {@code Map} providing the data for the JavaBean
+   * @param toBean The JavaBean to populate
+   * @throws IllegalAssignmentException If a value cannot be cast or converted to the type
+   * of the destination property, or if the value is {@code null} and the destination
+   * property has a primitive type. This is a {@link RuntimeException}, but you might
+   * still want to catch it as it can often be handled in a meaningful way.
+   * @throws Throwable The {@code Throwable} thrown from inside the
+   * {@code java.lang.invoke} package
+   */
+  public void copy(Map&lt;String, ?&gt; fromMap, T toBean)
+        throws IllegalAssignmentException, Throwable {
+<span class="fc" id="L232">    Check.notNull(fromMap, Private.SOURCE_MAP);</span>
+<span class="fc" id="L233">    Check.notNull(toBean, Private.TARGET_BEAN);</span>
+<span class="fc bfc" id="L234" title="All 2 branches covered.">    for (Map.Entry&lt;String, ?&gt; e : fromMap.entrySet()) {</span>
+<span class="pc bpc" id="L235" title="1 of 2 branches missed.">      if (e.getKey() != null) {</span>
+<span class="fc" id="L236">        Setter setter = setters.get(e.getKey());</span>
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">        if (setter != null) {</span>
+<span class="fc" id="L238">          set(toBean, setter, e.getValue());</span>
+        }
+      }
+<span class="fc" id="L241">    }</span>
+<span class="fc" id="L242">  }</span>
+
+  /**
+   * Copies all non-null values from the specified map to the specified bean. Map keys
+   * that do not correspond to bean properties are quietly ignored.
+   *
+   * @param fromMap The {@code Map} providing the data for the JavaBean
+   * @param toBean The JavaBean to populate
+   * @throws IllegalAssignmentException If a value cannot be cast or converted to the type
+   * of the destination property, or if the value is {@code null} and the destination
+   * property has a primitive type. This is a {@link RuntimeException}, but you might
+   * still want to catch it as it can often be handled in a meaningful way.
+   * @throws Throwable The {@code Throwable} thrown from inside the
+   * {@code java.lang.invoke} package
+   */
+  public void copyNonNull(Map&lt;String, ?&gt; fromMap, T toBean) throws Throwable {
+<span class="fc" id="L258">    Check.notNull(fromMap, Private.SOURCE_MAP);</span>
+<span class="fc" id="L259">    Check.notNull(toBean, Private.TARGET_BEAN);</span>
+<span class="fc bfc" id="L260" title="All 2 branches covered.">    for (Map.Entry&lt;String, ?&gt; e : fromMap.entrySet()) {</span>
+<span class="pc bpc" id="L261" title="1 of 4 branches missed.">      if (e.getValue() != null &amp;&amp; e.getKey() != null) {</span>
+<span class="fc" id="L262">        Setter setter = setters.get(e.getKey());</span>
+<span class="pc bpc" id="L263" title="1 of 2 branches missed.">        if (setter != null) {</span>
+<span class="fc" id="L264">          set(toBean, setter, e.getValue());</span>
+        }
+      }
+<span class="fc" id="L267">    }</span>
+<span class="fc" id="L268">  }</span>
+
+  /**
+   * Overwrites all properties in the specified bean whose value is {@code null} with the
+   * corresponding values in the specified map. Non-null properties in the target bean are
+   * left alone.
+   *
+   * @param fromMap The {@code Map} providing the data for the JavaBean
+   * @param toBean The JavaBean to populate
+   * @throws IllegalAssignmentException If a value cannot be cast or converted to the type
+   * of the destination property, or if the value is {@code null} and the destination
+   * property has a primitive type. This is a {@link RuntimeException}, but you might
+   * still want to catch it as it can often be handled in a meaningful way.
+   * @throws Throwable The {@code Throwable} thrown from inside the
+   * {@code java.lang.invoke} package
+   */
+  public void enrich(Map&lt;String, ?&gt; fromMap, T toBean)
+        throws IllegalAssignmentException, Throwable {
+<span class="fc" id="L286">    Check.notNull(fromMap, Private.SOURCE_MAP);</span>
+<span class="fc" id="L287">    Check.notNull(toBean, Private.TARGET_BEAN);</span>
+<span class="fc" id="L288">    BeanReader&lt;T&gt; reader = getBeanReader();</span>
+<span class="fc bfc" id="L289" title="All 2 branches covered.">    for (Map.Entry&lt;String, ?&gt; e : fromMap.entrySet()) {</span>
+<span class="pc bpc" id="L290" title="1 of 4 branches missed.">      if (e.getValue() != null &amp;&amp; e.getKey() != null) {</span>
+<span class="fc" id="L291">        Setter setter = setters.get(e.getKey());</span>
+<span class="pc bpc" id="L292" title="1 of 4 branches missed.">        if (setter != null &amp;&amp; reader.read(toBean, e.getKey()) == null) {</span>
+<span class="fc" id="L293">          set(toBean, setter, e.getValue());</span>
+        }
+      }
+<span class="fc" id="L296">    }</span>
+<span class="fc" id="L297">  }</span>
+
+  /**
+   * Returns the type of the objects this {@code BeanWriter} can write to.
+   *
+   * @return The type of the objects this {@code BeanWriter} can write to
+   */
+  public Class&lt;T&gt; getBeanClass() {
+<span class="nc" id="L305">    return beanClass;</span>
+  }
+
+  /**
+   * Returns {@code true} if the specified string represents a property that can be
+   * written by this {@code BeanWriter}. Note that this check is already done by the
+   * {@link #write(Object, String, Object)} method before it will actually attempt to set
+   * the property. Only perform this check if there is a considerable chance that the
+   * provided string is &lt;i&gt;not&lt;/i&gt; a writable property.
+   *
+   * @param property the string to be tested
+   * @return {@code true} if the specified string represents a property that can be
+   * written by this {@code BeanWriter}
+   */
+  public boolean canWrite(String property) {
+<span class="nc" id="L320">    return setters.keySet().contains(property);</span>
+  }
+
+  /**
+   * Returns the properties that this {@code BeanWriter} will write. That will be all
+   * write-accessible properties minus the properties excluded through the constructor (if
+   * any).
+   *
+   * @return the properties that this {@code BeanWriter} will write
+   */
+  public Set&lt;String&gt; getWritableProperties() {
+<span class="nc" id="L331">    return setters.keySet();</span>
+  }
+
+  /**
+   * Returns the {@link Setter setters} used by the {@code BeanWriter} to write bean
+   * properties. The returned {@code Map} maps the name of a property to the
+   * {@code Setter} used to write it.
+   *
+   * @return The {@link Setter setters} used by the {@code BeanWriter} to write bean
+   * properties.
+   */
+  public Map&lt;String, Setter&gt; getIncludedSetters() {
+<span class="nc" id="L343">    return setters;</span>
+  }
+
+  private Map&lt;String, Setter&gt; getSetters(IncludeExclude ie, String[] props) {
+<span class="fc" id="L347">    Map&lt;String, Setter&gt; tmp = SetterFactory.INSTANCE.getSetters(beanClass);</span>
+<span class="fc bfc" id="L348" title="All 2 branches covered.">    if (props.length != 0) {</span>
+<span class="fc" id="L349">      tmp = new HashMap&lt;&gt;(tmp);</span>
+<span class="fc bfc" id="L350" title="All 2 branches covered.">      if (ie.isExclude()) {</span>
+<span class="fc" id="L351">        tmp.keySet().removeAll(Set.of(props));</span>
+      } else {
+<span class="fc" id="L353">        tmp.keySet().retainAll(Set.of(props));</span>
+      }
+<span class="pc" id="L355">      Check.that(tmp).isNot(empty(), () -&gt; new NoPublicSettersException(beanClass));</span>
+<span class="fc" id="L356">      tmp = Map.copyOf(tmp);</span>
+    }
+<span class="fc" id="L358">    return tmp;</span>
+  }
+
+  private void set(T bean, Setter setter, Object value) throws Throwable {
+<span class="fc bfc" id="L362" title="All 2 branches covered.">    if (converter == null) {</span>
+<span class="fc" id="L363">      setter.write(bean, value);</span>
+    } else {
+      Object val;
+      try {
+<span class="fc" id="L367">        val = converter.apply(setter, value);</span>
+<span class="nc" id="L368">      } catch (TypeConversionException e) {</span>
+<span class="nc" id="L369">        throw setter.illegalAssignment(value);</span>
+<span class="fc" id="L370">      }</span>
+<span class="fc" id="L371">      setter.write(bean, val);</span>
+    }
+<span class="fc" id="L373">  }</span>
+
+  private BeanReader&lt;T&gt; beanReader;
+
+  private BeanReader&lt;T&gt; getBeanReader() {
+<span class="pc bpc" id="L378" title="1 of 2 branches missed.">    if (beanReader == null) {</span>
+<span class="fc" id="L379">      beanReader = new BeanReader&lt;&gt;(beanClass,</span>
+<span class="fc" id="L380">            setters.keySet().toArray(String[]::new));</span>
+    }
+<span class="fc" id="L382">    return beanReader;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
