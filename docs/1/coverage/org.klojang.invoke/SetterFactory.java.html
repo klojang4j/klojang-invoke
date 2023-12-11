@@ -30,71 +30,73 @@ public final class SetterFactory {
 
   /**
    * Returns the public {@link Setter setters} for the specified class. The returned
-   * {@code Map} maps property names to {@code Setter} instances.
+   * {@code Map} maps property names to {@code Setter} instances. The order of the keys
+   * within the map is determined by the order of the methods returned by
+   * {@link Class#getMethods()}.
    *
    * @param clazz The class for which to retrieve the public setters
    * @return The public setters of the specified class
    * @throws IllegalAssignmentException If the does not have any public setters
    */
   public Map&lt;String, Setter&gt; getSetters(Class&lt;?&gt; clazz) {
-<span class="fc" id="L40">    Map&lt;String, Setter&gt; setters = cache.get(clazz);</span>
-<span class="fc bfc" id="L41" title="All 2 branches covered.">    if (setters == null) {</span>
-<span class="fc" id="L42">      List&lt;Method&gt; methods = getMethods(clazz);</span>
-<span class="fc" id="L43">      Check.that(methods).isNot(empty(), () -&gt; new NoPublicSettersException(clazz));</span>
-<span class="fc" id="L44">      Map&lt;String, Setter&gt; map = LinkedHashMap.newLinkedHashMap(methods.size());</span>
-<span class="fc bfc" id="L45" title="All 2 branches covered.">      for (Method m : methods) {</span>
-<span class="fc" id="L46">        String prop = getPropertyNameFromSetter(m);</span>
-<span class="fc" id="L47">        map.put(prop, new Setter(m, prop));</span>
-<span class="fc" id="L48">      }</span>
-<span class="fc" id="L49">      cache.put(clazz, setters = Collections.unmodifiableMap(map));</span>
+<span class="fc" id="L42">    Map&lt;String, Setter&gt; setters = cache.get(clazz);</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">    if (setters == null) {</span>
+<span class="fc" id="L44">      List&lt;Method&gt; methods = getMethods(clazz);</span>
+<span class="fc" id="L45">      Check.that(methods).isNot(empty(), () -&gt; new NoPublicSettersException(clazz));</span>
+<span class="fc" id="L46">      Map&lt;String, Setter&gt; map = LinkedHashMap.newLinkedHashMap(methods.size());</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">      for (Method m : methods) {</span>
+<span class="fc" id="L48">        String prop = getPropertyNameFromSetter(m);</span>
+<span class="fc" id="L49">        map.put(prop, new Setter(m, prop));</span>
+<span class="fc" id="L50">      }</span>
+<span class="fc" id="L51">      cache.put(clazz, setters = Collections.unmodifiableMap(map));</span>
     }
-<span class="fc" id="L51">    return setters;</span>
+<span class="fc" id="L53">    return setters;</span>
   }
 
   private static List&lt;Method&gt; getMethods(Class&lt;?&gt; beanClass) {
-<span class="fc" id="L55">    Method[] methods = beanClass.getMethods();</span>
-<span class="fc" id="L56">    List&lt;Method&gt; setters = new ArrayList&lt;&gt;();</span>
-<span class="fc bfc" id="L57" title="All 2 branches covered.">    for (Method m : methods) {</span>
-<span class="pc bpc" id="L58" title="1 of 2 branches missed.">      if (!beanClass.isRecord()</span>
-<span class="fc bfc" id="L59" title="All 2 branches covered.">            &amp;&amp; !isStatic(m.getModifiers())</span>
-<span class="fc bfc" id="L60" title="All 2 branches covered.">            &amp;&amp; m.getParameterCount() == 1</span>
-<span class="fc bfc" id="L61" title="All 2 branches covered.">            &amp;&amp; m.getReturnType() == void.class</span>
-<span class="fc bfc" id="L62" title="All 2 branches covered.">            &amp;&amp; isValidSetterName(m)</span>
+<span class="fc" id="L57">    Method[] methods = beanClass.getMethods();</span>
+<span class="fc" id="L58">    List&lt;Method&gt; setters = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">    for (Method m : methods) {</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">      if (!beanClass.isRecord()</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">            &amp;&amp; !isStatic(m.getModifiers())</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">            &amp;&amp; m.getParameterCount() == 1</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">            &amp;&amp; m.getReturnType() == void.class</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">            &amp;&amp; isValidSetterName(m)</span>
       ) {
-<span class="fc" id="L64">        setters.add(m);</span>
+<span class="fc" id="L66">        setters.add(m);</span>
       }
     }
-<span class="fc" id="L67">    return setters;</span>
+<span class="fc" id="L69">    return setters;</span>
   }
 
   private static String getPropertyNameFromSetter(Method m) {
-<span class="fc" id="L71">    String n = m.getName();</span>
-<span class="pc bpc" id="L72" title="2 of 4 branches missed.">    if (n.startsWith(&quot;set&quot;) &amp;&amp; isUpperCase(n.charAt(3))) {</span>
-<span class="fc" id="L73">      return extractName(n, 3);</span>
+<span class="fc" id="L73">    String n = m.getName();</span>
+<span class="pc bpc" id="L74" title="2 of 4 branches missed.">    if (n.startsWith(&quot;set&quot;) &amp;&amp; isUpperCase(n.charAt(3))) {</span>
+<span class="fc" id="L75">      return extractName(n, 3);</span>
     }
-<span class="nc" id="L75">    throw notAProperty(m);</span>
+<span class="nc" id="L77">    throw notAProperty(m);</span>
   }
 
   private static String extractName(String n, int from) {
-<span class="fc" id="L79">    StringBuilder sb = new StringBuilder(n.length() - 3);</span>
-<span class="fc" id="L80">    sb.append(n.substring(from));</span>
-<span class="fc" id="L81">    sb.setCharAt(0, toLowerCase(sb.charAt(0)));</span>
-<span class="fc" id="L82">    return sb.toString();</span>
+<span class="fc" id="L81">    StringBuilder sb = new StringBuilder(n.length() - 3);</span>
+<span class="fc" id="L82">    sb.append(n.substring(from));</span>
+<span class="fc" id="L83">    sb.setCharAt(0, toLowerCase(sb.charAt(0)));</span>
+<span class="fc" id="L84">    return sb.toString();</span>
   }
 
   private static IllegalArgumentException notAProperty(Method m) {
-<span class="nc" id="L86">    String fmt = &quot;method %s %s(%s) in class %s is not a setter&quot;;</span>
-<span class="nc" id="L87">    String rt = ClassMethods.simpleClassName(m.getReturnType());</span>
-<span class="nc" id="L88">    String clazz = ClassMethods.className(m.getDeclaringClass());</span>
-<span class="nc" id="L89">    String params = ArrayMethods.implode(m.getParameterTypes(),</span>
+<span class="nc" id="L88">    String fmt = &quot;method %s %s(%s) in class %s is not a setter&quot;;</span>
+<span class="nc" id="L89">    String rt = ClassMethods.simpleClassName(m.getReturnType());</span>
+<span class="nc" id="L90">    String clazz = ClassMethods.className(m.getDeclaringClass());</span>
+<span class="nc" id="L91">    String params = ArrayMethods.implode(m.getParameterTypes(),</span>
           ClassMethods::simpleClassName);
-<span class="nc" id="L91">    String msg = String.format(fmt, rt, m.getName(), params, clazz);</span>
-<span class="nc" id="L92">    return new IllegalArgumentException(msg);</span>
+<span class="nc" id="L93">    String msg = String.format(fmt, rt, m.getName(), params, clazz);</span>
+<span class="nc" id="L94">    return new IllegalArgumentException(msg);</span>
   }
 
   private static boolean isValidSetterName(Method m) {
-<span class="fc" id="L96">    String n = m.getName();</span>
-<span class="pc bpc" id="L97" title="2 of 6 branches missed.">    return n.length() &gt; 3 &amp;&amp; n.startsWith(&quot;set&quot;) &amp;&amp; isUpperCase(n.charAt(3));</span>
+<span class="fc" id="L98">    String n = m.getName();</span>
+<span class="pc bpc" id="L99" title="2 of 6 branches missed.">    return n.length() &gt; 3 &amp;&amp; n.startsWith(&quot;set&quot;) &amp;&amp; isUpperCase(n.charAt(3));</span>
   }
 
 }

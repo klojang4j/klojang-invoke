@@ -10,13 +10,14 @@ import java.util.Map;
 
 import static java.lang.Character.*;
 import static java.lang.invoke.MethodType.methodType;
-import static org.klojang.check.CommonChecks.*;
+import static org.klojang.check.CommonChecks.empty;
+import static org.klojang.check.CommonChecks.keyIn;
 
 /**
- * A {@code Builder} class for {@link BeanReader} instances. Use this class if the
- * bean class resides in a Java 9+ module that does not allow reflective access to
- * its classes, or if you need or prefer 100% reflection-free bean readers for other
- * reasons. You obtain a {@code BeanReaderBuilder} instance through
+ * A {@code Builder} class for {@link BeanReader} instances. Use this class if the bean
+ * class resides in a Java 9+ module that does not allow reflective access to its classes,
+ * or if you need or prefer 100% reflection-free bean readers for other reasons. You
+ * obtain a {@code BeanReaderBuilder} instance through
  * {@link BeanReader#forClass(Class) BeanReader.forClass()}.
  *
  * @param <T> the type of the objects to be read by the {@code BeanReader}.
@@ -26,6 +27,8 @@ public final class BeanReaderBuilder<T> {
   private final Class<T> clazz;
 
   private final Map<String, Getter> getters = new HashMap<>();
+
+  private BeanValueTransformer<T> transformer = BeanValueTransformer.identity();
 
   BeanReaderBuilder(Class<T> beanClass) {
     this.clazz = beanClass;
@@ -52,9 +55,9 @@ public final class BeanReaderBuilder<T> {
   }
 
   /**
-   * Registers the specified names as properties of the specified type. If the bean
-   * class is a {@code record} type, there is no difference between calling this
-   * method and calling {@link #withGetter(Class, String...) withGetter()}.
+   * Registers the specified names as properties of the specified type. If the bean class
+   * is a {@code record} type, there is no difference between calling this method and
+   * calling {@link #withGetter(Class, String...) withGetter()}.
    *
    * @param type the type of the properties
    * @param properties the property names
@@ -65,7 +68,7 @@ public final class BeanReaderBuilder<T> {
     Check.notNull(properties, "properties");
     for (String prop : properties) {
       Check.on(InvokeException::new, prop)
-          .isNot(keyIn(), getters, "duplicate property: \"${arg}\"");
+            .isNot(keyIn(), getters, "duplicate property: \"${arg}\"");
       String method = getMethodNameFromProperty(prop, type);
       Getter getter = getGetter(prop, method, type);
       getters.put(prop, getter);
@@ -74,13 +77,13 @@ public final class BeanReaderBuilder<T> {
   }
 
   /**
-   * Registers the specified method names as getters with the specified return type.
-   * You can use this method to register getter-type methods (zero parameters,
-   * non-void return type) with names that do not conform to the JavaBeans naming
-   * conventions. The provided names are supposed to be <i>complete</i> method names
-   * of public getters on the bean class. For example: "getLastName". If the bean
-   * class is a {@code record} type, there is no difference between calling this
-   * method and calling {@link #with(Class, String...) with()}.
+   * Registers the specified method names as getters with the specified return type. You
+   * can use this method to register getter-type methods (zero parameters, non-void return
+   * type) with names that do not conform to the JavaBeans naming conventions. The
+   * provided names are supposed to be <i>complete</i> method names of public getters on
+   * the bean class. For example: "getLastName". If the bean class is a {@code record}
+   * type, there is no difference between calling this method and calling
+   * {@link #with(Class, String...) with()}.
    *
    * @param returnType the return type of the specified getters
    * @param names the names of the getters
@@ -92,10 +95,16 @@ public final class BeanReaderBuilder<T> {
     for (String method : names) {
       String prop = getPropertyFromMethodName(method, returnType);
       Check.on(InvokeException::new, prop)
-          .isNot(keyIn(), getters, "duplicate property: \"${arg}\"");
+            .isNot(keyIn(), getters, "duplicate property: \"${arg}\"");
       Getter getter = getGetter(prop, method, returnType);
       getters.put(prop, getter);
     }
+    return this;
+  }
+
+  public BeanReaderBuilder<T> withTransformer(BeanValueTransformer<T> transformer) {
+    Check.notNull(transformer, Private.TRANSFORMER);
+    this.transformer = transformer;
     return this;
   }
 
@@ -103,18 +112,18 @@ public final class BeanReaderBuilder<T> {
    * Returns a new {@code BeanReader} for instances of type {@code T}.
    *
    * @return a new {@code BeanReader} for instances of type {@code T}
-   * @throws NoPublicGettersException if no properties have been added yet via
-   *     the various {@code with***} methods
+   * @throws NoPublicGettersException if no properties have been added yet via the various
+   * {@code with***} methods
    */
   public BeanReader<T> build() throws NoPublicGettersException {
     Check.that(getters).isNot(empty(), () -> new NoPublicGettersException(clazz));
-    return new BeanReader<>(clazz, Map.copyOf(getters));
+    return new BeanReader<>(clazz, Map.copyOf(getters), transformer);
   }
 
   private Getter getGetter(String property, String method, Class<?> type) {
     try {
       MethodHandle mh = MethodHandles.publicLookup()
-          .findVirtual(clazz, method, methodType(type));
+            .findVirtual(clazz, method, methodType(type));
       return new Getter(mh, property, type);
     } catch (NoSuchMethodException | IllegalAccessException e) {
       throw new InvokeException(e.toString());
@@ -126,13 +135,13 @@ public final class BeanReaderBuilder<T> {
       return method;
     }
     if ((type == boolean.class || type == Boolean.class)
-        && method.length() > 2
-        && method.startsWith("is")
-        && isUpperCase(method.charAt(2))) {
+          && method.length() > 2
+          && method.startsWith("is")
+          && isUpperCase(method.charAt(2))) {
       return extractName(method, 2);
     } else if (method.length() > 3
-        && method.startsWith("get")
-        && isUpperCase(method.charAt(3))) {
+          && method.startsWith("get")
+          && isUpperCase(method.charAt(3))) {
       return extractName(method, 3);
     }
     return method;

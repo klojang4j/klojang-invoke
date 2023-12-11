@@ -3,7 +3,7 @@ package org.klojang.invoke;
 import org.klojang.check.Check;
 import org.klojang.check.Tag;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,6 +42,7 @@ public final class BeanReader<T> {
 
   private final Class<T> beanClass;
   private final Map<String, Getter> getters;
+  private final BeanValueTransformer<T> transformer;
 
   /**
    * Creates a {@code BeanReader} for the specified properties of the specified class. You
@@ -100,21 +101,68 @@ public final class BeanReader<T> {
         boolean strictNaming,
         IncludeExclude includeExclude,
         String... properties) {
+    this(beanClass,
+          strictNaming,
+          BeanValueTransformer.identity(),
+          includeExclude,
+          properties);
+  }
+
+  /**
+   * Creates a {@code BeanReader} for the specified properties of the specified class. You
+   * can optionally specify an array of properties that you intend to read. If you specify
+   * a zero-length array, all properties will be readable. If you intend to use this
+   * {@code BeanReader} to repetitively read just one or two properties from bulky bean
+   * types, explicitly specifying the properties you intend to read might make the
+   * {@code BeanReader} slightly more efficient.
+   *
+   * <p>Specifying non-existent properties will not cause an exception to be thrown.
+   * They will be tacitly ignored.
+   *
+   * @param beanClass the bean class
+   * @param strictNaming if {@code false}, all methods with a zero-length parameter list
+   * and a non-{@code void} return type, except {@code getClass()}, {@code hashCode()} and
+   * {@code toString()}, will be regarded as getters. Otherwise JavaBeans naming
+   * conventions will be applied regarding which methods qualify as getters. By way of
+   * exception, methods returning a {@link Boolean} are allowed to have a name starting
+   * with "is" (just like methods returning a {@code boolean}). The {@code strictNaming}
+   * parameter is quietly ignored for {@code record} classes. Records are always processed
+   * as though {@code strictNaming} were {@code false}.
+   * @param transformer a conversion function for bean values. The function is passed the
+   * bean from which the value was retrieved; the property that was read; and the value of
+   * the property. Using these three parameters, the function can compute a new value,
+   * which will be the value that is actually returned
+   * @param includeExclude whether to include or exclude the subsequently specified
+   * properties
+   * @param properties the properties to be included/excluded
+   */
+  public BeanReader(Class<T> beanClass,
+        boolean strictNaming,
+        BeanValueTransformer<T> transformer,
+        IncludeExclude includeExclude,
+        String... properties) {
     Check.notNull(beanClass, Private.BEAN_CLASS);
+    Check.notNull(transformer, Private.TRANSFORMER);
     Check.notNull(includeExclude, Private.INCLUDE_EXCLUDE);
     Check.that(properties, Private.PROPERTIES).is(deepNotNull());
     this.beanClass = beanClass;
+    this.transformer = transformer;
     this.getters = getGetters(strictNaming, includeExclude, properties);
   }
 
-  BeanReader(Class<T> beanClass, Map<String, Getter> getters) {
+  BeanReader(Class<T> beanClass,
+        Map<String, Getter> getters,
+        BeanValueTransformer<T> transformer) {
     this.beanClass = beanClass;
     this.getters = getters;
+    this.transformer = transformer;
   }
 
   /**
    * Returns the value of the specified property on the specified bean. If the property
-   * does not exist a {@link NoSuchPropertyException} is thrown.
+   * does not exist a {@link NoSuchPropertyException} is thrown. If this
+   * {@code BeanReader} was instantiated with a {@link BeanValueTransformer}, the output
+   * from the transformer is returned.
    *
    * @param bean the bean instance
    * @param property The property
@@ -128,11 +176,16 @@ public final class BeanReader<T> {
     Check.notNull(property, Tag.PROPERTY);
     Getter getter = getters.get(property);
     Check.that(getter).is(notNull(), () -> noSuchProperty(bean, property));
+    Object val;
     try {
-      return (U) getter.read(bean);
+      val = getter.read(bean);
     } catch (Throwable exc) {
       throw Private.wrap(exc, bean, getter);
     }
+    if (transformer != null) {
+      val = transformer.transform(bean, property, val);
+    }
+    return (U) val;
   }
 
   /**
@@ -182,21 +235,27 @@ public final class BeanReader<T> {
     return getters;
   }
 
-  private Map<String, Getter> getGetters(boolean strictNaming,
+  private Map<String, Getter> getGetters(boolean strict,
         IncludeExclude ie,
         String[] props) {
-    Map<String, Getter> tmp = GetterFactory.INSTANCE
-          .getGetters(beanClass, strictNaming);
-    if (props.length != 0) {
-      tmp = new HashMap<>(tmp);
-      if (ie.isExclude()) {
-        tmp.keySet().removeAll(Set.of(props));
-      } else {
-        tmp.keySet().retainAll(Set.of(props));
-      }
-      Check.that(tmp).isNot(empty(), () -> new NoPublicGettersException(beanClass));
-      tmp = Map.copyOf(tmp);
+    Map<String, Getter> m = GetterFactory.INSTANCE.getGetters(beanClass, strict);
+    if (props.length == 0) {
+      return m;
     }
+    Map<String, Getter> tmp;
+    if (ie.isExclude()) {
+      Set<String> propSet = Set.of(props);
+      tmp = LinkedHashMap.newLinkedHashMap(m.size() - props.length);
+      m.forEach((x, y) -> { if (!propSet.contains(x)) tmp.put(x, y); });
+    } else {
+      tmp = LinkedHashMap.newLinkedHashMap(props.length);
+      for (String prop : props) {
+        if (m.containsKey(prop)) {
+          tmp.put(prop, m.get(prop));
+        }
+      }
+    }
+    Check.that(tmp).isNot(empty(), () -> new NoPublicGettersException(beanClass));
     return tmp;
   }
 

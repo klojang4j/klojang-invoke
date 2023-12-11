@@ -155,15 +155,36 @@ public class BeanReaderTest {
     p0.setHobbies(List.of("Soccer", "Tennis"));
     p0.setLastModified(LocalDate.of(2022, 03, 07));
     BeanReader<Person> reader = BeanReader.forClass(Person.class)
-        .withGetter(int.class, "getId")
-        .withGetter(String.class, "getFirstName", "getLastName")
-        .withGetter(LocalDate.class, "getLastModified")
-        .withGetter(List.class, "getHobbies").build();
+          .withGetter(int.class, "getId")
+          .withGetter(String.class, "getFirstName", "getLastName")
+          .withGetter(LocalDate.class, "getLastModified")
+          .withGetter(List.class, "getHobbies").build();
     assertEquals(42, (int) reader.read(p0, "id"));
     assertEquals(p0.getFirstName(), reader.read(p0, "firstName"));
     assertEquals(p0.getLastName(), reader.read(p0, "lastName"));
     assertEquals(p0.getHobbies(), reader.read(p0, "hobbies"));
     assertEquals(p0.getLastModified(), reader.read(p0, "lastModified"));
+  }
+
+  @Test
+  public void test14() {
+    Person p0 = new Person();
+    p0.setId(42);
+    p0.setFirstName("John");
+    p0.setLastName("Smith");
+    p0.setHobbies(List.of("Soccer", "Tennis"));
+    p0.setLastModified(LocalDate.of(2022, 03, 07));
+    BeanReader<Person> reader = BeanReader.forClass(Person.class)
+          .withTransformer((x,y,z)->String.valueOf(z))
+          .withGetter(int.class, "getId")
+          .withGetter(String.class, "getFirstName", "getLastName")
+          .withGetter(LocalDate.class, "getLastModified")
+          .withGetter(List.class, "getHobbies").build();
+    assertEquals("42", reader.read(p0, "id"));
+    assertEquals(p0.getFirstName(), reader.read(p0, "firstName"));
+    assertEquals(p0.getLastName(), reader.read(p0, "lastName"));
+    assertEquals(p0.getHobbies().toString(), reader.read(p0, "hobbies"));
+    assertEquals(p0.getLastModified().toString(), reader.read(p0, "lastModified"));
   }
 
 }

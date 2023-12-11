@@ -181,14 +181,11 @@ public class BeanWriterTest {
 
   @Test
   public void set17() throws Throwable {
-    FallibleBiFunction<Setter, Object, Object, Throwable> tbf = (setter, value) -> {
-      if (setter.getParamType() == String.class) {
-        return String.valueOf(value);
-      }
-      return value;
+    BeanValueTransformer tbf = (x,y,z) -> {
+      return String.valueOf(z);
     };
     Person person = new Person();
-    org.klojang.invoke.BeanWriter writer = new org.klojang.invoke.BeanWriter(Person.class, tbf);
+    BeanWriter writer = new BeanWriter(Person.class, tbf);
     writer.write(person, "firstName", new StringBuilder("Jack"));
     writer.write(person, "lastName", 42);
     assertEquals("Jack", person.getFirstName());

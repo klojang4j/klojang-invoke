@@ -2,10 +2,8 @@ package org.klojang.invoke;
 
 import org.klojang.check.Check;
 import org.klojang.check.Tag;
-import org.klojang.check.fallible.FallibleBiFunction;
-import org.klojang.convert.TypeConversionException;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,7 +26,7 @@ import static org.klojang.invoke.NoSuchPropertyException.noSuchProperty;
 public final class BeanWriter<T> {
 
   private final Class<T> beanClass;
-  private final FallibleBiFunction<Setter, Object, Object, Throwable> converter;
+  private final BeanValueTransformer<T> transformer;
   private final Map<String, Setter> setters;
 
   /**
@@ -53,24 +51,17 @@ public final class BeanWriter<T> {
    * conversion function before being assigned to properties.
    *
    * @param beanClass the bean class
-   * @param converter a conversion function for input values. The conversion is given the
-   * {@link Setter} for the property to be set as the first argument, and the input value
-   * as the second argument. The return value should be the actual value to assign to the
-   * property. The {@code Setter} should only be used to get the
-   * {@link Setter#getProperty() name} and {@link Setter#getParamType() type} of the
-   * property to be set. You <i>should not</i> use it to actually
-   * {@link Setter#write(Object, Object) write} the property, as this will happen anyhow
-   * once the conversion function returns. Unless the conversion fails for extraordinary
-   * reasons, it should throw an {@link IllegalAssignmentException} upon failure. You can
-   * again use the {@code Setter} to {@link Setter#illegalAssignment(Object) generate} the
-   * exception.
+   * @param transformer a conversion function for input values. The function is passed the
+   * bean onto which to set the value; the property to set; and input value. Using these
+   * three parameters, the function can compute a new value, which will be the value to
+   * which to property is actually set.
    * @param properties the properties you allow to be written
    */
   public BeanWriter(
         Class<T> beanClass,
-        FallibleBiFunction<Setter, Object, Object, Throwable> converter,
+        BeanValueTransformer<T> transformer,
         String... properties) {
-    this(beanClass, converter, INCLUDE, properties);
+    this(beanClass, transformer, INCLUDE, properties);
   }
 
   /**
@@ -87,7 +78,7 @@ public final class BeanWriter<T> {
         IncludeExclude includeExclude,
         String... properties) {
     this.beanClass = Check.notNull(beanClass, Private.BEAN_CLASS).ok();
-    this.converter = null;
+    this.transformer = null;
     Check.notNull(includeExclude, Private.INCLUDE_EXCLUDE);
     Check.notNull(properties, Private.PROPERTIES);
     this.setters = getSetters(includeExclude, properties);
@@ -106,10 +97,10 @@ public final class BeanWriter<T> {
    * exception to be thrown.</i> They will be quietly ignored.
    *
    * @param beanClass the bean class
-   * @param converter A conversion function for input values. The conversion is given the
-   * {@link Setter} for the property to be set as the first argument, and the input value
-   * as the second argument. The return value should be the actual value to assign to the
-   * property. The {@code Setter} should only be used to get the
+   * @param transformer A conversion function for input values. The conversion is given
+   * the {@link Setter} for the property to be set as the first argument, and the input
+   * value as the second argument. The return value should be the actual value to assign
+   * to the property. The {@code Setter} should only be used to get the
    * {@link Setter#getProperty() name} and {@link Setter#getParamType() type} of the
    * property to be set. You <i>should not</i> use it to actually
    * {@link Setter#write(Object, Object) write} the property, as this will happen anyhow
@@ -122,18 +113,20 @@ public final class BeanWriter<T> {
    */
   public BeanWriter(
         Class<T> beanClass,
-        FallibleBiFunction<Setter, Object, Object, Throwable> converter,
+        BeanValueTransformer<T> transformer,
         IncludeExclude includeExclude,
         String... properties) {
     this.beanClass = Check.notNull(beanClass, Private.BEAN_CLASS).ok();
-    this.converter = Check.notNull(converter, Private.CONVERTER).ok();
+    this.transformer = Check.notNull(transformer, Private.CONVERTER).ok();
     Check.notNull(includeExclude, Private.INCLUDE_EXCLUDE);
     Check.notNull(properties, Private.PROPERTIES);
     this.setters = getSetters(includeExclude, properties);
   }
 
   /**
-   * Sets the value of the specified property on the specified bean.
+   * Sets the specified property to the specified value. If this {@code BeanWriter} was
+   * instantiated with a {@link BeanValueTransformer}, the property is set to the output
+   * from the transformer.
    *
    * @param bean The bean instance
    * @param property The property
@@ -317,7 +310,7 @@ public final class BeanWriter<T> {
    * written by this {@code BeanWriter}
    */
   public boolean canWrite(String property) {
-    return setters.keySet().contains(property);
+    return setters.containsKey(property);
   }
 
   /**
@@ -344,32 +337,32 @@ public final class BeanWriter<T> {
   }
 
   private Map<String, Setter> getSetters(IncludeExclude ie, String[] props) {
-    Map<String, Setter> tmp = SetterFactory.INSTANCE.getSetters(beanClass);
-    if (props.length != 0) {
-      tmp = new HashMap<>(tmp);
-      if (ie.isExclude()) {
-        tmp.keySet().removeAll(Set.of(props));
-      } else {
-        tmp.keySet().retainAll(Set.of(props));
-      }
-      Check.that(tmp).isNot(empty(), () -> new NoPublicSettersException(beanClass));
-      tmp = Map.copyOf(tmp);
+    Map<String, Setter> m = SetterFactory.INSTANCE.getSetters(beanClass);
+    if (props.length == 0) {
+      return m;
     }
+    Map<String, Setter> tmp;
+    if (ie.isExclude()) {
+      Set<String> propSet = Set.of(props);
+      tmp = LinkedHashMap.newLinkedHashMap(m.size() - props.length);
+      m.forEach((x, y) -> { if (!propSet.contains(x)) tmp.put(x, y); });
+    } else {
+      tmp = LinkedHashMap.newLinkedHashMap(props.length);
+      for (String prop : props) {
+        if (m.containsKey(prop)) {
+          tmp.put(prop, m.get(prop));
+        }
+      }
+    }
+    Check.that(tmp).isNot(empty(), () -> new NoPublicSettersException(beanClass));
     return tmp;
   }
 
   private void set(T bean, Setter setter, Object value) throws Throwable {
-    if (converter == null) {
-      setter.write(bean, value);
-    } else {
-      Object val;
-      try {
-        val = converter.apply(setter, value);
-      } catch (TypeConversionException e) {
-        throw setter.illegalAssignment(value);
-      }
-      setter.write(bean, val);
+    if (transformer != null) {
+      value = transformer.transform(bean, setter.getProperty(), value);
     }
+    setter.write(bean, value);
   }
 
   private BeanReader<T> beanReader;

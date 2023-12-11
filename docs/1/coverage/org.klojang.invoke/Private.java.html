@@ -10,17 +10,21 @@ import static org.klojang.util.ExceptionMethods.getRootCause;
   static final String INCLUDE_EXCLUDE = &quot;includeExclude&quot;;
   static final String PROPERTIES = &quot;properties&quot;;
   static final String BEAN_CLASS = &quot;beanClass&quot;;
+  static final String TRANSFORMER = &quot;transformer&quot;;
   static final String SOURCE_BEAN = &quot;source bean&quot;;
   static final String TARGET_BEAN = &quot;target bean&quot;;
   static final String SOURCE_MAP = &quot;source map&quot;;
   static final String CONVERTER = &quot;converter&quot;;
 
+<span class="fc" id="L19">  static final BeanValueTransformer&lt;?&gt; IDENTIFY_TRANSFORMER = (x, y, z) -&gt; z;</span>
+
+
   static InvokeException wrap(Throwable t, Object bean, Getter getter) {
-<span class="fc" id="L19">    String msg = String.format(&quot;Error while reading %s.%s: %s&quot;,</span>
-<span class="fc" id="L20">        simpleClassName(bean),</span>
-<span class="fc" id="L21">        getter.getProperty(),</span>
-<span class="fc" id="L22">        getRootCause(t));</span>
-<span class="fc" id="L23">    return new InvokeException(msg);</span>
+<span class="fc" id="L23">    String msg = String.format(&quot;Error while reading %s.%s: %s&quot;,</span>
+<span class="fc" id="L24">          simpleClassName(bean),</span>
+<span class="fc" id="L25">          getter.getProperty(),</span>
+<span class="fc" id="L26">          getRootCause(t));</span>
+<span class="fc" id="L27">    return new InvokeException(msg);</span>
   }
 
 }
