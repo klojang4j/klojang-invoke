@@ -93,8 +93,8 @@
         <!-- *** Check dependencies: mvn dependency:analyze                   *** -->
         <!-- ==================================================================== -->
         <klojang-check.version>3.0.0-jdk21</klojang-check.version>
-        <klojang-util.version>1.1.4</klojang-util.version>
-        <klojang-convert.version>1.0.4</klojang-convert.version>
+        <klojang-util.version>1.1.5</klojang-util.version>
+        <klojang-convert.version>1.0.5</klojang-convert.version>
         <junit.version>4.13.2</junit.version>
 
 

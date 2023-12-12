@@ -3,9 +3,7 @@ package org.klojang.invoke;
 import org.klojang.check.Check;
 import org.klojang.check.Tag;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.klojang.check.CommonChecks.*;
 import static org.klojang.invoke.IncludeExclude.INCLUDE;
@@ -54,7 +52,7 @@ public final class BeanReader<T> {
    * @param properties the properties to be included/excluded
    */
   public BeanReader(Class<T> beanClass, String... properties) {
-    this(beanClass, true, INCLUDE, properties);
+    this(beanClass, true, BeanValueTransformer.identity(), INCLUDE, properties);
   }
 
   /**
@@ -70,7 +68,7 @@ public final class BeanReader<T> {
   public BeanReader(Class<T> beanClass,
         IncludeExclude includeExclude,
         String... properties) {
-    this(beanClass, true, includeExclude, properties);
+    this(beanClass, true, BeanValueTransformer.identity(), includeExclude, properties);
   }
 
   /**
@@ -129,9 +127,10 @@ public final class BeanReader<T> {
    * parameter is quietly ignored for {@code record} classes. Records are always processed
    * as though {@code strictNaming} were {@code false}.
    * @param transformer a conversion function for bean values. The function is passed the
-   * bean from which the value was retrieved; the property that was read; and the value of
+   * bean from which the value was retrieved, the property that was read, and the value of
    * the property. Using these three parameters, the function can compute a new value,
-   * which will be the value that is actually returned
+   * which will be the value that is actually returned from
+   * {@link #read(Object, String) BeanReader.read()}.
    * @param includeExclude whether to include or exclude the subsequently specified
    * properties
    * @param properties the properties to be included/excluded
@@ -176,16 +175,20 @@ public final class BeanReader<T> {
     Check.notNull(property, Tag.PROPERTY);
     Getter getter = getters.get(property);
     Check.that(getter).is(notNull(), () -> noSuchProperty(bean, property));
-    Object val;
-    try {
-      val = getter.read(bean);
-    } catch (Throwable exc) {
-      throw Private.wrap(exc, bean, getter);
-    }
-    if (transformer != null) {
-      val = transformer.transform(bean, property, val);
-    }
-    return (U) val;
+    return (U) read(bean, getter);
+  }
+
+  /**
+   * Returns the values of all readable properties in the specified JavaBean. The values
+   * will be returned in the same order as {@link #getReadableProperties()}.
+   *
+   * @param bean the bean from which to read the values
+   * @return the values of all reable properties in the specified JavaBean
+   */
+  public List<Object> readAllProperties(T bean) {
+    List<Object> values = new ArrayList<>(getters.size());
+    getters.forEach((k, v) -> values.add(read(bean, v)));
+    return values;
   }
 
   /**
@@ -214,9 +217,12 @@ public final class BeanReader<T> {
   }
 
   /**
-   * Returns the properties that this {@code BeanReader} will read. That will be all
-   * read-accessible properties minus the properties excluded through the constructor (if
-   * any).
+   * Returns the properties that this {@code BeanReader} will read. If one or more
+   * properties were excluded through the constructor, they will not be contained in the
+   * returned {@code Set}. If no properties were excluded, the properties will be returned
+   * in the order determined by {@link Class#getMethods()}. If you specified one or more
+   * properties to be <i>included</i> (excluding any other properties), the properties
+   * will be returned in the order in which you specified those properties.
    *
    * @return the properties that this {@code BeanReader} will read
    */
@@ -234,6 +240,20 @@ public final class BeanReader<T> {
   public Map<String, Getter> getIncludedGetters() {
     return getters;
   }
+
+  private Object read(T bean, Getter getter) {
+    Object val;
+    try {
+      val = getter.read(bean);
+    } catch (Throwable exc) {
+      throw Private.wrap(exc, bean, getter);
+    }
+    if (transformer != null) {
+      val = transformer.transform(bean, getter.getProperty(), val);
+    }
+    return val;
+  }
+
 
   private Map<String, Getter> getGetters(boolean strict,
         IncludeExclude ie,
