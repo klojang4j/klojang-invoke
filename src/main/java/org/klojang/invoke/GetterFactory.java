@@ -59,7 +59,7 @@ public final class GetterFactory {
         String prop = getPropertyNameFromGetter(m, strict);
         map.put(prop, new Getter(m, prop));
       }
-      getters = Collections.unmodifiableMap(map);
+      getters = Map.copyOf(map);
       cache.put(clazz, getters);
     }
     return getters;

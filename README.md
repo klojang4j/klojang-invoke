@@ -2,9 +2,9 @@
 
 _Klojang Invoke_ is a Java module focused on path-based object access and dynamic
 invocation. Its central classes are the
-[Path](https://klojang4j.github.io/klojang-invoke/1/api/org.klojang.invoke/org/klojang/path/Path.html)
+[Path](https://klojang4j.github.io/klojang-invoke/api/org.klojang.invoke/org/klojang/path/Path.html)
 class and the
-[PathWalker](https://klojang4j.github.io/klojang-invoke/1/api/org.klojang.invoke/org/klojang/path/PathWalker.html)
+[PathWalker](https://klojang4j.github.io/klojang-invoke/api/org.klojang.invoke/org/klojang/path/PathWalker.html)
 class. The
 `Path` class captures a path through an object graph. For example
 "employee.address.city". The `PathWalker` class lets you read from and write to
@@ -23,27 +23,24 @@ To use _Klojang Invoke_, add the following dependency to your Maven POM file:
 <dependency>
     <groupId>org.klojang</groupId>
     <artifactId>klojang-invoke</artifactId>
-    <version>1.0.3</version>
+    <version>2.0.2</version>
 </dependency>
 ```
 
 or Gradle build script:
 
 ```
-implementation group: 'org.klojang', name: 'klojang-invoke', version: '1.0.3'
+implementation group: 'org.klojang', name: 'klojang-invoke', version: '2.0.2'
 ```
 
 ## Documentation
 
 The **Javadocs** for _Klojang Invoke_ can be
-found **[here](https://klojang4j.github.io/klojang-invoke/1/api)**.
+found **[here](https://klojang4j.github.io/klojang-invoke/api)**.
 
 The latest **test coverage report** can be
-found **[here](https://klojang4j.github.io/klojang-invoke/1/coverage)**.
+found **[here](https://klojang4j.github.io/klojang-invoke/coverage)**.
 
 The latest **OWASP vulnerabilities report** can be
-found *
-*[here](https://klojang4j.github.io/klojang-invoke/1/vulnerabilities/dependency-check-report.html)
-**.
-
-
+found 
+**[here](https://klojang4j.github.io/klojang-invoke/vulnerabilities/dependency-check-report.html)**.

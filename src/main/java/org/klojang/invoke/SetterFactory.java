@@ -48,7 +48,8 @@ public final class SetterFactory {
         String prop = getPropertyNameFromSetter(m);
         map.put(prop, new Setter(m, prop));
       }
-      cache.put(clazz, setters = Collections.unmodifiableMap(map));
+      setters = Map.copyOf(map);
+      cache.put(clazz, setters);
     }
     return setters;
   }
