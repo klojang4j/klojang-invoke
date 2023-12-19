@@ -23,14 +23,14 @@ To use _Klojang Invoke_, add the following dependency to your Maven POM file:
 <dependency>
     <groupId>org.klojang</groupId>
     <artifactId>klojang-invoke</artifactId>
-    <version>2.0.2</version>
+    <version>2.0.3</version>
 </dependency>
 ```
 
 or Gradle build script:
 
 ```
-implementation group: 'org.klojang', name: 'klojang-invoke', version: '2.0.2'
+implementation group: 'org.klojang', name: 'klojang-invoke', version: '2.0.3'
 ```
 
 ## Documentation
