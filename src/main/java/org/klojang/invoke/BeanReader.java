@@ -4,10 +4,12 @@ import org.klojang.check.Check;
 import org.klojang.check.Tag;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 import static org.klojang.check.CommonChecks.*;
 import static org.klojang.invoke.IncludeExclude.INCLUDE;
 import static org.klojang.invoke.NoSuchPropertyException.noSuchProperty;
+import static java.util.Map.Entry;
 
 /**
  * A dynamic bean reader class. This class uses method handles instead of reflection to
@@ -69,7 +71,7 @@ public final class BeanReader<T> {
    * @param includeExclude whether to include or exclude the specified properties
    * @param properties the properties to be included/excluded
    * @see #getReadableProperties()
-   * @see #readAllProperties(Object) 
+   * @see #readAllProperties(Object)
    */
   public BeanReader(Class<T> beanClass,
         IncludeExclude includeExclude,
@@ -89,16 +91,17 @@ public final class BeanReader<T> {
    * tacitly ignored.
    *
    * @param beanClass the bean class
-   * @param strictNaming if {@code false}, all methods with a zero-length parameter list
-   * and a non-{@code void} return type, except {@code getClass()}, {@code hashCode()} and
-   * {@code toString()}, will be regarded as getters. Otherwise JavaBeans naming
-   * conventions will be applied regarding which methods qualify as getters. By way of
-   * exception, methods returning a {@link Boolean} are allowed to have a name starting
-   * with "is" (just like methods returning a {@code boolean}). The {@code strictNaming}
-   * parameter is quietly ignored for {@code record} classes. Records are always processed
-   * as though {@code strictNaming} were {@code false}.
+   * @param strictNaming if {@code false}, all methods with a zero-length parameter
+   *       list and a non-{@code void} return type, except {@code getClass()},
+   *       {@code hashCode()} and {@code toString()}, will be regarded as getters.
+   *       Otherwise JavaBeans naming conventions will be applied regarding which methods
+   *       qualify as getters. By way of exception, methods returning a {@link Boolean}
+   *       are allowed to have a name starting with "is" (just like methods returning a
+   *       {@code boolean}). The {@code strictNaming} parameter is quietly ignored for
+   *       {@code record} classes. Records are always processed as though
+   *       {@code strictNaming} were {@code false}.
    * @param includeExclude whether to include or exclude the subsequently specified
-   * properties
+   *       properties
    * @param properties the properties to be included/excluded
    */
   public BeanReader(Class<T> beanClass,
@@ -124,21 +127,22 @@ public final class BeanReader<T> {
    * tacitly ignored.
    *
    * @param beanClass the bean class
-   * @param strictNaming if {@code false}, all methods with a zero-length parameter list
-   * and a non-{@code void} return type, except {@code getClass()}, {@code hashCode()} and
-   * {@code toString()}, will be regarded as getters. Otherwise JavaBeans naming
-   * conventions will be applied regarding which methods qualify as getters. By way of
-   * exception, methods returning a {@link Boolean} are allowed to have a name starting
-   * with "is" (just like methods returning a {@code boolean}). The {@code strictNaming}
-   * parameter is quietly ignored for {@code record} classes. Records are always processed
-   * as though {@code strictNaming} were {@code false}.
-   * @param transformer a conversion function for bean values. The function is passed the
-   * bean from which the value was retrieved, the property that was read, and the value of
-   * the property. Using these three parameters, the function can compute a new value,
-   * which will be the value that is actually returned from
-   * {@link #read(Object, String) BeanReader.read()}.
+   * @param strictNaming if {@code false}, all methods with a zero-length parameter
+   *       list and a non-{@code void} return type, except {@code getClass()},
+   *       {@code hashCode()} and {@code toString()}, will be regarded as getters.
+   *       Otherwise JavaBeans naming conventions will be applied regarding which methods
+   *       qualify as getters. By way of exception, methods returning a {@link Boolean}
+   *       are allowed to have a name starting with "is" (just like methods returning a
+   *       {@code boolean}). The {@code strictNaming} parameter is quietly ignored for
+   *       {@code record} classes. Records are always processed as though
+   *       {@code strictNaming} were {@code false}.
+   * @param transformer a conversion function for bean values. The function is
+   *       passed the bean from which the value was retrieved, the property that was read,
+   *       and the value of the property. Using these three parameters, the function can
+   *       compute a new value, which will be the value that is actually returned from
+   *       {@link #read(Object, String) BeanReader.read()}.
    * @param includeExclude whether to include or exclude the subsequently specified
-   * properties
+   *       properties
    * @param properties the properties to be included/excluded
    */
   public BeanReader(Class<T> beanClass,
@@ -216,7 +220,7 @@ public final class BeanReader<T> {
    *
    * @param property The string to be tested
    * @return {@code true} if the specified string represents a property that can be read
-   * by this {@code BeanReader}
+   *       by this {@code BeanReader}
    * @see #getReadableProperties()
    */
   public boolean canRead(String property) {
@@ -265,26 +269,18 @@ public final class BeanReader<T> {
 
   private Map<String, Getter> getGetters(boolean strict,
         IncludeExclude ie,
-        String[] props) {
-    Map<String, Getter> m = GetterFactory.INSTANCE.getGetters(beanClass, strict);
-    if (props.length == 0) {
-      return m;
+        String[] properties) {
+    Map<String, Getter> getters = GetterFactory.INSTANCE.getGetters(beanClass, strict);
+    if (properties.length == 0) {
+      return getters;
     }
-    Map<String, Getter> tmp;
-    if (ie.isExclude()) {
-      Set<String> propSet = Set.of(props);
-      tmp = LinkedHashMap.newLinkedHashMap(m.size() - props.length);
-      m.forEach((x, y) -> { if (!propSet.contains(x)) tmp.put(x, y); });
-    } else {
-      tmp = LinkedHashMap.newLinkedHashMap(props.length);
-      for (String prop : props) {
-        if (m.containsKey(prop)) {
-          tmp.put(prop, m.get(prop));
-        }
-      }
-    }
-    Check.that(tmp).isNot(empty(), () -> new NoPublicGettersException(beanClass));
-    return tmp;
+    Set<String> props = Set.of(properties);
+    Predicate<Entry<String, Getter>> filter = ie.isExclude()
+          ? e -> !props.contains(e.getKey())
+          : e -> props.contains(e.getKey());
+    Entry[] entries = getters.entrySet().stream().filter(filter).toArray(Entry[]::new);
+    Check.that(entries).isNot(empty(), () -> new NoPublicGettersException(beanClass));
+    return Map.ofEntries(entries);
   }
 
 }

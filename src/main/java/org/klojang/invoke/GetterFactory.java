@@ -34,33 +34,32 @@ public final class GetterFactory {
 
   /**
    * Returns the public {@link Getter getters} for the specified class. The returned
-   * {@code Map} maps property names to {@code Getter} instances. The order of the keys
-   * within the map is determined by the order of the methods returned by
-   * {@link Class#getMethods()}.
+   * {@code Map} maps property names to {@code Getter} instances.
    *
    * @param clazz the class for which to retrieve the public getters
-   * @param strict if {@code false}, all non-static methods with a zero-length parameter
-   * list and a non-{@code void} return type, except {@code getClass()},
-   * {@code hashCode()} and {@code toString()}, will be regarded as getters. Otherwise
-   * JavaBeans naming conventions will be applied regarding which methods qualify as
-   * getters, with the exception that methods returning a {@link Boolean} are allowed to
-   * have a name starting with "is". For {@code record} types, getters are collected as
-   * though with {@code strict} equal to {@code false}.
+   * @param strict if {@code false}, all non-static methods with a zero-length
+   *       parameter list and a non-{@code void} return type, except {@code getClass()},
+   *       {@code hashCode()} and {@code toString()}, will be regarded as getters.
+   *       Otherwise JavaBeans naming conventions will be applied regarding which methods
+   *       qualify as getters, with the exception that methods returning a {@link Boolean}
+   *       are allowed to have a name starting with "is". For {@code record} types,
+   *       getters are collected as though with {@code strict} equal to {@code false}.
    * @return the public getters of the specified class
    * @throws IllegalAssignmentException if the does not have any public getters
    */
+  @SuppressWarnings({"rawtypes", "unchecked"})
   public Map<String, Getter> getGetters(Class<?> clazz, boolean strict) {
-    Map<String, Getter> getters = cache.get(clazz);
+    Map getters = cache.get(clazz);
     if (getters == null) {
       List<Method> methods = getMethods(clazz, strict);
       Check.that(methods).isNot(empty(), () -> new NoPublicGettersException(clazz));
-      Map<String, Getter> map = LinkedHashMap.newLinkedHashMap(methods.size());
+      Map.Entry[] entries = new Map.Entry[methods.size()];
+      int i = 0;
       for (Method m : methods) {
         String prop = getPropertyNameFromGetter(m, strict);
-        map.put(prop, new Getter(m, prop));
+        entries[i++] = Map.entry(prop, new Getter(m, prop));
       }
-      getters = Map.copyOf(map);
-      cache.put(clazz, getters);
+      cache.put(clazz, getters = Map.ofEntries(entries));
     }
     return getters;
   }

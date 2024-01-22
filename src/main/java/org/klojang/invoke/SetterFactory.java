@@ -5,11 +5,15 @@ import org.klojang.util.ArrayMethods;
 import org.klojang.util.ClassMethods;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.lang.Character.isUpperCase;
 import static java.lang.Character.toLowerCase;
 import static java.lang.reflect.Modifier.isStatic;
+import static java.util.Map.Entry;
 import static org.klojang.check.CommonChecks.empty;
 
 /**
@@ -30,26 +34,25 @@ public final class SetterFactory {
 
   /**
    * Returns the public {@link Setter setters} for the specified class. The returned
-   * {@code Map} maps property names to {@code Setter} instances. The order of the keys
-   * within the map is determined by the order of the methods returned by
-   * {@link Class#getMethods()}.
+   * {@code Map} maps property names to {@code Setter} instances.
    *
    * @param clazz The class for which to retrieve the public setters
    * @return The public setters of the specified class
    * @throws IllegalAssignmentException If the does not have any public setters
    */
+  @SuppressWarnings({"rawtypes", "unchecked"})
   public Map<String, Setter> getSetters(Class<?> clazz) {
     Map<String, Setter> setters = cache.get(clazz);
     if (setters == null) {
       List<Method> methods = getMethods(clazz);
       Check.that(methods).isNot(empty(), () -> new NoPublicSettersException(clazz));
-      Map<String, Setter> map = LinkedHashMap.newLinkedHashMap(methods.size());
+      Entry[] entries = new Entry[methods.size()];
+      int i = 0;
       for (Method m : methods) {
         String prop = getPropertyNameFromSetter(m);
-        map.put(prop, new Setter(m, prop));
+        entries[i++] = Map.entry(prop, new Setter(m, prop));
       }
-      setters = Map.copyOf(map);
-      cache.put(clazz, setters);
+      cache.put(clazz, setters = Map.ofEntries(entries));
     }
     return setters;
   }

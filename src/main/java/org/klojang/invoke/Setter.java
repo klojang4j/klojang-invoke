@@ -3,8 +3,9 @@ package org.klojang.invoke;
 import org.klojang.util.ExceptionMethods;
 
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+
+import static java.lang.invoke.MethodHandles.publicLookup;
 
 /**
  * Represents a setter for a single property.
@@ -23,7 +24,7 @@ public final class Setter {
     this.paramType = method.getParameterTypes()[0];
     this.property = property;
     try {
-      this.mh = MethodHandles.publicLookup().unreflect(method);
+      this.mh = publicLookup().unreflect(method);
     } catch (IllegalAccessException e) {
       throw ExceptionMethods.uncheck(e);
     }
@@ -52,15 +53,15 @@ public final class Setter {
    *
    * @param bean the object receiving the value
    * @param value the value
-   * @throws IllegalAssignmentException If the value cannot be cast to the type
-   *     of the property, or if the value is {@code null} and the property has a
-   *     primitive type. This is a {@link RuntimeException}, but you might still want
-   *     to catch it as it can often be handled in a meaningful way.
+   * @throws IllegalAssignmentException If the value cannot be cast to the type of the
+   * property, or if the value is {@code null} and the property has a primitive type. This
+   * is a {@link RuntimeException}, but you might still want to catch it as it can often
+   * be handled in a meaningful way.
    * @throws Throwable The unspecified {@code Throwable} associated with calls to
-   *     {@link MethodHandle#invoke(Object...) MethodHandle.invoke}.
+   * {@link MethodHandle#invoke(Object...) MethodHandle.invoke}.
    */
   public void write(Object bean, Object value)
-      throws IllegalAssignmentException, Throwable {
+        throws IllegalAssignmentException, Throwable {
     if (value == null) {
       if (getParamType().isPrimitive()) {
         throw illegalAssignment(null);
@@ -74,18 +75,18 @@ public final class Setter {
   }
 
   /**
-   * Generates an {@link IllegalAssignmentException} indicating that the specified
-   * value cannot be assigned to the property encapsulated by this {@code Setter}.
+   * Generates an {@link IllegalAssignmentException} indicating that the specified value
+   * cannot be assigned to the property encapsulated by this {@code Setter}.
    *
    * @param value the value
    * @return An {@link IllegalAssignmentException} for the specified value
    */
   public IllegalAssignmentException illegalAssignment(Object value) {
     return new IllegalAssignmentException(
-        declaredIn,
-        property,
-        getParamType(),
-        value);
+          declaredIn,
+          property,
+          getParamType(),
+          value);
   }
 
 }

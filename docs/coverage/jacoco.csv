@@ -28,11 +28,11 @@ Klojang Invoke,org.klojang.invoke,NoPublicSettersException,0,6,0,0,0,2,0,1,0,1
 Klojang Invoke,org.klojang.invoke,BeanReaderBuilder,56,259,18,14,11,50,15,13,1,11
 Klojang Invoke,org.klojang.invoke,NoSuchPropertyException,2,35,1,1,1,7,1,3,0,3
 Klojang Invoke,org.klojang.invoke,BeanWriter,21,472,8,42,4,98,13,34,5,17
-Klojang Invoke,org.klojang.invoke,SetterFactory,45,181,5,21,7,34,6,16,1,8
+Klojang Invoke,org.klojang.invoke,SetterFactory,45,185,5,21,7,34,6,16,1,8
 Klojang Invoke,org.klojang.invoke,Getter,7,36,0,0,3,13,1,4,1,4
 Klojang Invoke,org.klojang.invoke,Setter,4,61,0,4,2,19,0,7,0,5
-Klojang Invoke,org.klojang.invoke,BeanReader,49,207,2,10,9,46,7,17,5,13
-Klojang Invoke,org.klojang.invoke,GetterFactory,63,251,20,36,12,49,20,17,2,7
+Klojang Invoke,org.klojang.invoke,BeanReader,49,185,1,7,9,42,6,18,5,15
+Klojang Invoke,org.klojang.invoke,GetterFactory,63,255,20,36,12,49,20,17,2,7
 Klojang Invoke,org.klojang.invoke,NoPublicGettersException,6,0,0,0,2,0,1,0,1,0
 Klojang Invoke,org.klojang.invoke,BeanValueTransformer,0,2,0,0,0,1,0,1,0,1
 Klojang Invoke,org.klojang.invoke,IllegalAssignmentException,0,46,0,0,0,14,0,6,0,6

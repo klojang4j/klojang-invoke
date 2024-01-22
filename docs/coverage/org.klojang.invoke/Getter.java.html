@@ -5,7 +5,7 @@ import org.klojang.util.ExceptionMethods;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
 
-import static java.lang.invoke.MethodHandles.*;
+import static java.lang.invoke.MethodHandles.publicLookup;
 
 /**
  * Represents a getter for a single property.
@@ -58,7 +58,7 @@ public final class Getter {
    * @param bean The bean off which to read the property's value
    * @return the value of the property
    * @throws Throwable The unspecified {@code Throwable} associated with calls to
-   *     {@link MethodHandle#invoke(Object...) MethodHandle.invoke}.
+   * {@link MethodHandle#invoke(Object...) MethodHandle.invoke}.
    */
   public Object read(Object bean) throws Throwable {
 <span class="fc" id="L64">    return mh.invoke(bean);</span>

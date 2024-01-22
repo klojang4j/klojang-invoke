@@ -4,10 +4,12 @@ import org.klojang.check.Check;
 import org.klojang.check.Tag;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 import static org.klojang.check.CommonChecks.*;
 import static org.klojang.invoke.IncludeExclude.INCLUDE;
 import static org.klojang.invoke.NoSuchPropertyException.noSuchProperty;
+import static java.util.Map.Entry;
 
 /**
  * A dynamic bean reader class. This class uses method handles instead of reflection to
@@ -35,7 +37,7 @@ public final class BeanReader&lt;T&gt; {
    * @return a {@code Builder} for {@code BeanReader} instances
    */
   public static &lt;T&gt; BeanReaderBuilder&lt;T&gt; forClass(Class&lt;T&gt; beanClass) {
-<span class="fc" id="L38">    return new BeanReaderBuilder&lt;&gt;(beanClass);</span>
+<span class="fc" id="L40">    return new BeanReaderBuilder&lt;&gt;(beanClass);</span>
   }
 
   private final Class&lt;T&gt; beanClass;
@@ -56,8 +58,8 @@ public final class BeanReader&lt;T&gt; {
    * @see #getReadableProperties()
    */
   public BeanReader(Class&lt;T&gt; beanClass, String... properties) {
-<span class="fc" id="L59">    this(beanClass, true, BeanValueTransformer.identity(), INCLUDE, properties);</span>
-<span class="fc" id="L60">  }</span>
+<span class="fc" id="L61">    this(beanClass, true, BeanValueTransformer.identity(), INCLUDE, properties);</span>
+<span class="fc" id="L62">  }</span>
 
   /**
    * Creates a {@code BeanReader} for the specified properties of the specified class. You
@@ -69,13 +71,13 @@ public final class BeanReader&lt;T&gt; {
    * @param includeExclude whether to include or exclude the specified properties
    * @param properties the properties to be included/excluded
    * @see #getReadableProperties()
-   * @see #readAllProperties(Object) 
+   * @see #readAllProperties(Object)
    */
   public BeanReader(Class&lt;T&gt; beanClass,
         IncludeExclude includeExclude,
         String... properties) {
-<span class="fc" id="L77">    this(beanClass, true, BeanValueTransformer.identity(), includeExclude, properties);</span>
-<span class="fc" id="L78">  }</span>
+<span class="fc" id="L79">    this(beanClass, true, BeanValueTransformer.identity(), includeExclude, properties);</span>
+<span class="fc" id="L80">  }</span>
 
   /**
    * Creates a {@code BeanReader} for the specified properties of the specified class. You
@@ -89,28 +91,29 @@ public final class BeanReader&lt;T&gt; {
    * tacitly ignored.
    *
    * @param beanClass the bean class
-   * @param strictNaming if {@code false}, all methods with a zero-length parameter list
-   * and a non-{@code void} return type, except {@code getClass()}, {@code hashCode()} and
-   * {@code toString()}, will be regarded as getters. Otherwise JavaBeans naming
-   * conventions will be applied regarding which methods qualify as getters. By way of
-   * exception, methods returning a {@link Boolean} are allowed to have a name starting
-   * with &quot;is&quot; (just like methods returning a {@code boolean}). The {@code strictNaming}
-   * parameter is quietly ignored for {@code record} classes. Records are always processed
-   * as though {@code strictNaming} were {@code false}.
+   * @param strictNaming if {@code false}, all methods with a zero-length parameter
+   *       list and a non-{@code void} return type, except {@code getClass()},
+   *       {@code hashCode()} and {@code toString()}, will be regarded as getters.
+   *       Otherwise JavaBeans naming conventions will be applied regarding which methods
+   *       qualify as getters. By way of exception, methods returning a {@link Boolean}
+   *       are allowed to have a name starting with &quot;is&quot; (just like methods returning a
+   *       {@code boolean}). The {@code strictNaming} parameter is quietly ignored for
+   *       {@code record} classes. Records are always processed as though
+   *       {@code strictNaming} were {@code false}.
    * @param includeExclude whether to include or exclude the subsequently specified
-   * properties
+   *       properties
    * @param properties the properties to be included/excluded
    */
   public BeanReader(Class&lt;T&gt; beanClass,
         boolean strictNaming,
         IncludeExclude includeExclude,
         String... properties) {
-<span class="nc" id="L108">    this(beanClass,</span>
+<span class="nc" id="L111">    this(beanClass,</span>
           strictNaming,
-<span class="nc" id="L110">          BeanValueTransformer.identity(),</span>
+<span class="nc" id="L113">          BeanValueTransformer.identity(),</span>
           includeExclude,
           properties);
-<span class="nc" id="L113">  }</span>
+<span class="nc" id="L116">  }</span>
 
   /**
    * Creates a {@code BeanReader} for the specified properties of the specified class. You
@@ -124,44 +127,45 @@ public final class BeanReader&lt;T&gt; {
    * tacitly ignored.
    *
    * @param beanClass the bean class
-   * @param strictNaming if {@code false}, all methods with a zero-length parameter list
-   * and a non-{@code void} return type, except {@code getClass()}, {@code hashCode()} and
-   * {@code toString()}, will be regarded as getters. Otherwise JavaBeans naming
-   * conventions will be applied regarding which methods qualify as getters. By way of
-   * exception, methods returning a {@link Boolean} are allowed to have a name starting
-   * with &quot;is&quot; (just like methods returning a {@code boolean}). The {@code strictNaming}
-   * parameter is quietly ignored for {@code record} classes. Records are always processed
-   * as though {@code strictNaming} were {@code false}.
-   * @param transformer a conversion function for bean values. The function is passed the
-   * bean from which the value was retrieved, the property that was read, and the value of
-   * the property. Using these three parameters, the function can compute a new value,
-   * which will be the value that is actually returned from
-   * {@link #read(Object, String) BeanReader.read()}.
+   * @param strictNaming if {@code false}, all methods with a zero-length parameter
+   *       list and a non-{@code void} return type, except {@code getClass()},
+   *       {@code hashCode()} and {@code toString()}, will be regarded as getters.
+   *       Otherwise JavaBeans naming conventions will be applied regarding which methods
+   *       qualify as getters. By way of exception, methods returning a {@link Boolean}
+   *       are allowed to have a name starting with &quot;is&quot; (just like methods returning a
+   *       {@code boolean}). The {@code strictNaming} parameter is quietly ignored for
+   *       {@code record} classes. Records are always processed as though
+   *       {@code strictNaming} were {@code false}.
+   * @param transformer a conversion function for bean values. The function is
+   *       passed the bean from which the value was retrieved, the property that was read,
+   *       and the value of the property. Using these three parameters, the function can
+   *       compute a new value, which will be the value that is actually returned from
+   *       {@link #read(Object, String) BeanReader.read()}.
    * @param includeExclude whether to include or exclude the subsequently specified
-   * properties
+   *       properties
    * @param properties the properties to be included/excluded
    */
   public BeanReader(Class&lt;T&gt; beanClass,
         boolean strictNaming,
         BeanValueTransformer&lt;T&gt; transformer,
         IncludeExclude includeExclude,
-<span class="fc" id="L148">        String... properties) {</span>
-<span class="fc" id="L149">    Check.notNull(beanClass, Private.BEAN_CLASS);</span>
-<span class="fc" id="L150">    Check.notNull(transformer, Private.TRANSFORMER);</span>
-<span class="fc" id="L151">    Check.notNull(includeExclude, Private.INCLUDE_EXCLUDE);</span>
-<span class="fc" id="L152">    Check.that(properties, Private.PROPERTIES).is(deepNotNull());</span>
-<span class="fc" id="L153">    this.beanClass = beanClass;</span>
-<span class="fc" id="L154">    this.transformer = transformer;</span>
-<span class="fc" id="L155">    this.getters = getGetters(strictNaming, includeExclude, properties);</span>
-<span class="fc" id="L156">  }</span>
+<span class="fc" id="L152">        String... properties) {</span>
+<span class="fc" id="L153">    Check.notNull(beanClass, Private.BEAN_CLASS);</span>
+<span class="fc" id="L154">    Check.notNull(transformer, Private.TRANSFORMER);</span>
+<span class="fc" id="L155">    Check.notNull(includeExclude, Private.INCLUDE_EXCLUDE);</span>
+<span class="fc" id="L156">    Check.that(properties, Private.PROPERTIES).is(deepNotNull());</span>
+<span class="fc" id="L157">    this.beanClass = beanClass;</span>
+<span class="fc" id="L158">    this.transformer = transformer;</span>
+<span class="fc" id="L159">    this.getters = getGetters(strictNaming, includeExclude, properties);</span>
+<span class="fc" id="L160">  }</span>
 
   BeanReader(Class&lt;T&gt; beanClass,
         Map&lt;String, Getter&gt; getters,
-<span class="fc" id="L160">        BeanValueTransformer&lt;T&gt; transformer) {</span>
-<span class="fc" id="L161">    this.beanClass = beanClass;</span>
-<span class="fc" id="L162">    this.getters = getters;</span>
-<span class="fc" id="L163">    this.transformer = transformer;</span>
-<span class="fc" id="L164">  }</span>
+<span class="fc" id="L164">        BeanValueTransformer&lt;T&gt; transformer) {</span>
+<span class="fc" id="L165">    this.beanClass = beanClass;</span>
+<span class="fc" id="L166">    this.getters = getters;</span>
+<span class="fc" id="L167">    this.transformer = transformer;</span>
+<span class="fc" id="L168">  }</span>
 
   /**
    * Returns the value of the specified property on the specified bean. If the property
@@ -177,11 +181,11 @@ public final class BeanReader&lt;T&gt; {
    */
   @SuppressWarnings(&quot;unchecked&quot;)
   public &lt;U&gt; U read(T bean, String property) throws NoSuchPropertyException {
-<span class="fc" id="L180">    Check.notNull(bean, Tag.BEAN);</span>
-<span class="fc" id="L181">    Check.notNull(property, Tag.PROPERTY);</span>
-<span class="fc" id="L182">    Getter getter = getters.get(property);</span>
-<span class="fc" id="L183">    Check.that(getter).is(notNull(), () -&gt; noSuchProperty(bean, property));</span>
-<span class="fc" id="L184">    return (U) read(bean, getter);</span>
+<span class="fc" id="L184">    Check.notNull(bean, Tag.BEAN);</span>
+<span class="fc" id="L185">    Check.notNull(property, Tag.PROPERTY);</span>
+<span class="fc" id="L186">    Getter getter = getters.get(property);</span>
+<span class="fc" id="L187">    Check.that(getter).is(notNull(), () -&gt; noSuchProperty(bean, property));</span>
+<span class="fc" id="L188">    return (U) read(bean, getter);</span>
   }
 
   /**
@@ -193,9 +197,9 @@ public final class BeanReader&lt;T&gt; {
    * @return the values of all readable properties in the specified JavaBean
    */
   public List&lt;Object&gt; readAllProperties(T bean) {
-<span class="nc" id="L196">    List&lt;Object&gt; values = new ArrayList&lt;&gt;(getters.size());</span>
-<span class="nc" id="L197">    getters.forEach((k, v) -&gt; values.add(read(bean, v)));</span>
-<span class="nc" id="L198">    return values;</span>
+<span class="nc" id="L200">    List&lt;Object&gt; values = new ArrayList&lt;&gt;(getters.size());</span>
+<span class="nc" id="L201">    getters.forEach((k, v) -&gt; values.add(read(bean, v)));</span>
+<span class="nc" id="L202">    return values;</span>
   }
 
   /**
@@ -204,7 +208,7 @@ public final class BeanReader&lt;T&gt; {
    * @return the class of the objects {@code BeanReader} can read
    */
   public Class&lt;T&gt; getBeanClass() {
-<span class="fc" id="L207">    return beanClass;</span>
+<span class="fc" id="L211">    return beanClass;</span>
   }
 
   /**
@@ -216,11 +220,11 @@ public final class BeanReader&lt;T&gt; {
    *
    * @param property The string to be tested
    * @return {@code true} if the specified string represents a property that can be read
-   * by this {@code BeanReader}
+   *       by this {@code BeanReader}
    * @see #getReadableProperties()
    */
   public boolean canRead(String property) {
-<span class="nc" id="L223">    return getters.containsKey(property);</span>
+<span class="nc" id="L227">    return getters.containsKey(property);</span>
   }
 
   /**
@@ -235,7 +239,7 @@ public final class BeanReader&lt;T&gt; {
    * @return the properties that this {@code BeanReader} will read
    */
   public Set&lt;String&gt; getReadableProperties() {
-<span class="fc" id="L238">    return getters.keySet();</span>
+<span class="fc" id="L242">    return getters.keySet();</span>
   }
 
   /**
@@ -246,45 +250,55 @@ public final class BeanReader&lt;T&gt; {
    * @return all getters used to read bean properties.
    */
   public Map&lt;String, Getter&gt; getIncludedGetters() {
-<span class="fc" id="L249">    return getters;</span>
+<span class="fc" id="L253">    return getters;</span>
   }
 
   private Object read(T bean, Getter getter) {
     Object val;
     try {
-<span class="fc" id="L255">      val = getter.read(bean);</span>
-<span class="nc" id="L256">    } catch (Throwable exc) {</span>
-<span class="nc" id="L257">      throw Private.wrap(exc, bean, getter);</span>
-<span class="fc" id="L258">    }</span>
-<span class="pc bpc" id="L259" title="1 of 2 branches missed.">    if (transformer != null) {</span>
-<span class="fc" id="L260">      val = transformer.transform(bean, getter.getProperty(), val);</span>
+<span class="fc" id="L259">      val = getter.read(bean);</span>
+<span class="nc" id="L260">    } catch (Throwable exc) {</span>
+<span class="nc" id="L261">      throw Private.wrap(exc, bean, getter);</span>
+<span class="fc" id="L262">    }</span>
+<span class="pc bpc" id="L263" title="1 of 2 branches missed.">    if (transformer != null) {</span>
+<span class="fc" id="L264">      val = transformer.transform(bean, getter.getProperty(), val);</span>
     }
-<span class="fc" id="L262">    return val;</span>
+<span class="fc" id="L266">    return val;</span>
   }
 
 
   private Map&lt;String, Getter&gt; getGetters(boolean strict,
         IncludeExclude ie,
         String[] props) {
-<span class="fc" id="L269">    Map&lt;String, Getter&gt; m = GetterFactory.INSTANCE.getGetters(beanClass, strict);</span>
-<span class="fc bfc" id="L270" title="All 2 branches covered.">    if (props.length == 0) {</span>
-<span class="fc" id="L271">      return m;</span>
+<span class="fc" id="L273">    Map&lt;String, Getter&gt; allGetters = GetterFactory.INSTANCE.getGetters(beanClass, strict);</span>
+<span class="fc bfc" id="L274" title="All 2 branches covered.">    if (props.length == 0) {</span>
+<span class="fc" id="L275">      return allGetters;</span>
     }
-    Map&lt;String, Getter&gt; tmp;
-<span class="fc bfc" id="L274" title="All 2 branches covered.">    if (ie.isExclude()) {</span>
-<span class="fc" id="L275">      Set&lt;String&gt; propSet = Set.of(props);</span>
-<span class="fc" id="L276">      tmp = LinkedHashMap.newLinkedHashMap(m.size() - props.length);</span>
-<span class="fc bfc" id="L277" title="All 2 branches covered.">      m.forEach((x, y) -&gt; { if (!propSet.contains(x)) tmp.put(x, y); });</span>
-<span class="fc" id="L278">    } else {</span>
-<span class="fc" id="L279">      tmp = LinkedHashMap.newLinkedHashMap(props.length);</span>
-<span class="fc bfc" id="L280" title="All 2 branches covered.">      for (String prop : props) {</span>
-<span class="pc bpc" id="L281" title="1 of 2 branches missed.">        if (m.containsKey(prop)) {</span>
-<span class="fc" id="L282">          tmp.put(prop, m.get(prop));</span>
-        }
-      }
-    }
-<span class="pc" id="L286">    Check.that(tmp).isNot(empty(), () -&gt; new NoPublicGettersException(beanClass));</span>
-<span class="fc" id="L287">    return tmp;</span>
+<span class="fc" id="L277">    Set&lt;String&gt; propSet = Set.of(props);</span>
+<span class="fc bfc" id="L278" title="All 2 branches covered.">    Predicate&lt;Entry&lt;String, Getter&gt;&gt; filter = ie.isExclude()</span>
+<span class="fc bfc" id="L279" title="All 2 branches covered.">          ? e -&gt; !propSet.contains(e.getKey())</span>
+<span class="fc" id="L280">          : e -&gt; propSet.contains(e.getKey());</span>
+    Map&lt;String, Getter&gt; getters;
+<span class="fc" id="L282">    Entry[] entries = allGetters.entrySet().stream().filter(filter).toArray(Entry[]::new);</span>
+<span class="pc" id="L283">    Check.that(entries).isNot(empty(), () -&gt; new NoPublicGettersException(beanClass));</span>
+<span class="fc" id="L284">    return Map.ofEntries(entries);</span>
+//    if (ie.isExclude()) {
+//      getters = HashMap.newHashMap(allGetters.size() - props.length);
+//      allGetters.forEach((x, y) -&gt; { if (!propSet.contains(x)) getters.put(x, y); });
+//      entries = allGetters.entrySet()
+//            .stream()
+//            .filter(x -&gt; !propSet.contains(x.getKey()))
+//            .toArray(Entry[]::new);
+//    } else {
+//      getters = HashMap.newHashMap(props.length);
+//      for (String prop : props) {
+//        if (allGetters.containsKey(prop)) {
+//          getters.put(prop, allGetters.get(prop));
+//        }
+//      }
+//    }
+//    Check.that(getters).isNot(empty(), () -&gt; new NoPublicGettersException(beanClass));
+//    return getters;
   }
 
 }
