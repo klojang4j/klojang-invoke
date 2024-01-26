@@ -3,13 +3,16 @@ package org.klojang.invoke;
 import org.klojang.check.Check;
 import org.klojang.check.Tag;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
+import static java.util.Map.Entry;
 import static org.klojang.check.CommonChecks.*;
 import static org.klojang.invoke.IncludeExclude.INCLUDE;
 import static org.klojang.invoke.NoSuchPropertyException.noSuchProperty;
-import static java.util.Map.Entry;
 
 /**
  * A dynamic bean reader class. This class uses method handles instead of reflection to
@@ -29,10 +32,12 @@ import static java.util.Map.Entry;
 public final class BeanReader<T> {
 
   /**
-   * Returns a {@code Builder} for {@code BeanReader} instances. Note that the specified
-   * type may just as well be a {@code record} or {@code enum} type.
+   * Returns a {@code Builder} for {@code BeanReader} instances. The builder will produce
+   * a 100% reflection-free {@code BeanReader}, which you may find desirable when writing
+   * Java 9+ modules.
    *
-   * @param beanClass the class for which to create a {@code BeanReader}
+   * @param beanClass the class for which to create a {@code BeanReader} (may be a
+   *       {@code record} type)
    * @param <T> the type of the objects to be read
    * @return a {@code Builder} for {@code BeanReader} instances
    */
@@ -45,29 +50,38 @@ public final class BeanReader<T> {
   private final BeanValueTransformer<T> transformer;
 
   /**
-   * Creates a {@code BeanReader} for the specified properties of the specified class. You
-   * can optionally specify an array of properties that you intend to read. If you specify
-   * a zero-length array, all properties will be readable. JavaBeans naming conventions
-   * will be applied regarding which methods qualify as getters. A side effect of
-   * specifying one or more properties is that it forces the values returned from
+   * Creates a {@code BeanReader} for the specified class. You can optionally specify an
+   * array of properties that you intend to read. If you specify a zero-length array, all
+   * properties will be readable. If you intend to use this {@code BeanReader} to
+   * repetitively read just one or two properties from bulky bean types, explicitly
+   * specifying the properties you intend to read might make the {@code BeanReader}
+   * slightly more efficient. <i>It is not an error to specify non-existent
+   * properties.</i> They will be tacitly ignored. A side effect of specifying one or more
+   * properties is that it forces the values returned from
    * {@link #readAllProperties(Object) readAllProperties()} to be in the order in which
    * you specify the properties.
    *
-   * @param beanClass the bean class
+   * @param beanClass the bean class (may be a {@code record} type)
    * @param properties the properties to be included/excluded
    * @see #getReadableProperties()
    */
   public BeanReader(Class<T> beanClass, String... properties) {
-    this(beanClass, true, BeanValueTransformer.identity(), INCLUDE, properties);
+    this(beanClass, BeanValueTransformer.identity(), properties);
   }
 
   /**
-   * Creates a {@code BeanReader} for the specified properties of the specified class. You
-   * can optionally specify an array of properties that you intend to read. If you specify
-   * a zero-length array, all properties will be readable. JavaBeans naming conventions
-   * will be applied regarding which methods qualify as getters.
+   * Creates a {@code BeanReader} for the specified class. You can optionally specify an
+   * array of properties that you intend to read. If you specify a zero-length array, all
+   * properties will be readable. If you intend to use this {@code BeanReader} to
+   * repetitively read just one or two properties from bulky bean types, explicitly
+   * specifying the properties you intend to read might make the {@code BeanReader}
+   * slightly more efficient. <i>It is not an error to specify non-existent
+   * properties.</i> They will be tacitly ignored. A side effect of specifying one or more
+   * properties to be <i>included</i> is that it forces the values returned from
+   * {@link #readAllProperties(Object) readAllProperties()} to be in the order in which
+   * you specify the properties.
    *
-   * @param beanClass the bean class
+   * @param beanClass the bean class (may be a {@code record} type)
    * @param includeExclude whether to include or exclude the specified properties
    * @param properties the properties to be included/excluded
    * @see #getReadableProperties()
@@ -76,28 +90,29 @@ public final class BeanReader<T> {
   public BeanReader(Class<T> beanClass,
         IncludeExclude includeExclude,
         String... properties) {
-    this(beanClass, true, BeanValueTransformer.identity(), includeExclude, properties);
+    this(beanClass, BeanValueTransformer.identity(), includeExclude, properties);
   }
 
   /**
-   * Creates a {@code BeanReader} for the specified properties of the specified class. You
-   * can optionally specify an array of properties that you intend to read. If you specify
-   * a zero-length array, all properties will be readable. If you intend to use this
-   * {@code BeanReader} to repetitively read just one or two properties from bulky bean
-   * types, explicitly specifying the properties you intend to read might make the
-   * {@code BeanReader} slightly more efficient.
+   * Creates a {@code BeanReader} for the specified class. You can optionally specify an
+   * array of properties that you intend to read. If you specify a zero-length array, all
+   * properties will be readable. If you intend to use this {@code BeanReader} to
+   * repetitively read just one or two properties from bulky bean types, explicitly
+   * specifying the properties you intend to read might make the {@code BeanReader}
+   * slightly more efficient. <i>It is not an error to specify non-existent
+   * properties.</i> They will be tacitly ignored. A side effect of specifying one or more
+   * properties to be <i>included</i> is that it forces the values returned from
+   * {@link #readAllProperties(Object) readAllProperties()} to be in the order in which
+   * you specify the properties.
    *
-   * <p><i>It is not an error to specify non-existent properties.</i> They will be
-   * tacitly ignored.
-   *
-   * @param beanClass the bean class
+   * @param beanClass the bean class (may be a {@code record} type)
    * @param strictNaming if {@code false}, all methods with a zero-length parameter
    *       list and a non-{@code void} return type, except {@code getClass()},
    *       {@code hashCode()} and {@code toString()}, will be regarded as getters.
    *       Otherwise JavaBeans naming conventions will be applied regarding which methods
    *       qualify as getters. By way of exception, methods returning a {@link Boolean}
    *       are allowed to have a name starting with "is" (just like methods returning a
-   *       {@code boolean}). The {@code strictNaming} parameter is quietly ignored for
+   *       {@code boolean}). The {@code strictNaming} parameter is tacitly ignored for
    *       {@code record} classes. Records are always processed as though
    *       {@code strictNaming} were {@code false}.
    * @param includeExclude whether to include or exclude the subsequently specified
@@ -116,15 +131,71 @@ public final class BeanReader<T> {
   }
 
   /**
-   * Creates a {@code BeanReader} for the specified properties of the specified class. You
-   * can optionally specify an array of properties that you intend to read. If you specify
-   * a zero-length array, all properties will be readable. If you intend to use this
-   * {@code BeanReader} to repetitively read just one or two properties from bulky bean
-   * types, explicitly specifying the properties you intend to read might make the
-   * {@code BeanReader} slightly more efficient.
+   * Creates a {@code BeanReader} for the specified class. You can optionally specify an
+   * array of properties that you intend to read. If you specify a zero-length array, all
+   * properties will be readable. If you intend to use this {@code BeanReader} to
+   * repetitively read just one or two properties from bulky bean types, explicitly
+   * specifying the properties you intend to read might make the {@code BeanReader}
+   * slightly more efficient. <i>It is not an error to specify non-existent
+   * properties.</i> They will be tacitly ignored. A side effect of specifying one or more
+   * properties is that it forces the values returned from
+   * {@link #readAllProperties(Object) readAllProperties()} to be in the order in which
+   * you specify the properties.
    *
-   * <p><i>It is not an error to specify non-existent properties.</i> They will be
-   * tacitly ignored.
+   * @param beanClass the bean class (may be a {@code record} type)
+   * @param transformer a conversion function for bean values. The function is
+   *       passed the bean from which the value was retrieved, the property that was read,
+   *       and the value of the property. Using these three parameters, the function can
+   *       compute a new value, which will be the value that is <i>actually</i> returned
+   *       from {@link #read(Object, String) BeanReader.read()}.
+   * @param properties the properties to be included
+   */
+  public BeanReader(Class<T> beanClass,
+        BeanValueTransformer<T> transformer,
+        String... properties) {
+    this(beanClass, transformer, INCLUDE, properties);
+  }
+
+  /**
+   * Creates a {@code BeanReader} for the specified class. You can optionally specify an
+   * array of properties that you intend to read. If you specify a zero-length array, all
+   * properties will be readable. If you intend to use this {@code BeanReader} to
+   * repetitively read just one or two properties from bulky bean types, explicitly
+   * specifying the properties you intend to read might make the {@code BeanReader}
+   * slightly more efficient. <i>It is not an error to specify non-existent
+   * properties.</i> They will be tacitly ignored. A side effect of specifying one or more
+   * properties to be <i>included</i> is that it forces the values returned from
+   * {@link #readAllProperties(Object) readAllProperties()} to be in the order in which
+   * you specify the properties.
+   *
+   * @param beanClass the bean class (may be a {@code record} type)
+   * @param transformer a conversion function for bean values. The function is
+   *       passed the bean from which the value was retrieved, the property that was read,
+   *       and the value of the property. Using these three parameters, the function can
+   *       compute a new value, which will be the value that is <i>actually</i> returned
+   *       from {@link #read(Object, String) BeanReader.read()}.
+   * @param includeExclude whether to include or exclude the subsequently specified
+   *       properties
+   * @param properties the properties to be included
+   */
+  public BeanReader(Class<T> beanClass,
+        BeanValueTransformer<T> transformer,
+        IncludeExclude includeExclude,
+        String... properties) {
+    this(beanClass, true, transformer, includeExclude, properties);
+  }
+
+  /**
+   * Creates a {@code BeanReader} for the specified class. You can optionally specify an
+   * array of properties that you intend to read. If you specify a zero-length array, all
+   * properties will be readable. If you intend to use this {@code BeanReader} to
+   * repetitively read just one or two properties from bulky bean types, explicitly
+   * specifying the properties you intend to read might make the {@code BeanReader}
+   * slightly more efficient. <i>It is not an error to specify non-existent
+   * properties.</i> They will be tacitly ignored. A side effect of specifying one or more
+   * properties to be <i>included</i> is that it forces the values returned from
+   * {@link #readAllProperties(Object) readAllProperties()} to be in the order in which
+   * you specify the properties.
    *
    * @param beanClass the bean class
    * @param strictNaming if {@code false}, all methods with a zero-length parameter
@@ -133,14 +204,14 @@ public final class BeanReader<T> {
    *       Otherwise JavaBeans naming conventions will be applied regarding which methods
    *       qualify as getters. By way of exception, methods returning a {@link Boolean}
    *       are allowed to have a name starting with "is" (just like methods returning a
-   *       {@code boolean}). The {@code strictNaming} parameter is quietly ignored for
+   *       {@code boolean}). The {@code strictNaming} parameter is tacitly ignored for
    *       {@code record} classes. Records are always processed as though
    *       {@code strictNaming} were {@code false}.
    * @param transformer a conversion function for bean values. The function is
    *       passed the bean from which the value was retrieved, the property that was read,
    *       and the value of the property. Using these three parameters, the function can
-   *       compute a new value, which will be the value that is actually returned from
-   *       {@link #read(Object, String) BeanReader.read()}.
+   *       compute a new value, which will be the value that is <i>actually</i> returned
+   *       from {@link #read(Object, String) BeanReader.read()}.
    * @param includeExclude whether to include or exclude the subsequently specified
    *       properties
    * @param properties the properties to be included/excluded

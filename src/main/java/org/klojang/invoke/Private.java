@@ -16,9 +16,6 @@ final class Private {
   static final String SOURCE_MAP = "source map";
   static final String CONVERTER = "converter";
 
-  static final BeanValueTransformer<?> IDENTIFY_TRANSFORMER = (x, y, z) -> z;
-
-
   static InvokeException wrap(Throwable t, Object bean, Getter getter) {
     String msg = String.format("Error while reading %s.%s: %s",
           simpleClassName(bean),

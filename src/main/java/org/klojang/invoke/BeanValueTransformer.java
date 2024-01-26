@@ -1,13 +1,13 @@
 package org.klojang.invoke;
 
 /**
- * A function that can be applied to transform a value just retrieved from a bean, or
- * about to be set on a bean. A {@code BeanValueTransformer} can be "inserted" into a
- * {@link BeanReader} and {@link BeanWriter} to modify the value that was read, or is
- * about to be written, respectively.
+ * A {@code BeanValueTransformer} can be "inserted" into a {@link BeanReader} and
+ * {@link BeanWriter} to modify the value to be returned to the user by the
+ * {@code BeanReader}, or to be written to the bean by the {@code BeanWriter}.
  *
  * @param <T> the type of the bean
  */
+@FunctionalInterface
 public interface BeanValueTransformer<T> {
 
   /**
@@ -16,17 +16,15 @@ public interface BeanValueTransformer<T> {
    * @param <T> the type of the bean
    * @return the property value as-is
    */
-  @SuppressWarnings("unchecked")
-  static <T> BeanValueTransformer<T> identity() {
-    return (BeanValueTransformer<T>) Private.IDENTIFY_TRANSFORMER;
-  }
+  static <T> BeanValueTransformer<T> identity() { return (x, y, z) -> z; }
 
   /**
-   * Transforms the value just retrieved from a bean, or to be set on a bean.
+   * Transforms the value just retrieved from a bean, or about to be set on a bean.
    *
    * @param bean the bean that was read or is about to be written
-   * @param propertyName the property that was read or is about to be written
-   * @param propertyValue the value to be transformed
+   * @param propertyName the name of the property that was read or is about to be
+   *       written
+   * @param propertyValue the original value
    * @return the new value
    */
   Object transform(T bean, String propertyName, Object propertyValue);
