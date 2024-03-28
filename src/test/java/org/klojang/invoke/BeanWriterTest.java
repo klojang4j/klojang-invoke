@@ -1,7 +1,6 @@
 package org.klojang.invoke;
 
 import org.junit.Test;
-import org.klojang.check.fallible.FallibleBiFunction;
 import org.klojang.path.util.MapBuilder;
 
 import java.time.LocalDate;
@@ -459,7 +458,7 @@ public class BeanWriterTest {
         .set("hobbies", null)
         .set("lastModified", LocalDate.of(2022, 04, 03))
         .set("someCharSequence", "Hello World")
-        .createMap();
+        .build();
 
     Person person1 = new Person();
     person1.setId(80);
@@ -498,7 +497,7 @@ public class BeanWriterTest {
         .set("hobbies", null)
         .set("lastModified", LocalDate.of(2022, 04, 03))
         .set("someCharSequence", "Hello World")
-        .createMap();
+        .build();
 
     Person person1 = new Person();
     person1.setId(80);
@@ -537,7 +536,7 @@ public class BeanWriterTest {
         .set("hobbies", null)
         .set("lastModified", LocalDate.of(2022, 04, 03))
         .set("someCharSequence", "Hello World")
-        .createMap();
+        .build();
 
     Person person1 = new Person();
     person1.setId(80);

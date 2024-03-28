@@ -1,1 +1,0 @@
-tagSearchIndex = [{"l":"Escaping","h":"class org.klojang.path.Path","d":"Section","u":"org.klojang.invoke/org/klojang/path/Path.html#escaping-heading"},{"l":"Serialized Form","h":"","u":"serialized-form.html"}];updateSearchResults();

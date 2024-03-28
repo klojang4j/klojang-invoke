@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"m":"org.klojang.invoke","l":"org.klojang.invoke"},{"m":"org.klojang.invoke","l":"org.klojang.path"},{"m":"org.klojang.invoke","l":"org.klojang.path.util"}];updateSearchResults();
