@@ -1,6 +1,7 @@
 package org.klojang.path;
 
 import org.junit.Test;
+import org.klojang.util.Path;
 
 import java.util.ArrayList;
 import java.util.List;

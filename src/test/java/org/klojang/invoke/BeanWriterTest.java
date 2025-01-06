@@ -1,7 +1,7 @@
 package org.klojang.invoke;
 
 import org.junit.Test;
-import org.klojang.path.util.MapBuilder;
+import org.klojang.util.MapBuilder;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -180,7 +180,7 @@ public class BeanWriterTest {
 
   @Test
   public void set17() throws Throwable {
-    BeanValueTransformer tbf = (x,y,z) -> {
+    BeanValueTransformer tbf = (x, y, z) -> {
       return String.valueOf(z);
     };
     Person person = new Person();

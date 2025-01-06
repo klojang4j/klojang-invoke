@@ -1,5 +1,7 @@
 package org.klojang.path;
 
+import org.klojang.util.Path;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.OptionalInt;

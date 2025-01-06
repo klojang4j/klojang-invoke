@@ -1,10 +1,12 @@
 package org.klojang.path;
 
+import org.klojang.util.Path;
+
 import java.util.List;
 import java.util.Map;
 
-import static org.klojang.util.ClassMethods.isPrimitiveArray;
 import static org.klojang.path.PathWalkerException.nullValue;
+import static org.klojang.util.ClassMethods.isPrimitiveArray;
 
 final class ObjectWriter {
 
@@ -38,9 +40,9 @@ final class ObjectWriter {
     if (writeTo == null) {
       return deadEnd(nullValue(path, segment));
     }
-    if (writeTo instanceof List l) {
+    if (writeTo instanceof List<?> l) {
       return new ListSegmentWriter(se, kd).write(l, path, value);
-    } else if (writeTo instanceof Map m) {
+    } else if (writeTo instanceof Map<?, ?> m) {
       return new MapSegmentWriter(se, kd).write(m, path, value);
     } else if (writeTo instanceof Object[] o) {
       return new ArraySegmentWriter(se, kd).write(o, path, value);

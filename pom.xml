@@ -120,6 +120,12 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.klojang</groupId>
+            <artifactId>klojang-util</artifactId>
+            <version>21.1.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -1,5 +1,7 @@
 package org.klojang.path;
 
+import org.klojang.util.Path;
+
 abstract sealed class SegmentWriter<T> permits
     ArraySegmentWriter, BeanSegmentWriter,
     ListSegmentWriter, MapSegmentWriter, PrimitiveArraySegmentWriter {

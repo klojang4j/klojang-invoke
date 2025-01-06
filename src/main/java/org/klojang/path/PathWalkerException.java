@@ -1,5 +1,7 @@
 package org.klojang.path;
 
+import org.klojang.util.Path;
+
 import java.util.function.Supplier;
 
 import static org.klojang.path.ErrorCode.*;
@@ -78,7 +80,7 @@ public final class PathWalkerException extends RuntimeException {
     return () -> new PathWalkerException(TYPE_MISMATCH, msg);
   }
 
-  static Factory typeMismatch(Path path, int segment, Class expected, Class actual) {
+  static Factory typeMismatch(Path path, int segment, Class<?> expected, Class<?> actual) {
     String fmt = PATH_SEGMENT + "cannot assign %s to %s";
     String scn0 = simpleClassName(expected);
     String scn1 = simpleClassName(actual);

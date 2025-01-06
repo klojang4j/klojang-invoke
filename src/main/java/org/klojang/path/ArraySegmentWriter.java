@@ -1,5 +1,7 @@
 package org.klojang.path;
 
+import org.klojang.util.Path;
+
 import java.util.OptionalInt;
 
 import static org.klojang.path.PathWalkerException.*;
@@ -15,7 +17,7 @@ final class ArraySegmentWriter extends SegmentWriter<Object[]> {
   boolean write(Object[] array, Path path, Object value) {
     int segment = path.size() - 1;
     if (value != null) {
-      Class elemClass = array.getClass().getComponentType();
+      var elemClass = array.getClass().getComponentType();
       if (!elemClass.isInstance(value)) {
         return deadEnd(typeMismatch(path, segment, elemClass, value.getClass()));
       }

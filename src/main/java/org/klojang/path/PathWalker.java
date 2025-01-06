@@ -2,6 +2,7 @@ package org.klojang.path;
 
 import org.klojang.check.Check;
 import org.klojang.check.Tag;
+import org.klojang.util.Path;
 
 import java.util.Arrays;
 import java.util.List;

@@ -1,5 +1,7 @@
 package org.klojang.path;
 
+import org.klojang.util.Path;
+
 abstract sealed class SegmentReader<T> permits ArraySegmentReader, BeanSegmentReader,
     CollectionSegmentReader, MapSegmentReader, PrimitiveArraySegmentReader {
 

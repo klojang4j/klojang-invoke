@@ -1,5 +1,7 @@
 package org.klojang.path;
 
+import org.klojang.util.Path;
+
 import java.util.OptionalInt;
 
 import static org.klojang.path.PathWalkerException.indexExpected;

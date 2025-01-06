@@ -3,6 +3,7 @@ package org.klojang.path;
 import org.klojang.invoke.BeanReader;
 import org.klojang.invoke.NoPublicGettersException;
 import org.klojang.invoke.NoSuchPropertyException;
+import org.klojang.util.Path;
 
 import static org.klojang.util.ObjectMethods.isEmpty;
 import static org.klojang.path.PathWalkerException.*;

@@ -1,5 +1,7 @@
 package org.klojang.path;
 
+import org.klojang.util.Path;
+
 import java.util.Collection;
 import java.util.Map;
 
@@ -21,11 +23,11 @@ final class ObjectReader {
       return obj;
     } else if (obj == null) {
       return deadEnd(nullValue(path, segment));
-    } else if (obj instanceof Collection c) {
+    } else if (obj instanceof Collection<?> c) {
       return new CollectionSegmentReader(se, kd).read(c, path, segment);
     } else if (obj instanceof Object[] o) {
       return new ArraySegmentReader(se, kd).read(o, path, segment);
-    } else if (obj instanceof Map m) {
+    } else if (obj instanceof Map<?, ?> m) {
       return new MapSegmentReader(se, kd).read(m, path, segment);
     } else if (isPrimitiveArray(obj)) {
       return new PrimitiveArraySegmentReader(se, kd).read(obj, path, segment);

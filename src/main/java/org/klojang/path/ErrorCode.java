@@ -41,7 +41,7 @@ public enum ErrorCode {
   KEY_DESERIALIZATION_FAILED,
   /**
    * Indicates that the {@code PathWalker} encountered a
-   * {@link Path#NULL_SEGMENT null segment} or an empty segment while not processing
+   * {@link org.klojang.util.Path#NULL_SEGMENT null segment} or an empty segment while not processing
    * a {@code Map}. ({@code null} and the empty string can only possibly be valid as
    * map keys.)
    */

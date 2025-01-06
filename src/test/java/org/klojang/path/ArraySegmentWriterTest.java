@@ -1,8 +1,7 @@
 package org.klojang.path;
 
 import org.junit.Test;
-import org.klojang.path.Path;
-import org.klojang.path.PathWalkerException;
+import org.klojang.util.Path;
 
 import static org.junit.Assert.*;
 import static org.klojang.path.ErrorCode.INDEX_EXPECTED;
