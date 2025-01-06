@@ -23,14 +23,14 @@ To use _Klojang Invoke_, add the following dependency to your Maven POM file:
 <dependency>
     <groupId>org.klojang</groupId>
     <artifactId>klojang-invoke</artifactId>
-    <version>2.0.3</version>
+    <version>21.1.0</version>
 </dependency>
 ```
 
 or Gradle build script:
 
 ```
-implementation group: 'org.klojang', name: 'klojang-invoke', version: '2.0.3'
+implementation group: 'org.klojang', name: 'klojang-invoke', version: '21.1.0'
 ```
 
 ## Documentation
@@ -40,7 +40,3 @@ found **[here](https://klojang4j.github.io/klojang-invoke/api)**.
 
 The latest **test coverage report** can be
 found **[here](https://klojang4j.github.io/klojang-invoke/coverage)**.
-
-The latest **OWASP vulnerabilities report** can be
-found 
-**[here](https://klojang4j.github.io/klojang-invoke/vulnerabilities/dependency-check-report.html)**.
