@@ -7,7 +7,7 @@
 
     <groupId>org.klojang</groupId>
     <artifactId>klojang-invoke</artifactId>
-    <version>21.1.0</version>
+    <version>21.2.0</version>
     <packaging>jar</packaging>
 
     <name>Klojang Invoke</name>
@@ -89,9 +89,9 @@
         <!-- *** Check for updates: mvn versions:display-dependency-updates   *** -->
         <!-- *** Check dependencies: mvn dependency:analyze                   *** -->
         <!-- ==================================================================== -->
-        <klojang-check.version>21.1.0</klojang-check.version>
-        <klojang-util.version>21.1.0</klojang-util.version>
-        <klojang-convert.version>21.1.0</klojang-convert.version>
+        <klojang-check.version>21.4.0</klojang-check.version>
+        <klojang-util.version>21.13.0</klojang-util.version>
+        <klojang-convert.version>21.3.0</klojang-convert.version>
         <junit.version>4.13.2</junit.version>
 
 
@@ -120,13 +120,7 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.klojang</groupId>
-            <artifactId>klojang-util</artifactId>
-            <version>21.1.0</version>
-            <scope>compile</scope>
-        </dependency>
-    </dependencies>
+     </dependencies>
 
     <build>
 
@@ -277,7 +271,7 @@
                             <windowtitle>Klojang Invoke</windowtitle>
                             <excludePackageNames>org.klojang.invoke.x</excludePackageNames>
                             <links>
-                                <link>https://klojang4j.github.io/klojang-check/api/</link>
+                                <link>https://klojang4j.github.io/klojang-check/21/api/</link>
                                 <link>https://klojang4j.github.io/klojang-util/api/</link>
                                 <link>https://klojang4j.github.io/klojang-convert/api/</link>
                             </links>

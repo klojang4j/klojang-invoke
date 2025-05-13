@@ -1,7 +1,7 @@
 package org.klojang.invoke;
 
 import org.junit.Test;
-import org.klojang.util.MapBuilder;
+import org.klojang.util.JSONObject;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -452,7 +452,7 @@ public class BeanWriterTest {
 
   @Test
   public void mapCopy00() throws Throwable {
-    Map<String, Object> person0 = new MapBuilder().set("id", 100)
+    Map<String, Object> person0 = JSONObject.empty().set("id", 100)
         .set("firstName", "John")
         .set("lastName", "Smith")
         .set("hobbies", null)
@@ -491,7 +491,7 @@ public class BeanWriterTest {
   @Test
   public void mapCopyNonNull00() throws Throwable {
 
-    Map<String, Object> person0 = new MapBuilder().set("id", 100)
+    Map<String, Object> person0 = JSONObject.empty().set("id", 100)
         .set("firstName", "John")
         .set("lastName", null)
         .set("hobbies", null)
@@ -530,7 +530,7 @@ public class BeanWriterTest {
   @Test
   public void mapEnrich00() throws Throwable {
 
-    Map<String, Object> person0 = new MapBuilder().set("id", 100)
+    Map<String, Object> person0 = JSONObject.empty().set("id", 100)
         .set("firstName", "John")
         .set("lastName", null)
         .set("hobbies", null)

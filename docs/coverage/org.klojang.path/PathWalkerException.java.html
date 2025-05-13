@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PathWalkerException.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Klojang Invoke</a> &gt; <a href="index.source.html" class="el_package">org.klojang.path</a> &gt; <span class="el_source">PathWalkerException.java</span></div><h1>PathWalkerException.java</h1><pre class="source lang-java linenums">package org.klojang.path;
 
+
+
 import org.klojang.util.Path;
 
 import java.util.function.Supplier;
@@ -19,115 +21,115 @@ public final class PathWalkerException extends RuntimeException {
   private static final String PATH_SEGMENT = &quot;path %s, segment %s: &quot;;
 
   static Factory noSuchProperty(Path path, int segment, Class&lt;?&gt; clazz) {
-<span class="fc" id="L22">    String fmt = INVALID_PATH</span>
+<span class="fc" id="L24">    String fmt = INVALID_PATH</span>
         + &quot; *** no accessible property named \&quot;%s\&quot; in %s.class&quot;;
-<span class="fc" id="L24">    String className = className(clazz);</span>
-<span class="fc" id="L25">    String msg = String.format(fmt,</span>
+<span class="fc" id="L26">    String className = className(clazz);</span>
+<span class="fc" id="L27">    String msg = String.format(fmt,</span>
         path,
-<span class="fc" id="L27">        segment + 1,</span>
-<span class="fc" id="L28">        path.segment(segment),</span>
+<span class="fc" id="L29">        segment + 1,</span>
+<span class="fc" id="L30">        path.segment(segment),</span>
         className);
-<span class="fc" id="L30">    return () -&gt; new PathWalkerException(NO_SUCH_PROPERTY, msg);</span>
+<span class="fc" id="L32">    return () -&gt; new PathWalkerException(NO_SUCH_PROPERTY, msg);</span>
   }
 
   static Factory noSuchKey(Path path, int segment, Object key) {
-<span class="fc" id="L34">    String fmt = INVALID_PATH + &quot; *** no such key: \&quot;%s\&quot;&quot;;</span>
-<span class="fc" id="L35">    String msg = String.format(fmt, path, segment + 1, path.segment(segment));</span>
-<span class="fc" id="L36">    return () -&gt; new PathWalkerException(NO_SUCH_KEY, msg);</span>
+<span class="fc" id="L36">    String fmt = INVALID_PATH + &quot; *** no such key: \&quot;%s\&quot;&quot;;</span>
+<span class="fc" id="L37">    String msg = String.format(fmt, path, segment + 1, path.segment(segment));</span>
+<span class="fc" id="L38">    return () -&gt; new PathWalkerException(NO_SUCH_KEY, msg);</span>
   }
 
   static Factory indexExpected(Path path, int segment) {
-<span class="fc" id="L40">    String fmt = INVALID_PATH + &quot; *** array index expected; found: \&quot;%s\&quot;&quot;;</span>
-<span class="fc" id="L41">    String msg = String.format(fmt, path, segment + 1, path.segment(segment));</span>
-<span class="fc" id="L42">    return () -&gt; new PathWalkerException(INDEX_EXPECTED, msg);</span>
+<span class="fc" id="L42">    String fmt = INVALID_PATH + &quot; *** array index expected; found: \&quot;%s\&quot;&quot;;</span>
+<span class="fc" id="L43">    String msg = String.format(fmt, path, segment + 1, path.segment(segment));</span>
+<span class="fc" id="L44">    return () -&gt; new PathWalkerException(INDEX_EXPECTED, msg);</span>
   }
 
   static Factory indexOutOfBounds(Path path, int segment) {
-<span class="fc" id="L46">    String fmt = INVALID_PATH + &quot; *** index out of bounds: %s&quot;;</span>
-<span class="fc" id="L47">    String msg = String.format(fmt, path, segment + 1, path.segment(segment));</span>
-<span class="fc" id="L48">    return () -&gt; new PathWalkerException(INDEX_OUT_OF_BOUNDS, msg);</span>
+<span class="fc" id="L48">    String fmt = INVALID_PATH + &quot; *** index out of bounds: %s&quot;;</span>
+<span class="fc" id="L49">    String msg = String.format(fmt, path, segment + 1, path.segment(segment));</span>
+<span class="fc" id="L50">    return () -&gt; new PathWalkerException(INDEX_OUT_OF_BOUNDS, msg);</span>
   }
 
   static Factory nullValue(Path path, int segment) {
-<span class="fc" id="L52">    String fmt = INVALID_PATH</span>
+<span class="fc" id="L54">    String fmt = INVALID_PATH</span>
         + &quot; *** terminal value encountered at segment \&quot;%s\&quot;: null&quot;;
-<span class="fc" id="L54">    String msg = String.format(fmt, path, segment + 1, path.segment(segment));</span>
-<span class="fc" id="L55">    return () -&gt; new PathWalkerException(TERMINAL_VALUE, msg);</span>
+<span class="fc" id="L56">    String msg = String.format(fmt, path, segment + 1, path.segment(segment));</span>
+<span class="fc" id="L57">    return () -&gt; new PathWalkerException(TERMINAL_VALUE, msg);</span>
   }
 
   static Factory terminalValue(Path path, int segment, Object value) {
-<span class="fc" id="L59">    String fmt = INVALID_PATH</span>
+<span class="fc" id="L61">    String fmt = INVALID_PATH</span>
         + &quot; *** terminal value encountered at segment \&quot;%s\&quot;: (%s) %s&quot;;
-<span class="fc" id="L61">    String className = simpleClassName(value.getClass());</span>
-<span class="fc" id="L62">    String msg = String.format(fmt,</span>
+<span class="fc" id="L63">    String className = simpleClassName(value.getClass());</span>
+<span class="fc" id="L64">    String msg = String.format(fmt,</span>
         path,
-<span class="fc" id="L64">        segment + 1,</span>
-<span class="fc" id="L65">        path.segment(segment),</span>
+<span class="fc" id="L66">        segment + 1,</span>
+<span class="fc" id="L67">        path.segment(segment),</span>
         className,
         value);
-<span class="fc" id="L68">    return () -&gt; new PathWalkerException(TERMINAL_VALUE, msg);</span>
+<span class="fc" id="L70">    return () -&gt; new PathWalkerException(TERMINAL_VALUE, msg);</span>
   }
 
   static Factory emptySegment(Path path, int segment) {
-<span class="fc" id="L72">    String fmt = INVALID_PATH + &quot; *** segment must not be null or empty&quot;;</span>
-<span class="fc" id="L73">    String msg = String.format(fmt, path, segment + 1);</span>
-<span class="fc" id="L74">    return () -&gt; new PathWalkerException(EMPTY_SEGMENT, msg);</span>
+<span class="fc" id="L74">    String fmt = INVALID_PATH + &quot; *** segment must not be null or empty&quot;;</span>
+<span class="fc" id="L75">    String msg = String.format(fmt, path, segment + 1);</span>
+<span class="fc" id="L76">    return () -&gt; new PathWalkerException(EMPTY_SEGMENT, msg);</span>
   }
 
   static Factory typeMismatch(Path path, int segment, String message) {
-<span class="fc" id="L78">    String fmt = PATH_SEGMENT + &quot;%s&quot;;</span>
-<span class="fc" id="L79">    String msg = String.format(fmt, path, segment + 1, message);</span>
-<span class="fc" id="L80">    return () -&gt; new PathWalkerException(TYPE_MISMATCH, msg);</span>
+<span class="fc" id="L80">    String fmt = PATH_SEGMENT + &quot;%s&quot;;</span>
+<span class="fc" id="L81">    String msg = String.format(fmt, path, segment + 1, message);</span>
+<span class="fc" id="L82">    return () -&gt; new PathWalkerException(TYPE_MISMATCH, msg);</span>
   }
 
   static Factory typeMismatch(Path path, int segment, Class&lt;?&gt; expected, Class&lt;?&gt; actual) {
-<span class="fc" id="L84">    String fmt = PATH_SEGMENT + &quot;cannot assign %s to %s&quot;;</span>
-<span class="fc" id="L85">    String scn0 = simpleClassName(expected);</span>
-<span class="fc" id="L86">    String scn1 = simpleClassName(actual);</span>
-<span class="fc" id="L87">    String msg = String.format(fmt, path, segment + 1, scn0, scn1);</span>
-<span class="fc" id="L88">    return () -&gt; new PathWalkerException(TYPE_MISMATCH, msg);</span>
+<span class="fc" id="L86">    String fmt = PATH_SEGMENT + &quot;cannot assign %s to %s&quot;;</span>
+<span class="fc" id="L87">    String scn0 = simpleClassName(expected);</span>
+<span class="fc" id="L88">    String scn1 = simpleClassName(actual);</span>
+<span class="fc" id="L89">    String msg = String.format(fmt, path, segment + 1, scn0, scn1);</span>
+<span class="fc" id="L90">    return () -&gt; new PathWalkerException(TYPE_MISMATCH, msg);</span>
   }
 
   static Factory notModifiable(Path path,
       int segment,
       Class&lt;?&gt; type) {
-<span class="fc" id="L94">    String fmt = PATH_SEGMENT</span>
+<span class="fc" id="L96">    String fmt = PATH_SEGMENT</span>
         + &quot;%s implementation encountered at segment \&quot;%s\&quot; appears to be unmodifiable&quot;;
-<span class="fc" id="L96">    String msg = String.format(fmt,</span>
+<span class="fc" id="L98">    String msg = String.format(fmt,</span>
         path,
-<span class="fc" id="L98">        segment + 1,</span>
-<span class="fc" id="L99">        simpleClassName(type),</span>
-<span class="fc" id="L100">        path.segment(segment));</span>
-<span class="fc" id="L101">    return () -&gt; new PathWalkerException(NOT_MODIFIABLE, msg);</span>
+<span class="fc" id="L100">        segment + 1,</span>
+<span class="fc" id="L101">        simpleClassName(type),</span>
+<span class="fc" id="L102">        path.segment(segment));</span>
+<span class="fc" id="L103">    return () -&gt; new PathWalkerException(NOT_MODIFIABLE, msg);</span>
   }
 
   static Factory keyDeserializationFailed(Path path,
       int segment,
       KeyDeserializationException exc) {
     String msg;
-<span class="fc bfc" id="L108" title="All 2 branches covered.">    if (exc.getMessage() == null) {</span>
-<span class="fc" id="L109">      String fmt = INVALID_PATH + &quot; *** failed to deserialize \&quot;%s\&quot; into map key&quot;;</span>
-<span class="fc" id="L110">      msg = String.format(fmt, path, segment + 1, path.segment(segment));</span>
-<span class="fc" id="L111">      return () -&gt; new PathWalkerException(KEY_DESERIALIZATION_FAILED, msg);</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">    if (exc.getMessage() == null) {</span>
+<span class="fc" id="L111">      String fmt = INVALID_PATH + &quot; *** failed to deserialize \&quot;%s\&quot; into map key&quot;;</span>
+<span class="fc" id="L112">      msg = String.format(fmt, path, segment + 1, path.segment(segment));</span>
+<span class="fc" id="L113">      return () -&gt; new PathWalkerException(KEY_DESERIALIZATION_FAILED, msg);</span>
     } else {
-<span class="fc" id="L113">      String fmt = INVALID_PATH + &quot; *** %s&quot;;</span>
-<span class="fc" id="L114">      msg = String.format(fmt, path, segment + 1, exc.getMessage());</span>
+<span class="fc" id="L115">      String fmt = INVALID_PATH + &quot; *** %s&quot;;</span>
+<span class="fc" id="L116">      msg = String.format(fmt, path, segment + 1, exc.getMessage());</span>
     }
-<span class="fc" id="L116">    return () -&gt; new PathWalkerException(KEY_DESERIALIZATION_FAILED, msg);</span>
+<span class="fc" id="L118">    return () -&gt; new PathWalkerException(KEY_DESERIALIZATION_FAILED, msg);</span>
   }
 
   static Factory unexpectedError(Path path, int segment, Throwable t) {
-<span class="fc" id="L120">    String fmt = PATH_SEGMENT + &quot;unexpected error *** %s&quot;;</span>
-<span class="fc" id="L121">    String msg = String.format(fmt, path, segment + 1, t);</span>
-<span class="fc" id="L122">    return () -&gt; new PathWalkerException(EXCEPTION, msg);</span>
+<span class="fc" id="L122">    String fmt = PATH_SEGMENT + &quot;unexpected error *** %s&quot;;</span>
+<span class="fc" id="L123">    String msg = String.format(fmt, path, segment + 1, t);</span>
+<span class="fc" id="L124">    return () -&gt; new PathWalkerException(EXCEPTION, msg);</span>
   }
 
   private final ErrorCode errorCode;
 
   private PathWalkerException(ErrorCode errorCode, String message) {
-<span class="fc" id="L128">    super(message);</span>
-<span class="fc" id="L129">    this.errorCode = errorCode;</span>
-<span class="fc" id="L130">  }</span>
+<span class="fc" id="L130">    super(message);</span>
+<span class="fc" id="L131">    this.errorCode = errorCode;</span>
+<span class="fc" id="L132">  }</span>
 
   /**
    * Return a symbolic constant for the error encountered by the {@link PathWalker}
@@ -135,7 +137,7 @@ public final class PathWalkerException extends RuntimeException {
    * @return A symbolic constant for the error encountered by the {@link PathWalker}.
    */
   public ErrorCode getErrorCode() {
-<span class="fc" id="L138">    return errorCode;</span>
+<span class="fc" id="L140">    return errorCode;</span>
   }
 
 }
