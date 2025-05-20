@@ -1,5 +1,6 @@
 package org.klojang.path;
 
+import org.klojang.check.extra.Result;
 import org.klojang.util.Path;
 
 import java.util.List;
@@ -28,7 +29,11 @@ final class ObjectWriter {
       Path parent = path.parent();
       PathWalker pw = new PathWalker(path.parent(), false, kd);
       try {
-        writeTo = pw.read(host);
+        Result<Object> result = pw.read(host);
+        if(result.isUnavailable()) {
+          return false;
+        }
+        writeTo = result.get();
       } catch (PathWalkerException e) {
         if (se) {
           return false;

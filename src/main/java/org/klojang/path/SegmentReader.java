@@ -1,5 +1,6 @@
 package org.klojang.path;
 
+import org.klojang.check.extra.Result;
 import org.klojang.util.Path;
 
 abstract sealed class SegmentReader<T> permits ArraySegmentReader, BeanSegmentReader,
@@ -15,9 +16,9 @@ abstract sealed class SegmentReader<T> permits ArraySegmentReader, BeanSegmentRe
 
   abstract Object read(T obj, Path path, int segment);
 
-  Object deadEnd(PathWalkerException.Factory excFactory) {
+  Result<Object> deadEnd(PathWalkerException.Factory excFactory) {
     if (se) {
-      return null;
+      return Result.notAvailable();
     }
     throw excFactory.get();
   }

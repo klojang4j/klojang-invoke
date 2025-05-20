@@ -10,7 +10,7 @@ public class Company {
   private String name;
   private BigDecimal sales;
   private float profit;
-  private float[][] quarterlySales;
+  private Float[][] quarterlySales;
   private List<Department> departments;
 
   public String getName() {
@@ -37,11 +37,11 @@ public class Company {
     this.profit = profit;
   }
 
-  public float[][] getQuarterlySales() {
+  public Float[][] getQuarterlySales() {
     return quarterlySales;
   }
 
-  public void setQuarterlySales(float[][] quarterlySales) {
+  public void setQuarterlySales(Float[][] quarterlySales) {
     this.quarterlySales = quarterlySales;
   }
 

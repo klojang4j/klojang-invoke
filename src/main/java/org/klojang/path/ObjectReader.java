@@ -1,5 +1,6 @@
 package org.klojang.path;
 
+import org.klojang.check.extra.Result;
 import org.klojang.util.Path;
 
 import java.util.Collection;
@@ -18,9 +19,9 @@ final class ObjectReader {
     this.kd = keyDeserializer;
   }
 
-  Object read(Object obj, Path path, int segment) {
+  Result<Object> read(Object obj, Path path, int segment) {
     if (segment == path.size()) {
-      return obj;
+      return Result.of(obj);
     } else if (obj == null) {
       return deadEnd(nullValue(path, segment));
     } else if (obj instanceof Collection<?> c) {
@@ -35,9 +36,9 @@ final class ObjectReader {
     return new BeanSegmentReader(se, kd).read(obj, path, segment);
   }
 
-  Object deadEnd(PathWalkerException.Factory excFactory) {
+  Result<Object> deadEnd(PathWalkerException.Factory excFactory) {
     if (se) {
-      return null;
+      return Result.notAvailable();
     }
     throw excFactory.get();
   }

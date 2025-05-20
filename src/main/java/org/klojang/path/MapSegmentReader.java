@@ -1,5 +1,6 @@
 package org.klojang.path;
 
+import org.klojang.check.extra.Result;
 import org.klojang.util.Path;
 
 import java.util.Map;
@@ -14,7 +15,7 @@ final class MapSegmentReader extends SegmentReader<Map<?, ?>> {
   }
 
   @Override
-  Object read(Map<?, ?> map, Path path, int segment) {
+  Result<Object> read(Map<?, ?> map, Path path, int segment) {
     Object key;
     if (kd == null) {
       key = path.segment(segment);

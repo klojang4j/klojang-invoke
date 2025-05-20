@@ -1,5 +1,6 @@
 package org.klojang.path;
 
+import org.klojang.check.extra.Result;
 import org.klojang.util.Path;
 
 import java.util.*;
@@ -17,7 +18,7 @@ final class CollectionSegmentReader extends SegmentReader<Collection> {
   }
 
   @Override
-  Object read(Collection collection, Path path, int segment) {
+  Result<Object> read(Collection collection, Path path, int segment) {
     OptionalInt opt = toInt(path.segment(segment));
     if (opt.isEmpty()) {
       return deadEnd(indexExpected(path, segment));

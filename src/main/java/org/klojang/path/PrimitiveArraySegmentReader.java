@@ -1,5 +1,6 @@
 package org.klojang.path;
 
+import org.klojang.check.extra.Result;
 import org.klojang.util.Path;
 
 import java.util.OptionalInt;
@@ -19,7 +20,7 @@ final class PrimitiveArraySegmentReader extends
   }
 
   @Override
-  Object read(Object array, Path path, int segment) {
+  Result<Object> read(Object array, Path path, int segment) {
     OptionalInt opt = toInt(path.segment(segment));
     if (opt.isEmpty()) {
       return deadEnd(indexExpected(path, segment));

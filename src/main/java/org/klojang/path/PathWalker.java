@@ -2,6 +2,7 @@ package org.klojang.path;
 
 import org.klojang.check.Check;
 import org.klojang.check.Tag;
+import org.klojang.check.extra.Result;
 import org.klojang.util.Path;
 
 import java.util.Arrays;
@@ -10,6 +11,7 @@ import java.util.Map;
 
 import static org.klojang.check.CommonChecks.*;
 import static org.klojang.check.CommonProperties.length;
+import static org.klojang.util.ClassMethods.cast;
 
 /**
  * <p>A {@code PathWalker} lets you read from and write to objects using {@link Path} objects. The value you
@@ -24,7 +26,6 @@ import static org.klojang.check.CommonProperties.length;
  *   all
  *   <li>To keep your code concise and clean when reading a deeply nested value.
  * </ul>
- *
  *
  * @author Ayco Holleman
  */
@@ -121,9 +122,9 @@ public final class PathWalker {
    * @throws PathWalkerException If {@code suppressExceptions} is false and the {@code PathWalker} fails
    *     to retrieve the values of one or more paths.
    */
-  public Object[] readValues(Object host) throws PathWalkerException {
+  public Result<Object>[] readValues(Object host) throws PathWalkerException {
     ObjectReader reader = new ObjectReader(se, kd);
-    return Arrays.stream(paths).map(path -> reader.read(host, path, 0)).toArray();
+    return Arrays.stream(paths).map(path -> reader.read(host, path, 0)).toArray(Result[]::new);
   }
 
   /**
@@ -144,20 +145,6 @@ public final class PathWalker {
   }
 
   /**
-   * Reads the values of all paths and inserts them into the provided path-to-value map.
-   *
-   * @param host the object from which to read the values
-   * @param output The {@code Map} into which to put the values
-   * @throws PathWalkerException If {@code suppressExceptions} is false and the {@code PathWalker} fails
-   *     to retrieve the values of one or more paths.
-   */
-  public void readValues(Object host, Map<Path, Object> output) throws PathWalkerException {
-    Check.notNull(output, Tag.OUTPUT);
-    ObjectReader reader = new ObjectReader(se, kd);
-    Arrays.stream(paths).forEach(p -> output.put(p, reader.read(host, p, 0)));
-  }
-
-  /**
    * Reads the value of the first path specified through the constructor. Convenient if you specified just one
    * path.
    *
@@ -167,8 +154,8 @@ public final class PathWalker {
    * @throws PathWalkerException If {@code suppressExceptions} is false and the {@code PathWalker} fails
    *     to retrieve the value of the first path.
    */
-  public <T> T read(Object host) {
-    return (T) new ObjectReader(se, kd).read(host, paths[0], 0);
+  public <T> Result<T> read(Object host) {
+    return cast(new ObjectReader(se, kd).read(host, paths[0], 0));
   }
 
   /**

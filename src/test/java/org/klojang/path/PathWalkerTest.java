@@ -1,6 +1,7 @@
 package org.klojang.path;
 
 import org.junit.Test;
+import org.klojang.check.extra.Result;
 import org.klojang.util.Path;
 
 import java.math.BigDecimal;
@@ -18,50 +19,49 @@ public class PathWalkerTest {
   public void test01() throws MalformedURLException {
     Company shell = shell();
     List<Path> paths = List.of(Path.empty());
-    assertEquals(shell, new PathWalker(paths).read(shell));
+    assertEquals(shell, new PathWalker(paths).read(shell).get());
   }
 
   @Test
   public void test02() throws MalformedURLException {
     Company shell = shell();
     List<Path> paths = paths("name");
-    assertEquals("Shell", new PathWalker(paths).read(shell));
+    assertEquals("Shell", new PathWalker(paths).read(shell).get());
   }
 
   @Test
   public void test03() throws MalformedURLException {
     Company shell = shell();
     List<Path> paths = paths("sales");
-    assertEquals(new BigDecimal(Integer.MAX_VALUE),
-        new PathWalker(paths).read(shell));
+    assertEquals(new BigDecimal(Integer.MAX_VALUE), new PathWalker(paths).read(shell).get());
   }
 
   @Test
   public void test04() throws MalformedURLException {
     Company shell = shell();
     List<Path> paths = paths("profit");
-    assertEquals(Float.valueOf(100_000_000), new PathWalker(paths).read(shell));
+    assertEquals(Float.valueOf(100_000_000), new PathWalker(paths).read(shell).get());
   }
 
   @Test
   public void test05() throws MalformedURLException {
     Company shell = shell();
     List<Path> paths = paths("quarterlySales");
-    assertArrayEquals(shellQuarterlySales, new PathWalker(paths).read(shell));
+    assertArrayEquals(shellQuarterlySales, (Float[][]) new PathWalker(paths).read(shell).get());
   }
 
   @Test
   public void test06() throws MalformedURLException {
     PathWalker pw = new PathWalker(paths("quarterlySales.1"));
-    Object val = pw.read(shell());
-    assertTrue(Arrays.equals(new float[] {20, 21, 22, 23}, (float[]) val));
+    Float[] val = (Float[]) pw.read(shell()).get();
+    assertTrue(Arrays.equals(new Float[] {20f, 21f, 22f, 23f}, val));
   }
 
   @Test
   public void test07() throws MalformedURLException {
     Company shell = shell();
     List<Path> paths = paths("quarterlySales.10");
-    assertNull(new PathWalker(paths).read(shell));
+    assertTrue(new PathWalker(paths).read(shell).isUnavailable());
   }
 
   @Test
@@ -82,7 +82,7 @@ public class PathWalkerTest {
   public void test09() throws MalformedURLException {
     Company shell = shell();
     List<Path> paths = paths("quarterlySales.10.foo");
-    assertNull(new PathWalker(paths, true).read(shell));
+    assertTrue(new PathWalker(paths, true).read(shell).isUnavailable());
   }
 
   @Test
@@ -90,29 +90,29 @@ public class PathWalkerTest {
     Company shell = shell();
     List<Path> paths = paths("quarterlySales.0.3");
     PathWalker pw = new PathWalker(paths);
-    float f = (float) pw.read(shell);
+    float f = (Float) pw.read(shell).get();
     assertEquals(13F, f, 0);
   }
 
   @Test
   public void test11() throws MalformedURLException {
     PathWalker pw = new PathWalker(paths("departments.1.reactiveBingoDates.0.0"));
-    Object val = pw.read(shell());
-    assertEquals(2020, (int) val);
+    Result<Integer> val = pw.read(shell());
+    assertEquals(2020, (int) val.get());
   }
 
   @Test
   public void test12() throws MalformedURLException {
     Company shell = shell();
     List<Path> paths = paths("departments.1.hipsterFriendly");
-    assertEquals(true, (boolean) new PathWalker(paths).read(shell));
+    assertEquals(true, (Boolean) new PathWalker(paths).read(shell).get());
   }
 
   @Test
   public void test13() throws MalformedURLException {
     Company shell = shell();
     List<Path> paths = paths("departments.0.employees.0.twitter");
-    assertNull(new PathWalker(paths).read(shell));
+    assertNull(new PathWalker(paths).read(shell).get());
   }
 
   @Test
@@ -133,7 +133,7 @@ public class PathWalkerTest {
     Company shell = shell();
     List<Path> paths = paths("departments.0.employees.0.extraInfo.https://nos^.nl");
     PathWalker pw = new PathWalker(paths, true, (p, s) -> new URL(p.segment(-1)));
-    assertEquals("OkiDoki", pw.read(shell));
+    assertEquals("OkiDoki", pw.read(shell).get());
   }
 
   @Test
@@ -142,7 +142,7 @@ public class PathWalkerTest {
     List<Path> paths = paths("departments.0.employees.0.extraInfo."
         + Path.escape("https://nos.nl"));
     PathWalker pw = new PathWalker(paths, true, (p, s) -> new URL(p.segment(-1)));
-    assertEquals("OkiDoki", pw.read(shell));
+    assertEquals("OkiDoki", pw.read(shell).get());
   }
 
   @Test
@@ -150,7 +150,7 @@ public class PathWalkerTest {
     Company shell = shell();
     List<Path> paths = paths("departments.0.employees.0.extraInfo.^0");
     PathWalker pw = new PathWalker(paths, true);
-    assertEquals("corrupt entry", pw.read(shell));
+    assertEquals("corrupt entry", pw.read(shell).get());
   }
 
   @Test
@@ -158,7 +158,7 @@ public class PathWalkerTest {
     Company shell = shell();
     List<Path> paths = paths("departments.0.employees.0.extraInfo.deep stuff.e=mc2");
     PathWalker pw = new PathWalker(paths, true);
-    assertEquals("Einstein", pw.read(shell));
+    assertEquals("Einstein", pw.read(shell).get());
   }
 
   @Test
@@ -167,7 +167,7 @@ public class PathWalkerTest {
     String newName = "Royal Dutch Oil Company";
     PathWalker pw = new PathWalker("name");
     pw.write(shell, newName);
-    assertEquals(newName, pw.read(shell));
+    assertEquals(newName, pw.read(shell).get());
   }
 
   @Test
@@ -186,8 +186,7 @@ public class PathWalkerTest {
     pw.write(shell, List.of("Karaoke", "judo"));
     assertEquals("01",
         List.of("Karaoke", "judo"),
-        shell.getDepartments().get(0).getEmployees().get(
-            0).getExtraInfo().get("hobbies"));
+        shell.getDepartments().get(0).getEmployees().get(0).getExtraInfo().get("hobbies"));
   }
 
   @Test
@@ -197,19 +196,18 @@ public class PathWalkerTest {
     pw.write(shell, List.of("Karaoke", "judo"));
     assertEquals("01",
         List.of("Karaoke", "judo"),
-        shell.getDepartments().get(0).getEmployees().get(
-            0).getExtraInfo().get(null));
+        shell.getDepartments().get(0).getEmployees().get(0).getExtraInfo().get(null));
   }
 
   private static List<Path> paths(String... strings) {
     return Arrays.stream(strings).map(Path::from).collect(Collectors.toList());
   }
 
-  private static float[][] shellQuarterlySales =
-      new float[][] {{10, 11, 12, 13},
-          {20, 21, 22, 23},
-          {30, 31, 32, 33},
-          {40, 41, 42, 43}};
+  private static Float[][] shellQuarterlySales =
+      new Float[][] {{10f, 11f, 12f, 13f},
+          {20f, 21f, 22f, 23f},
+          {30f, 31f, 32f, 33f},
+          {40f, 41f, 42f, 43f}};
 
   private static Company shell() throws MalformedURLException {
     Company company = new Company();
@@ -287,35 +285,23 @@ public class PathWalkerTest {
   public void readValues00() {
     PathWalker pw = new PathWalker(Path.from("a"), Path.from("b"), Path.from("c"));
     Map<String, Integer> map = Map.of("a", 100, "b", 200, "c", 300);
-    Object[] vals = pw.readValues(map);
+    Result<Object>[] vals = pw.readValues(map);
     assertEquals(3, vals.length);
-    assertEquals(100, vals[0]);
-    assertEquals(200, vals[1]);
-    assertEquals(300, vals[2]);
+    assertEquals(100, vals[0].get());
+    assertEquals(200, vals[1].get());
+    assertEquals(300, vals[2].get());
   }
 
   @Test
   public void readValues01() {
     PathWalker pw = new PathWalker(Path.from("a"), Path.from("b"), Path.from("c"));
     Map<String, Integer> map = Map.of("a", 100, "b", 200, "c", 300);
-    Object[] vals = new Object[4];
+    Result<Object>[] vals = new Result[4];
     pw.readValues(map, vals);
-    assertEquals(100, vals[0]);
-    assertEquals(200, vals[1]);
-    assertEquals(300, vals[2]);
+    assertEquals(100, vals[0].get());
+    assertEquals(200, vals[1].get());
+    assertEquals(300, vals[2].get());
     assertNull(vals[3]);
-  }
-
-  @Test
-  public void readValues02() {
-    PathWalker pw = new PathWalker(Path.from("a"), Path.from("b"), Path.from("c"));
-    Map<String, Integer> mapIn = Map.of("a", 100, "b", 200, "c", 300);
-    Map<Path, Object> mapOut = new HashMap();
-    pw.readValues(mapIn, mapOut);
-    assertEquals(3, mapOut.size());
-    assertEquals(100, mapOut.get(Path.from("a")));
-    assertEquals(200, mapOut.get(Path.from("b")));
-    assertEquals(300, mapOut.get(Path.from("c")));
   }
 
 }
