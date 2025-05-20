@@ -19,14 +19,14 @@ final class ArraySegmentReader extends
   @Override
   Result<Object> read(Object[] array, Path path, int segment) {
     OptionalInt opt = toInt(path.segment(segment));
-    if (opt.isEmpty()) {
-      return deadEnd(indexExpected(path, segment));
+    if (opt.isPresent()) {
+      int idx = opt.getAsInt();
+      if (idx < array.length) {
+        return new ObjectReader(se, kd).read(array[idx], path, ++segment);
+      }
+      return deadEnd(indexOutOfBounds(path, segment));
     }
-    int idx = opt.getAsInt();
-    if (idx < array.length) {
-      return new ObjectReader(se, kd).read(array[idx], path, ++segment);
-    }
-    return deadEnd(indexOutOfBounds(path, segment));
+    return deadEnd(indexExpected(path, segment));
   }
 
 }

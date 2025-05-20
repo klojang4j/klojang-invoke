@@ -7,7 +7,10 @@ import org.klojang.util.Path;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
@@ -163,12 +166,13 @@ public class PathWalkerTest {
 
   @Test
   public void test19() throws MalformedURLException {
-    assertEquals("Einstein", PathWalker.read(shell(),"departments.0.employees.0.extraInfo.deep stuff.e=mc2").get());
+    assertEquals("Einstein",
+        PathWalker.read(shell(), "departments.0.employees.0.extraInfo.deep stuff.e=mc2").get());
   }
 
   @Test
   public void test20() throws MalformedURLException {
-    assertEquals("Einstein", PathWalker.get(shell(),"departments.0.employees.0.extraInfo.deep stuff.e=mc2"));
+    assertEquals("Einstein", PathWalker.get(shell(), "departments.0.employees.0.extraInfo.deep stuff.e=mc2"));
   }
 
   @Test
@@ -295,23 +299,11 @@ public class PathWalkerTest {
   public void readValues00() {
     PathWalker pw = new PathWalker(Path.from("a"), Path.from("b"), Path.from("c"));
     Map<String, Integer> map = Map.of("a", 100, "b", 200, "c", 300);
-    Result<Object>[] vals = pw.readValues(map);
-    assertEquals(3, vals.length);
-    assertEquals(100, vals[0].get());
-    assertEquals(200, vals[1].get());
-    assertEquals(300, vals[2].get());
-  }
-
-  @Test
-  public void readValues01() {
-    PathWalker pw = new PathWalker(Path.from("a"), Path.from("b"), Path.from("c"));
-    Map<String, Integer> map = Map.of("a", 100, "b", 200, "c", 300);
-    Result<Object>[] vals = new Result[4];
-    pw.readValues(map, vals);
-    assertEquals(100, vals[0].get());
-    assertEquals(200, vals[1].get());
-    assertEquals(300, vals[2].get());
-    assertNull(vals[3]);
+    List<Result<Object>> vals = pw.readValues(map);
+    assertEquals(3, vals.size());
+    assertEquals(100, vals.get(0).get());
+    assertEquals(200, vals.get(1).get());
+    assertEquals(300, vals.get(2).get());
   }
 
 }

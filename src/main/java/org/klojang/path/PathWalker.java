@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.klojang.check.CommonChecks.*;
-import static org.klojang.check.CommonProperties.length;
+import static org.klojang.check.CommonProperties.size;
 import static org.klojang.util.ClassMethods.cast;
 
 /**
@@ -68,7 +68,7 @@ public final class PathWalker {
 
   private static final String PATHS = "paths";
 
-  private final Path[] paths;
+  private final List<Path> paths;
   private final boolean suppressExceptions;
   private final PathSegmentDeserializer segmentDeserializer;
 
@@ -79,7 +79,7 @@ public final class PathWalker {
    */
   public PathWalker(Path... paths) {
     Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());
-    this.paths = Arrays.copyOf(paths, paths.length);
+    this.paths = List.of(paths);
     this.suppressExceptions = true;
     this.segmentDeserializer = null;
   }
@@ -91,7 +91,7 @@ public final class PathWalker {
    */
   public PathWalker(String... paths) {
     Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());
-    this.paths = Arrays.stream(paths).map(Path::from).toArray(Path[]::new);
+    this.paths = Arrays.stream(paths).map(Path::from).toList();
     this.suppressExceptions = true;
     this.segmentDeserializer = null;
   }
@@ -115,7 +115,7 @@ public final class PathWalker {
    */
   public PathWalker(List<Path> paths, boolean suppressExceptions) {
     Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());
-    this.paths = paths.toArray(Path[]::new);
+    this.paths = List.copyOf(paths);
     this.suppressExceptions = suppressExceptions;
     this.segmentDeserializer = null;
   }
@@ -134,16 +134,16 @@ public final class PathWalker {
       List<Path> paths,
       boolean suppressExceptions,
       PathSegmentDeserializer segmentDeserializer) {
-    Check.that(paths, PATHS).is(deepNotEmpty());
-    Check.notNull(segmentDeserializer, "keyDeserializer");
-    this.paths = paths.toArray(Path[]::new);
+    Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());
+    Check.notNull(segmentDeserializer, "segment deserializer");
+    this.paths = List.copyOf(paths);
     this.suppressExceptions = suppressExceptions;
     this.segmentDeserializer = segmentDeserializer;
   }
 
   // For internal use
   PathWalker(Path path, boolean suppressExceptions, PathSegmentDeserializer segmentDeserializer) {
-    this.paths = new Path[] {path};
+    this.paths = List.of(path);
     this.suppressExceptions = suppressExceptions;
     this.segmentDeserializer = segmentDeserializer;
   }
@@ -153,29 +153,12 @@ public final class PathWalker {
    *
    * @param host the object to read the values from
    * @return the values of all paths specified through the constructor
-   * @throws DeadEndException If {@code suppressExceptions} is false and the {@code PathWalker} fails
-   *     to retrieve the values of one or more paths.
+   * @throws DeadEndException If {@code suppressExceptions} is false and the {@code PathWalker} fails to
+   *     retrieve the values of one or more paths.
    */
-  public Result<Object>[] readValues(Object host) throws DeadEndException {
+  public List<Result<Object>> readValues(Object host) throws DeadEndException {
     ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);
-    return Arrays.stream(paths).map(path -> reader.read(host, path, 0)).toArray(Result[]::new);
-  }
-
-  /**
-   * Reads the values of all paths specified through the constructor.
-   *
-   * @param host the object to read the path values from
-   * @param output an array into which to place the values. The length of the output array must be equal
-   *     to, or greater than the number of paths specified through the constructor.
-   * @throws DeadEndException If {@code suppressExceptions} is false and the {@code PathWalker} fails
-   *     to retrieve the values of one or more paths.
-   */
-  public void readValues(Object host, Result<Object>[] output) throws DeadEndException {
-    Check.notNull(output, Tag.OUTPUT).has(length(), gte(), paths.length);
-    ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);
-    for (int i = 0; i < paths.length; ++i) {
-      output[i] = reader.read(host, paths[i], 0);
-    }
+    return paths.stream().map(path -> reader.read(host, path, 0)).toList();
   }
 
   /**
@@ -185,11 +168,11 @@ public final class PathWalker {
    * @param <T> The type of the value being returned
    * @param host the object from which to read the value
    * @return the value of the first path specified through the constructor
-   * @throws DeadEndException If {@code suppressExceptions} is false and the {@code PathWalker} fails
-   *     to retrieve the value of the first path.
+   * @throws DeadEndException If {@code suppressExceptions} is false and the {@code PathWalker} fails to
+   *     retrieve the value of the first path.
    */
   public <T> Result<T> read(Object host) {
-    return cast(new ObjectReader(suppressExceptions, segmentDeserializer).read(host, paths[0], 0));
+    return cast(new ObjectReader(suppressExceptions, segmentDeserializer).read(host, paths.getFirst(), 0));
   }
 
   /**
@@ -201,11 +184,15 @@ public final class PathWalker {
    * @return a {@code boolean} array indicating which paths could successfully be set, and which could not.
    */
   public boolean[] writeValues(Object host, Object... values) {
-    Check.notNull(values, Tag.VALUES).has(length(), eq(), paths.length);
+    return writeValues(host, List.of(values));
+  }
+
+  public boolean[] writeValues(Object host, List<Object> values) {
+    Check.notNull(values, Tag.VALUES).has(size(), eq(), paths.size());
     ObjectWriter writer = new ObjectWriter(suppressExceptions, segmentDeserializer);
-    boolean[] result = new boolean[paths.length];
-    for (int i = 0; i < paths.length; ++i) {
-      if (writer.write(host, paths[i], values[i])) {
+    boolean[] result = new boolean[paths.size()];
+    for (int i = 0; i < paths.size(); ++i) {
+      if (writer.write(host, paths.get(i), values.get(i))) {
         result[i] = true;
       }
     }
@@ -221,7 +208,7 @@ public final class PathWalker {
    * @return {@code true} if the value was successfully written
    */
   public boolean write(Object host, Object value) {
-    return new ObjectWriter(suppressExceptions, segmentDeserializer).write(host, paths[0], value);
+    return new ObjectWriter(suppressExceptions, segmentDeserializer).write(host, paths.getFirst(), value);
   }
 
 }

@@ -20,22 +20,23 @@ final class CollectionSegmentReader extends SegmentReader<Collection> {
   @Override
   Result<Object> read(Collection collection, Path path, int segment) {
     OptionalInt opt = toInt(path.segment(segment));
-    if (opt.isEmpty()) {
-      return deadEnd(indexExpected(path, segment));
-    }
-    int idx = opt.getAsInt();
-    if (idx < collection.size()) {
-      Object elem;
-      if (collection instanceof List list) {
-        elem = list.get(idx);
-      } else {
-        Iterator iter = collection.iterator();
-        for (; idx != 0 && iter.hasNext(); --idx, iter.next());
-        elem = iter.next();
+    if (opt.isPresent()) {
+      int idx = opt.getAsInt();
+      if (idx < collection.size()) {
+        Object elem;
+        if (collection instanceof List list) {
+          elem = list.get(idx);
+        } else {
+          Iterator iter = collection.iterator();
+          for (; idx != 0 && iter.hasNext(); --idx, iter.next())
+            ;
+          elem = iter.next();
+        }
+        return new ObjectReader(se, kd).read(elem, path, ++segment);
       }
-      return new ObjectReader(se, kd).read(elem, path, ++segment);
+      return deadEnd(indexOutOfBounds(path, segment));
     }
-    return deadEnd(indexOutOfBounds(path, segment));
+    return deadEnd(indexExpected(path, segment));
   }
 
 }

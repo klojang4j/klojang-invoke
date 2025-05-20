@@ -20,22 +20,23 @@ final class CollectionSegmentReader extends SegmentReader&lt;Collection&gt; {
   @Override
   Result&lt;Object&gt; read(Collection collection, Path path, int segment) {
 <span class="fc" id="L22">    OptionalInt opt = toInt(path.segment(segment));</span>
-<span class="pc bpc" id="L23" title="1 of 2 branches missed.">    if (opt.isEmpty()) {</span>
-<span class="nc" id="L24">      return deadEnd(indexExpected(path, segment));</span>
-    }
-<span class="fc" id="L26">    int idx = opt.getAsInt();</span>
-<span class="pc bpc" id="L27" title="1 of 2 branches missed.">    if (idx &lt; collection.size()) {</span>
-      Object elem;
-<span class="pc bpc" id="L29" title="1 of 2 branches missed.">      if (collection instanceof List list) {</span>
-<span class="fc" id="L30">        elem = list.get(idx);</span>
-      } else {
-<span class="nc" id="L32">        Iterator iter = collection.iterator();</span>
-<span class="nc bnc" id="L33" title="All 4 branches missed.">        for (; idx != 0 &amp;&amp; iter.hasNext(); --idx, iter.next());</span>
-<span class="nc" id="L34">        elem = iter.next();</span>
+<span class="pc bpc" id="L23" title="1 of 2 branches missed.">    if (opt.isPresent()) {</span>
+<span class="fc" id="L24">      int idx = opt.getAsInt();</span>
+<span class="pc bpc" id="L25" title="1 of 2 branches missed.">      if (idx &lt; collection.size()) {</span>
+        Object elem;
+<span class="pc bpc" id="L27" title="1 of 2 branches missed.">        if (collection instanceof List list) {</span>
+<span class="fc" id="L28">          elem = list.get(idx);</span>
+        } else {
+<span class="nc" id="L30">          Iterator iter = collection.iterator();</span>
+<span class="nc bnc" id="L31" title="All 4 branches missed.">          for (; idx != 0 &amp;&amp; iter.hasNext(); --idx, iter.next())</span>
+            ;
+<span class="nc" id="L33">          elem = iter.next();</span>
+        }
+<span class="fc" id="L35">        return new ObjectReader(se, kd).read(elem, path, ++segment);</span>
       }
-<span class="fc" id="L36">      return new ObjectReader(se, kd).read(elem, path, ++segment);</span>
+<span class="nc" id="L37">      return deadEnd(indexOutOfBounds(path, segment));</span>
     }
-<span class="nc" id="L38">    return deadEnd(indexOutOfBounds(path, segment));</span>
+<span class="nc" id="L39">    return deadEnd(indexExpected(path, segment));</span>
   }
 
 }
