@@ -162,6 +162,16 @@ public class PathWalkerTest {
   }
 
   @Test
+  public void test19() throws MalformedURLException {
+    assertEquals("Einstein", PathWalker.read(shell(),"departments.0.employees.0.extraInfo.deep stuff.e=mc2").get());
+  }
+
+  @Test
+  public void test20() throws MalformedURLException {
+    assertEquals("Einstein", PathWalker.get(shell(),"departments.0.employees.0.extraInfo.deep stuff.e=mc2"));
+  }
+
+  @Test
   public void write01() throws MalformedURLException {
     Company shell = shell();
     String newName = "Royal Dutch Oil Company";
