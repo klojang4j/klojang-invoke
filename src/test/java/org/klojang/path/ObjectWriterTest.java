@@ -49,7 +49,7 @@ public class ObjectWriterTest {
     assertArrayEquals(ints(0, 1, 42, 3, 4, 5), array);
   }
 
-  @Test(expected = PathWalkerException.class)
+  @Test(expected = DeadEndException.class)
   public void write03() { // primitive array
     Map<String, Object> map = JSONObject.empty()
         .set("foo.bar.bozo", null)
@@ -57,7 +57,7 @@ public class ObjectWriterTest {
     ObjectWriter ow = new ObjectWriter(false, null);
     try {
       ow.write(map, Path.from("foo.bar.bozo.teapot"), 42);
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       assertTrue(e.getMessage().contains("Terminal value encountered"));
      throw e;
     }
@@ -72,7 +72,7 @@ public class ObjectWriterTest {
     assertFalse(ow.write(map, Path.from("foo.bar.bozo.teapot"), "one step too far"));
   }
 
-  @Test(expected = PathWalkerException.class)
+  @Test(expected = DeadEndException.class)
   public void write05() {
     Map<String, Object> map = JSONObject.empty()
         .set("foo.bar.bozo", 42)
@@ -80,7 +80,7 @@ public class ObjectWriterTest {
     ObjectWriter ow = new ObjectWriter(false, null);
     try {
       ow.write(map, Path.from("foo.bar.bozo.teapot"), "one step too far");
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       assertTrue(e.getMessage().contains("Terminal value encountered"));
       throw e;
     }
@@ -92,12 +92,12 @@ public class ObjectWriterTest {
     assertFalse(ow.write(null, Path.of("foo"), 7));
   }
 
-  @Test(expected = PathWalkerException.class)
+  @Test(expected = DeadEndException.class)
   public void write08() {
     ObjectWriter ow = new ObjectWriter(false, null);
     try {
       ow.write(null, Path.of("foo"), 7);
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       assertTrue(e.getMessage().contains("Terminal value encountered"));
       throw e;
     }

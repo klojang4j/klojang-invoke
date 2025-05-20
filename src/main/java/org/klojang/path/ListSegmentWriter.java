@@ -1,11 +1,12 @@
 package org.klojang.path;
 
+import org.klojang.util.CollectionMethods;
 import org.klojang.util.Path;
 
 import java.util.List;
 import java.util.OptionalInt;
 
-import static org.klojang.path.PathWalkerException.*;
+import static org.klojang.path.DeadEndException.*;
 import static org.klojang.convert.NumberMethods.toInt;
 
 @SuppressWarnings({"rawtypes", "unchecked"})

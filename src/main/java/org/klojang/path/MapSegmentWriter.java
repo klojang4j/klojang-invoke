@@ -4,8 +4,8 @@ import org.klojang.util.Path;
 
 import java.util.Map;
 
-import static org.klojang.path.PathWalkerException.notModifiable;
-import static org.klojang.path.PathWalkerException.segmentDeserializationFailed;
+import static org.klojang.path.DeadEndException.notModifiable;
+import static org.klojang.path.DeadEndException.segmentDeserializationFailed;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 final class MapSegmentWriter extends SegmentWriter<Map> {

@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PathWalker.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Klojang Invoke</a> &gt; <a href="index.source.html" class="el_package">org.klojang.path</a> &gt; <span class="el_source">PathWalker.java</span></div><h1>PathWalker.java</h1><pre class="source lang-java linenums">package org.klojang.path;
+
+import org.klojang.check.Check;
+import org.klojang.check.Tag;
+import org.klojang.check.extra.Result;
+import org.klojang.util.Path;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.klojang.check.CommonChecks.*;
+import static org.klojang.check.CommonProperties.length;
+import static org.klojang.util.ClassMethods.cast;
+
+/**
+ * &lt;p&gt;A {@code PathWalker} lets you read from, and write to objects using {@link Path} objects. The value you
+ * read or write can be deeply nested inside the object. The {@code Path} object specifies where inside the
+ * object the value is located. A {@code PathWalker} can read almost any type of object it encounters as it
+ * walks down the path towards the last path segment: JavaBeans, records, maps, collections, arrays and scalar
+ * values. It can also write to most of them. The {@code PathWalker} class has various use cases:
+ * &lt;ul&gt;
+ *   &lt;li&gt;When processing large batches of sparsely populated objects
+ *   &lt;li&gt;When processing large batches of variously typed objects
+ *   &lt;li&gt;When it does not really matter whether a deeply nested value is {@code null} or just not present at
+ *   all
+ *   &lt;li&gt;To keep your code concise and clean when reading a deeply nested value.
+ * &lt;/ul&gt;
+ * &lt;p&gt;By default, a {@code PathWalker} will not throw an exception if it cannot read or write a value
+ * &amp;#8212; that is, if it cannot walk a path all the way down to the last path segment. That would defy the
+ * purposes listed above. Instead, it just returns {@link Result#notAvailable()} when reading values and
+ * {@code false} when writing values. However, the {@code PathWalker} contains a constructor that enables
+ * you to enable and disable exception suppression. Without exception suppression a {@code PathWalker} will
+ * throw a {@link DeadEndException} when failing to read/write a value, which may be useful when debugging.
+ *
+ * @author Ayco Holleman
+ */
+@SuppressWarnings({&quot;unchecked&quot;})
+public final class PathWalker {
+
+  /**
+   * Returns the value at the specified path. If the value could not be read a
+   * {@link java.util.NoSuchElementException} exception is thrown (see {@link Result#get()}). This method is
+   * useful if you already know for sure that the specified path can be traced through the specified host
+   * object.
+   *
+   * @param host the object from which to read the value
+   * @param path the path specifying where to find the value
+   * @param &lt;T&gt; the type of the value
+   * @return the value at the specified path
+   */
+  public static &lt;T&gt; T get(Object host, String path) {
+<span class="fc" id="L52">    return (T) read(host, path).get();</span>
+  }
+
+  /**
+   * Returns a {@code Result} object containing the value at the specified path or
+   * {@link Result#notAvailable()} if the value could not be retrieved.
+   *
+   * @param host the object from which to read the value
+   * @param path the path specifying where to find the value
+   * @param &lt;T&gt; the type of the value
+   * @return a {@code Result} object containing the value at the specified path or
+   *     {@link Result#notAvailable()} if the value could not be retrieved
+   */
+  public static &lt;T&gt; Result&lt;T&gt; read(Object host, String path) {
+<span class="fc" id="L66">    return new PathWalker(path).read(host);</span>
+  }
+
+  private static final String PATHS = &quot;paths&quot;;
+
+  private final Path[] paths;
+  private final boolean suppressExceptions;
+  private final PathSegmentDeserializer segmentDeserializer;
+
+  /**
+   * Creates a {@code PathWalker} for the specified paths.
+   *
+   * @param paths One or more paths representing possibly deeply-nested properties
+   */
+<span class="fc" id="L80">  public PathWalker(Path... paths) {</span>
+<span class="fc" id="L81">    Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());</span>
+<span class="fc" id="L82">    this.paths = Arrays.copyOf(paths, paths.length);</span>
+<span class="fc" id="L83">    this.suppressExceptions = true;</span>
+<span class="fc" id="L84">    this.segmentDeserializer = null;</span>
+<span class="fc" id="L85">  }</span>
+
+  /**
+   * Creates a {@code PathWalker} for the specified paths.
+   *
+   * @param paths The paths to walk through the provided host objects
+   */
+<span class="fc" id="L92">  public PathWalker(String... paths) {</span>
+<span class="fc" id="L93">    Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());</span>
+<span class="fc" id="L94">    this.paths = Arrays.stream(paths).map(Path::from).toArray(Path[]::new);</span>
+<span class="fc" id="L95">    this.suppressExceptions = true;</span>
+<span class="fc" id="L96">    this.segmentDeserializer = null;</span>
+<span class="fc" id="L97">  }</span>
+
+  /**
+   * Creates a {@code PathWalker} for the specified paths.
+   *
+   * @param paths The paths to walk through the provided host objects
+   */
+  public PathWalker(List&lt;Path&gt; paths) {
+<span class="fc" id="L105">    this(paths, true);</span>
+<span class="fc" id="L106">  }</span>
+
+  /**
+   * Creates a {@code PathWalker} for the specified paths.
+   *
+   * @param paths The action to take if a path could not be read or written
+   * @param suppressExceptions If {@code true}, the {@code read} methods will return {@code null} for
+   *     paths that could not be read. The {@code write} methods will quietly return without having written
+   *     the value. If {@code false}, a {@link DeadEndException} will be thrown detailing the error.
+   */
+<span class="fc" id="L116">  public PathWalker(List&lt;Path&gt; paths, boolean suppressExceptions) {</span>
+<span class="fc" id="L117">    Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());</span>
+<span class="fc" id="L118">    this.paths = paths.toArray(Path[]::new);</span>
+<span class="fc" id="L119">    this.suppressExceptions = suppressExceptions;</span>
+<span class="fc" id="L120">    this.segmentDeserializer = null;</span>
+<span class="fc" id="L121">  }</span>
+
+  /**
+   * Creates a {@code PathWalker} for the specified paths.
+   *
+   * @param paths The paths to walk
+   * @param suppressExceptions If {@code true}, the {@code read} methods will return {@code null} for
+   *     paths that could not be read. The {@code write} methods will quietly return without having written
+   *     the value. If {@code false}, a {@link DeadEndException} will be thrown detailing the error.
+   * @param segmentDeserializer A function that converts path segments to map keys. You need to provide
+   *     this when reading from, or writing to {@code Map} objects with a non-String key type.
+   */
+  public PathWalker(
+      List&lt;Path&gt; paths,
+      boolean suppressExceptions,
+<span class="fc" id="L136">      PathSegmentDeserializer segmentDeserializer) {</span>
+<span class="fc" id="L137">    Check.that(paths, PATHS).is(deepNotEmpty());</span>
+<span class="fc" id="L138">    Check.notNull(segmentDeserializer, &quot;keyDeserializer&quot;);</span>
+<span class="fc" id="L139">    this.paths = paths.toArray(Path[]::new);</span>
+<span class="fc" id="L140">    this.suppressExceptions = suppressExceptions;</span>
+<span class="fc" id="L141">    this.segmentDeserializer = segmentDeserializer;</span>
+<span class="fc" id="L142">  }</span>
+
+  // For internal use
+<span class="fc" id="L145">  PathWalker(Path path, boolean suppressExceptions, PathSegmentDeserializer segmentDeserializer) {</span>
+<span class="fc" id="L146">    this.paths = new Path[] {path};</span>
+<span class="fc" id="L147">    this.suppressExceptions = suppressExceptions;</span>
+<span class="fc" id="L148">    this.segmentDeserializer = segmentDeserializer;</span>
+<span class="fc" id="L149">  }</span>
+
+  /**
+   * Returns the values of all paths specified through the constructor.
+   *
+   * @param host the object to read the values from
+   * @return the values of all paths specified through the constructor
+   * @throws DeadEndException If {@code suppressExceptions} is false and the {@code PathWalker} fails
+   *     to retrieve the values of one or more paths.
+   */
+  public Result&lt;Object&gt;[] readValues(Object host) throws DeadEndException {
+<span class="fc" id="L160">    ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);</span>
+<span class="fc" id="L161">    return Arrays.stream(paths).map(path -&gt; reader.read(host, path, 0)).toArray(Result[]::new);</span>
+  }
+
+  /**
+   * Reads the values of all paths specified through the constructor.
+   *
+   * @param host the object to read the path values from
+   * @param output an array into which to place the values. The length of the output array must be equal
+   *     to, or greater than the number of paths specified through the constructor.
+   * @throws DeadEndException If {@code suppressExceptions} is false and the {@code PathWalker} fails
+   *     to retrieve the values of one or more paths.
+   */
+  public void readValues(Object host, Result&lt;Object&gt;[] output) throws DeadEndException {
+<span class="fc" id="L174">    Check.notNull(output, Tag.OUTPUT).has(length(), gte(), paths.length);</span>
+<span class="fc" id="L175">    ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);</span>
+<span class="fc bfc" id="L176" title="All 2 branches covered.">    for (int i = 0; i &lt; paths.length; ++i) {</span>
+<span class="fc" id="L177">      output[i] = reader.read(host, paths[i], 0);</span>
+    }
+<span class="fc" id="L179">  }</span>
+
+  /**
+   * Reads the value of the first path specified through the constructor. Convenient if you specified just one
+   * path.
+   *
+   * @param &lt;T&gt; The type of the value being returned
+   * @param host the object from which to read the value
+   * @return the value of the first path specified through the constructor
+   * @throws DeadEndException If {@code suppressExceptions} is false and the {@code PathWalker} fails
+   *     to retrieve the value of the first path.
+   */
+  public &lt;T&gt; Result&lt;T&gt; read(Object host) {
+<span class="fc" id="L192">    return cast(new ObjectReader(suppressExceptions, segmentDeserializer).read(host, paths[0], 0));</span>
+  }
+
+  /**
+   * Sets the values of the paths specified through the constructor. The provided array of values must have
+   * the same length as the number of paths.
+   *
+   * @param host the object to which to write the values
+   * @param values The values to write
+   * @return a {@code boolean} array indicating which paths could successfully be set, and which could not.
+   */
+  public boolean[] writeValues(Object host, Object... values) {
+<span class="fc" id="L204">    Check.notNull(values, Tag.VALUES).has(length(), eq(), paths.length);</span>
+<span class="fc" id="L205">    ObjectWriter writer = new ObjectWriter(suppressExceptions, segmentDeserializer);</span>
+<span class="fc" id="L206">    boolean[] result = new boolean[paths.length];</span>
+<span class="fc bfc" id="L207" title="All 2 branches covered.">    for (int i = 0; i &lt; paths.length; ++i) {</span>
+<span class="pc bpc" id="L208" title="1 of 2 branches missed.">      if (writer.write(host, paths[i], values[i])) {</span>
+<span class="fc" id="L209">        result[i] = true;</span>
+      }
+    }
+<span class="fc" id="L212">    return result;</span>
+  }
+
+  /**
+   * Sets the value of the first path specified through the constructor. Convenient if you specified just one
+   * path.
+   *
+   * @param host the object to write the value to
+   * @param value The value to write
+   * @return {@code true} if the value was successfully written
+   */
+  public boolean write(Object host, Object value) {
+<span class="fc" id="L224">    return new ObjectWriter(suppressExceptions, segmentDeserializer).write(host, paths[0], value);</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

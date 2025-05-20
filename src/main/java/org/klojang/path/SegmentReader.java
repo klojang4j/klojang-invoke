@@ -16,7 +16,7 @@ abstract sealed class SegmentReader<T> permits ArraySegmentReader, BeanSegmentRe
 
   abstract Object read(T obj, Path path, int segment);
 
-  Result<Object> deadEnd(PathWalkerException.Factory excFactory) {
+  Result<Object> deadEnd(DeadEndException.Factory excFactory) {
     if (se) {
       return Result.notAvailable();
     }

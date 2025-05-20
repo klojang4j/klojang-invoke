@@ -16,7 +16,7 @@ abstract sealed class SegmentWriter<T> permits
 
   abstract boolean write(T obj, Path path, Object value);
 
-  boolean deadEnd(PathWalkerException.Factory excFactory) {
+  boolean deadEnd(DeadEndException.Factory excFactory) {
     if (se) {
       return false;
     }

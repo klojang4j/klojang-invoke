@@ -70,7 +70,7 @@ public class PathWalkerTest {
     List<Path> paths = paths("quarterlySales.10");
     try {
       new PathWalker(paths, false).read(shell);
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       //System.out.println(e.getMessage());
       assertTrue(e.getMessage().contains("Index out of bounds"));
       return;
@@ -121,7 +121,7 @@ public class PathWalkerTest {
     List<Path> paths = paths("departments.0.employees.0.extraInfo.https://nos^.nl");
     try {
       new PathWalker(paths, false).read(shell);
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       assertTrue(e.getMessage().contains("No such key"));
       return;
     }

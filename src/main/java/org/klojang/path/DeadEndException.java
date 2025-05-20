@@ -11,9 +11,9 @@ import static org.klojang.util.ClassMethods.simpleClassName;
 /**
  * Thrown by a {@link PathWalker} if a path-read or path-write error occurs.
  */
-public final class PathWalkerException extends RuntimeException {
+public final class DeadEndException extends RuntimeException {
 
-  interface Factory extends Supplier<PathWalkerException> {}
+  interface Factory extends Supplier<DeadEndException> {}
 
   private static final String INVALID_PATH = "Invalid path: \"%s\" (segment %d). ";
   private static final String PATH_SEGMENT = "Path %s, segment %s: ";
@@ -22,7 +22,7 @@ public final class PathWalkerException extends RuntimeException {
     return () -> {
       String fmt = INVALID_PATH + "No accessible property named \"%s\" in %s";
       String msg = fmt.formatted(path, segment + 1, path.segment(segment), className(clazz));
-      return new PathWalkerException(msg);
+      return new DeadEndException(msg);
     };
   }
 
@@ -30,7 +30,7 @@ public final class PathWalkerException extends RuntimeException {
     return () -> {
       String fmt = INVALID_PATH + "No such key: \"%s\"";
       String msg = fmt.formatted(path, segment + 1, key);
-      return new PathWalkerException(msg);
+      return new DeadEndException(msg);
     };
   }
 
@@ -38,7 +38,7 @@ public final class PathWalkerException extends RuntimeException {
     return () -> {
       String fmt = INVALID_PATH + "Array or list index expected. Found: \"%s\"";
       String msg = fmt.formatted(path, segment + 1, path.segment(segment));
-      return new PathWalkerException(msg);
+      return new DeadEndException(msg);
     };
   }
 
@@ -46,7 +46,7 @@ public final class PathWalkerException extends RuntimeException {
     return () -> {
       String fmt = INVALID_PATH + "Index out of bounds: %s";
       String msg = fmt.formatted(path, segment + 1, path.segment(segment));
-      return new PathWalkerException(msg);
+      return new DeadEndException(msg);
     };
   }
 
@@ -54,7 +54,7 @@ public final class PathWalkerException extends RuntimeException {
     return () -> {
       String fmt = INVALID_PATH + "Terminal value encountered at segment \"%s\": null";
       String msg = fmt.formatted(path, segment + 1, path.segment(segment));
-      return new PathWalkerException(msg);
+      return new DeadEndException(msg);
     };
   }
 
@@ -63,7 +63,7 @@ public final class PathWalkerException extends RuntimeException {
       String fmt = INVALID_PATH + "Terminal value encountered at segment \"%s\": (%s) %s";
       String className = simpleClassName(value.getClass());
       String msg = fmt.formatted(path, segment + 1, path.segment(segment), className, value);
-      return new PathWalkerException(msg);
+      return new DeadEndException(msg);
     };
   }
 
@@ -71,7 +71,7 @@ public final class PathWalkerException extends RuntimeException {
     return () -> {
       String fmt = INVALID_PATH + "Segment must not be null or empty";
       String msg = fmt.formatted(path, segment + 1);
-      return new PathWalkerException(msg);
+      return new DeadEndException(msg);
     };
   }
 
@@ -79,7 +79,7 @@ public final class PathWalkerException extends RuntimeException {
     return () -> {
       String fmt = PATH_SEGMENT + "%s";
       String msg = fmt.formatted(path, segment + 1, message);
-      return new PathWalkerException(msg);
+      return new DeadEndException(msg);
     };
   }
 
@@ -89,7 +89,7 @@ public final class PathWalkerException extends RuntimeException {
       String scn0 = simpleClassName(expected);
       String scn1 = simpleClassName(actual);
       String msg = fmt.formatted(path, segment + 1, scn0, scn1);
-      return new PathWalkerException(msg);
+      return new DeadEndException(msg);
     };
   }
 
@@ -98,7 +98,7 @@ public final class PathWalkerException extends RuntimeException {
       String fmt = PATH_SEGMENT + "%s at segment \"%s\" not modifiable";
       String scn = simpleClassName(type);
       String msg = fmt.formatted(path, segment + 1, scn, path.segment(segment));
-      return new PathWalkerException(msg);
+      return new DeadEndException(msg);
     };
   }
 
@@ -111,7 +111,7 @@ public final class PathWalkerException extends RuntimeException {
         fmt = INVALID_PATH + "Failed to deserialize \"%s\" into map key. " + exc;
       }
       String msg = fmt.formatted(path, segment + 1, path.segment(segment));
-      return new PathWalkerException(msg);
+      return new DeadEndException(msg);
     };
   }
 
@@ -119,11 +119,11 @@ public final class PathWalkerException extends RuntimeException {
     return () -> {
       String fmt = PATH_SEGMENT + "Unexpected error. %s";
       String msg = fmt.formatted(path, segment + 1, t);
-      return new PathWalkerException(msg);
+      return new DeadEndException(msg);
     };
   }
 
-  private PathWalkerException(String message) {
+  private DeadEndException(String message) {
     super(message);
   }
 

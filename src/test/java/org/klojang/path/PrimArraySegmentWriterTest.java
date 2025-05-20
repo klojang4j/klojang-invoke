@@ -47,7 +47,7 @@ public class PrimArraySegmentWriterTest {
         null);
     try {
       writer.write(array, Path.from("8"), 42);
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       System.out.println(e.toString());
       assertTrue(e.getMessage().contains("Index out of bounds"));
       return;
@@ -62,14 +62,14 @@ public class PrimArraySegmentWriterTest {
     assertFalse(writer.write(array, Path.from("path.to.array.8"), 42));
   }
 
-  @Test(expected = PathWalkerException.class)
+  @Test(expected = DeadEndException.class)
   public void test04b() throws Throwable {
     int[] array = new int[] {1, 2, 3, 4};
     PrimitiveArraySegmentWriter writer = new PrimitiveArraySegmentWriter(false,
         null);
     try {
       writer.write(array, Path.from("path.to.array.8"), 42);
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       assertTrue(e.getMessage().contains("Index out of bounds"));
       throw e;
     }
@@ -82,14 +82,14 @@ public class PrimArraySegmentWriterTest {
     assertFalse(writer.write(array, Path.from("path.to.array.foo"), 42));
   }
 
-  @Test(expected = PathWalkerException.class)
+  @Test(expected = DeadEndException.class)
   public void test05b() throws Throwable {
     int[] array = new int[] {1, 2, 3, 4};
     PrimitiveArraySegmentWriter writer = new PrimitiveArraySegmentWriter(false,
         null);
     try {
       writer.write(array, Path.from("path.to.array.foo"), 42);
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       assertTrue(e.getMessage().contains("index expected"));
       throw e;
     }
@@ -102,7 +102,7 @@ public class PrimArraySegmentWriterTest {
         null);
     try {
       writer.write(array, Path.from("path.to.array."), 42);
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       assertTrue(e.getMessage().contains("index expected"));
       return;
     }

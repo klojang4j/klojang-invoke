@@ -74,7 +74,7 @@ public class MapSegmentWriterTest {
     assertFalse(writer.write(m, Path.from("path.to.map.foo"), 42));
   }
 
-  @Test(expected = PathWalkerException.class)
+  @Test(expected = DeadEndException.class)
   public void test05b() {
     Map m = new HashMap(Map.of(1, "john", 2, "mark", 3, "tom", 4, "jim"));
     MapSegmentWriter writer = new MapSegmentWriter(false, kds);
@@ -87,13 +87,13 @@ public class MapSegmentWriterTest {
     }
   }
 
-  @Test(expected = PathWalkerException.class)
+  @Test(expected = DeadEndException.class)
   public void test06() {
     Map m = Map.of("foo", "bar");
     MapSegmentWriter writer = new MapSegmentWriter(false, null);
     try {
       writer.write(m, Path.from("foo"), "fox");
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       //System.out.println(e.getMessage());
       assertTrue(e.getMessage().contains("not modifiable"));
       throw e;

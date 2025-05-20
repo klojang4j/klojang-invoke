@@ -7,7 +7,7 @@ import org.klojang.invoke.NoSuchPropertyException;
 import org.klojang.util.Path;
 
 import static org.klojang.util.ObjectMethods.isEmpty;
-import static org.klojang.path.PathWalkerException.*;
+import static org.klojang.path.DeadEndException.*;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 final class BeanSegmentReader extends SegmentReader<Object> {

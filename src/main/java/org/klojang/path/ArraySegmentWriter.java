@@ -4,7 +4,7 @@ import org.klojang.util.Path;
 
 import java.util.OptionalInt;
 
-import static org.klojang.path.PathWalkerException.*;
+import static org.klojang.path.DeadEndException.*;
 import static org.klojang.convert.NumberMethods.toInt;
 
 final class ArraySegmentWriter extends SegmentWriter<Object[]> {

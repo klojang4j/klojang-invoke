@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DeadEndException.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Klojang Invoke</a> &gt; <a href="index.source.html" class="el_package">org.klojang.path</a> &gt; <span class="el_source">DeadEndException.java</span></div><h1>DeadEndException.java</h1><pre class="source lang-java linenums">package org.klojang.path;
+
+
+import org.klojang.util.Path;
+
+import java.util.function.Supplier;
+
+import static org.klojang.util.ClassMethods.className;
+import static org.klojang.util.ClassMethods.simpleClassName;
+
+/**
+ * Thrown by a {@link PathWalker} if a path-read or path-write error occurs.
+ */
+public final class DeadEndException extends RuntimeException {
+
+  interface Factory extends Supplier&lt;DeadEndException&gt; {}
+
+  private static final String INVALID_PATH = &quot;Invalid path: \&quot;%s\&quot; (segment %d). &quot;;
+  private static final String PATH_SEGMENT = &quot;Path %s, segment %s: &quot;;
+
+  static Factory noSuchProperty(Path path, int segment, Class&lt;?&gt; clazz) {
+<span class="fc" id="L22">    return () -&gt; {</span>
+<span class="fc" id="L23">      String fmt = INVALID_PATH + &quot;No accessible property named \&quot;%s\&quot; in %s&quot;;</span>
+<span class="fc" id="L24">      String msg = fmt.formatted(path, segment + 1, path.segment(segment), className(clazz));</span>
+<span class="fc" id="L25">      return new DeadEndException(msg);</span>
+    };
+  }
+
+  static Factory noSuchKey(Path path, int segment, Object key) {
+<span class="fc" id="L30">    return () -&gt; {</span>
+<span class="fc" id="L31">      String fmt = INVALID_PATH + &quot;No such key: \&quot;%s\&quot;&quot;;</span>
+<span class="fc" id="L32">      String msg = fmt.formatted(path, segment + 1, key);</span>
+<span class="fc" id="L33">      return new DeadEndException(msg);</span>
+    };
+  }
+
+  static Factory indexExpected(Path path, int segment) {
+<span class="fc" id="L38">    return () -&gt; {</span>
+<span class="fc" id="L39">      String fmt = INVALID_PATH + &quot;Array or list index expected. Found: \&quot;%s\&quot;&quot;;</span>
+<span class="fc" id="L40">      String msg = fmt.formatted(path, segment + 1, path.segment(segment));</span>
+<span class="fc" id="L41">      return new DeadEndException(msg);</span>
+    };
+  }
+
+  static Factory indexOutOfBounds(Path path, int segment) {
+<span class="fc" id="L46">    return () -&gt; {</span>
+<span class="fc" id="L47">      String fmt = INVALID_PATH + &quot;Index out of bounds: %s&quot;;</span>
+<span class="fc" id="L48">      String msg = fmt.formatted(path, segment + 1, path.segment(segment));</span>
+<span class="fc" id="L49">      return new DeadEndException(msg);</span>
+    };
+  }
+
+  static Factory nullValue(Path path, int segment) {
+<span class="fc" id="L54">    return () -&gt; {</span>
+<span class="fc" id="L55">      String fmt = INVALID_PATH + &quot;Terminal value encountered at segment \&quot;%s\&quot;: null&quot;;</span>
+<span class="fc" id="L56">      String msg = fmt.formatted(path, segment + 1, path.segment(segment));</span>
+<span class="fc" id="L57">      return new DeadEndException(msg);</span>
+    };
+  }
+
+  static Factory terminalValue(Path path, int segment, Object value) {
+<span class="fc" id="L62">    return () -&gt; {</span>
+<span class="fc" id="L63">      String fmt = INVALID_PATH + &quot;Terminal value encountered at segment \&quot;%s\&quot;: (%s) %s&quot;;</span>
+<span class="fc" id="L64">      String className = simpleClassName(value.getClass());</span>
+<span class="fc" id="L65">      String msg = fmt.formatted(path, segment + 1, path.segment(segment), className, value);</span>
+<span class="fc" id="L66">      return new DeadEndException(msg);</span>
+    };
+  }
+
+  static Factory emptySegment(Path path, int segment) {
+<span class="fc" id="L71">    return () -&gt; {</span>
+<span class="fc" id="L72">      String fmt = INVALID_PATH + &quot;Segment must not be null or empty&quot;;</span>
+<span class="fc" id="L73">      String msg = fmt.formatted(path, segment + 1);</span>
+<span class="fc" id="L74">      return new DeadEndException(msg);</span>
+    };
+  }
+
+  static Factory typeMismatch(Path path, int segment, String message) {
+<span class="fc" id="L79">    return () -&gt; {</span>
+<span class="fc" id="L80">      String fmt = PATH_SEGMENT + &quot;%s&quot;;</span>
+<span class="fc" id="L81">      String msg = fmt.formatted(path, segment + 1, message);</span>
+<span class="fc" id="L82">      return new DeadEndException(msg);</span>
+    };
+  }
+
+  static Factory typeMismatch(Path path, int segment, Class&lt;?&gt; expected, Class&lt;?&gt; actual) {
+<span class="fc" id="L87">    return () -&gt; {</span>
+<span class="fc" id="L88">      String fmt = PATH_SEGMENT + &quot;cannot assign %s to %s&quot;;</span>
+<span class="fc" id="L89">      String scn0 = simpleClassName(expected);</span>
+<span class="fc" id="L90">      String scn1 = simpleClassName(actual);</span>
+<span class="fc" id="L91">      String msg = fmt.formatted(path, segment + 1, scn0, scn1);</span>
+<span class="fc" id="L92">      return new DeadEndException(msg);</span>
+    };
+  }
+
+  static Factory notModifiable(Path path, int segment, Class&lt;?&gt; type) {
+<span class="fc" id="L97">    return () -&gt; {</span>
+<span class="fc" id="L98">      String fmt = PATH_SEGMENT + &quot;%s at segment \&quot;%s\&quot; not modifiable&quot;;</span>
+<span class="fc" id="L99">      String scn = simpleClassName(type);</span>
+<span class="fc" id="L100">      String msg = fmt.formatted(path, segment + 1, scn, path.segment(segment));</span>
+<span class="fc" id="L101">      return new DeadEndException(msg);</span>
+    };
+  }
+
+  static Factory segmentDeserializationFailed(Path path, int segment, Exception exc) {
+<span class="fc" id="L106">    return () -&gt; {</span>
+      String fmt;
+<span class="fc bfc" id="L108" title="All 2 branches covered.">      if (exc.getMessage() == null) {</span>
+<span class="fc" id="L109">        fmt = INVALID_PATH + &quot;Failed to deserialize \&quot;%s\&quot; into map key&quot;;</span>
+      } else {
+<span class="fc" id="L111">        fmt = INVALID_PATH + &quot;Failed to deserialize \&quot;%s\&quot; into map key. &quot; + exc;</span>
+      }
+<span class="fc" id="L113">      String msg = fmt.formatted(path, segment + 1, path.segment(segment));</span>
+<span class="fc" id="L114">      return new DeadEndException(msg);</span>
+    };
+  }
+
+  static Factory unexpectedError(Path path, int segment, Throwable t) {
+<span class="fc" id="L119">    return () -&gt; {</span>
+<span class="fc" id="L120">      String fmt = PATH_SEGMENT + &quot;Unexpected error. %s&quot;;</span>
+<span class="fc" id="L121">      String msg = fmt.formatted(path, segment + 1, t);</span>
+<span class="fc" id="L122">      return new DeadEndException(msg);</span>
+    };
+  }
+
+  private DeadEndException(String message) {
+<span class="fc" id="L127">    super(message);</span>
+<span class="fc" id="L128">  }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

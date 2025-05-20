@@ -6,7 +6,7 @@ import org.klojang.util.Path;
 import java.util.List;
 import java.util.Map;
 
-import static org.klojang.path.PathWalkerException.nullValue;
+import static org.klojang.path.DeadEndException.nullValue;
 import static org.klojang.util.ClassMethods.isPrimitiveArray;
 
 final class ObjectWriter {
@@ -34,7 +34,7 @@ final class ObjectWriter {
           return false;
         }
         writeTo = result.get();
-      } catch (PathWalkerException e) {
+      } catch (DeadEndException e) {
         if (se) {
           return false;
         }
@@ -57,7 +57,7 @@ final class ObjectWriter {
     return new BeanSegmentWriter(se, kd).write(writeTo, path, value);
   }
 
-  boolean deadEnd(PathWalkerException.Factory excFactory) {
+  boolean deadEnd(DeadEndException.Factory excFactory) {
     if (se) {
       return false;
     }

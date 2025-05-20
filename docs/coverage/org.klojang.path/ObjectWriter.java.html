@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ObjectWriter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Klojang Invoke</a> &gt; <a href="index.source.html" class="el_package">org.klojang.path</a> &gt; <span class="el_source">ObjectWriter.java</span></div><h1>ObjectWriter.java</h1><pre class="source lang-java linenums">package org.klojang.path;
+
+import org.klojang.check.extra.Result;
+import org.klojang.util.Path;
+
+import java.util.List;
+import java.util.Map;
+
+import static org.klojang.path.DeadEndException.nullValue;
+import static org.klojang.util.ClassMethods.isPrimitiveArray;
+
+final class ObjectWriter {
+
+  private final boolean se;
+  private final PathSegmentDeserializer kd;
+
+<span class="fc" id="L17">  ObjectWriter(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {</span>
+<span class="fc" id="L18">    this.se = suppressExceptions;</span>
+<span class="fc" id="L19">    this.kd = keyDeserializer;</span>
+<span class="fc" id="L20">  }</span>
+
+  boolean write(Object host, Path path, Object value) {
+    Object writeTo;
+    int segment;
+<span class="fc bfc" id="L25" title="All 2 branches covered.">    if (path.size() == 1) {</span>
+<span class="fc" id="L26">      writeTo = host;</span>
+<span class="fc" id="L27">      segment = 0;</span>
+    } else {
+<span class="fc" id="L29">      Path parent = path.parent();</span>
+<span class="fc" id="L30">      PathWalker pw = new PathWalker(path.parent(), false, kd);</span>
+      try {
+<span class="fc" id="L32">        Result&lt;Object&gt; result = pw.read(host);</span>
+<span class="pc bpc" id="L33" title="1 of 2 branches missed.">        if(result.isUnavailable()) {</span>
+<span class="nc" id="L34">          return false;</span>
+        }
+<span class="fc" id="L36">        writeTo = result.get();</span>
+<span class="fc" id="L37">      } catch (DeadEndException e) {</span>
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">        if (se) {</span>
+<span class="nc" id="L39">          return false;</span>
+        }
+<span class="fc" id="L41">        throw e;</span>
+<span class="fc" id="L42">      }</span>
+<span class="fc" id="L43">      segment = parent.size() - 1;</span>
+    }
+<span class="fc bfc" id="L45" title="All 2 branches covered.">    if (writeTo == null) {</span>
+<span class="fc" id="L46">      return deadEnd(nullValue(path, segment));</span>
+    }
+<span class="fc bfc" id="L48" title="All 2 branches covered.">    if (writeTo instanceof List&lt;?&gt; l) {</span>
+<span class="fc" id="L49">      return new ListSegmentWriter(se, kd).write(l, path, value);</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">    } else if (writeTo instanceof Map&lt;?, ?&gt; m) {</span>
+<span class="fc" id="L51">      return new MapSegmentWriter(se, kd).write(m, path, value);</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">    } else if (writeTo instanceof Object[] o) {</span>
+<span class="fc" id="L53">      return new ArraySegmentWriter(se, kd).write(o, path, value);</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">    } else if (isPrimitiveArray(writeTo)) {</span>
+<span class="fc" id="L55">      return new PrimitiveArraySegmentWriter(se, kd).write(writeTo, path, value);</span>
+    }
+<span class="fc" id="L57">    return new BeanSegmentWriter(se, kd).write(writeTo, path, value);</span>
+  }
+
+  boolean deadEnd(DeadEndException.Factory excFactory) {
+<span class="fc bfc" id="L61" title="All 2 branches covered.">    if (se) {</span>
+<span class="fc" id="L62">      return false;</span>
+    }
+<span class="fc" id="L64">    throw excFactory.get();</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

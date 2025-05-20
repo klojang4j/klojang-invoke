@@ -41,13 +41,13 @@ public class ListSegmentWriterTest {
     assertFalse(writer.write(l, Path.from("8"), 42));
   }
 
-  @Test(expected = PathWalkerException.class)
+  @Test(expected = DeadEndException.class)
   public void test03b() {
     List l = new ArrayList(List.of(1, 2, 3, 4));
     ListSegmentWriter writer = new ListSegmentWriter(false, null);
     try {
       writer.write(l, Path.from("8"), 42);
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       assertTrue(e.getMessage().contains("Index out of bounds"));
       throw e;
     }
@@ -60,13 +60,13 @@ public class ListSegmentWriterTest {
     assertFalse(writer.write(l, Path.from("path.to.list.8"), 42));
   }
 
-  @Test(expected = PathWalkerException.class)
+  @Test(expected = DeadEndException.class)
   public void test04b() {
     List l = new ArrayList(List.of(1, 2, 3, 4));
     ListSegmentWriter writer = new ListSegmentWriter(false, null);
     try {
       writer.write(l, Path.from("path.to.list.8"), 42);
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       assertTrue(e.getMessage().contains("Index out of bounds"));
       throw e;
     }
@@ -79,13 +79,13 @@ public class ListSegmentWriterTest {
     assertFalse(writer.write(l, Path.from("path.to.list.foo"), 42));
   }
 
-  @Test(expected = PathWalkerException.class)
+  @Test(expected = DeadEndException.class)
   public void test05b() {
     List l = new ArrayList(List.of(1, 2, 3, 4));
     ListSegmentWriter writer = new ListSegmentWriter(false, null);
     try {
       writer.write(l, Path.from("path.to.list.foo"), 42);
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       assertTrue(e.getMessage().contains("index expected"));
       throw e;
     }
@@ -97,7 +97,7 @@ public class ListSegmentWriterTest {
     ListSegmentWriter writer = new ListSegmentWriter(false, null);
     try {
       writer.write(l, Path.from("path.to.list."), 42);
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       assertTrue(e.getMessage().contains("index expected"));
      return;
     }

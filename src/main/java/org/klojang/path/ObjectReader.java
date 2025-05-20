@@ -6,7 +6,7 @@ import org.klojang.util.Path;
 import java.util.Collection;
 import java.util.Map;
 
-import static org.klojang.path.PathWalkerException.nullValue;
+import static org.klojang.path.DeadEndException.nullValue;
 import static org.klojang.util.ClassMethods.isPrimitiveArray;
 
 final class ObjectReader {
@@ -36,7 +36,7 @@ final class ObjectReader {
     return new BeanSegmentReader(se, kd).read(obj, path, segment);
   }
 
-  Result<Object> deadEnd(PathWalkerException.Factory excFactory) {
+  Result<Object> deadEnd(DeadEndException.Factory excFactory) {
     if (se) {
       return Result.notAvailable();
     }

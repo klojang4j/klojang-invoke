@@ -9,18 +9,18 @@ import java.nio.channels.FileChannel;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class PathWalkerExceptionTest {
+public class DeadEndExceptionTest {
 
   @Test
   public void terminalValue() {
-    PathWalkerException.Factory excFactory = PathWalkerException.terminalValue(
+    DeadEndException.Factory excFactory = DeadEndException.terminalValue(
         Path.from("foo.bar.bozo"), 1, "teapot");
     assertTrue(excFactory.get().getMessage().contains("Terminal value encountered"));
   }
 
   @Test
   public void typeMismatch00() {
-    PathWalkerException.Factory excFactory = PathWalkerException.typeMismatch(Path.from("foo.bar.bozo"),
+    DeadEndException.Factory excFactory = DeadEndException.typeMismatch(Path.from("foo.bar.bozo"),
         1,
         "my message to you");
     //System.out.println(excFactory.get().getMessage());
@@ -29,7 +29,7 @@ public class PathWalkerExceptionTest {
 
   @Test
   public void typeMismatch01() {
-    PathWalkerException.Factory excFactory = PathWalkerException.typeMismatch(
+    DeadEndException.Factory excFactory = DeadEndException.typeMismatch(
         Path.from("foo.bar.bozo"), 1, File.class, FileChannel.class);
     assertEquals(
         "Path foo.bar.bozo, segment 2: cannot assign File to FileChannel",
@@ -38,7 +38,7 @@ public class PathWalkerExceptionTest {
 
   @Test
   public void segmentDeserializationFailed00() {
-    PathWalkerException.Factory excFactory = PathWalkerException.segmentDeserializationFailed(
+    DeadEndException.Factory excFactory = DeadEndException.segmentDeserializationFailed(
         Path.from("foo.bar.bozo"), 0, new Exception("no can do"));
     assertEquals(
         "Invalid path: \"foo.bar.bozo\" (segment 1). Failed to deserialize \"foo\" into map key. java.lang.Exception: no can do",
@@ -47,7 +47,7 @@ public class PathWalkerExceptionTest {
 
   @Test
   public void segmentDeserializationFailed01() {
-    PathWalkerException.Factory excFactory = PathWalkerException.segmentDeserializationFailed(
+    DeadEndException.Factory excFactory = DeadEndException.segmentDeserializationFailed(
         Path.from("foo.bar.bozo"), 0, new Exception());
     assertEquals(
         "Invalid path: \"foo.bar.bozo\" (segment 1). Failed to deserialize \"foo\" into map key",
@@ -56,7 +56,7 @@ public class PathWalkerExceptionTest {
 
   @Test
   public void unexpectedError00() {
-    PathWalkerException.Factory excFactory = PathWalkerException.unexpectedError(Path.from("foo.bar.bozo"),
+    DeadEndException.Factory excFactory = DeadEndException.unexpectedError(Path.from("foo.bar.bozo"),
         0,
         new Exception("Sorry"));
     System.out.println(excFactory.get().getMessage());

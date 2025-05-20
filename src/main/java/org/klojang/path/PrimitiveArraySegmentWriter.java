@@ -4,8 +4,8 @@ import org.klojang.util.Path;
 
 import java.util.OptionalInt;
 
-import static org.klojang.path.PathWalkerException.indexExpected;
-import static org.klojang.path.PathWalkerException.indexOutOfBounds;
+import static org.klojang.path.DeadEndException.indexExpected;
+import static org.klojang.path.DeadEndException.indexOutOfBounds;
 import static org.klojang.util.InvokeMethods.getArrayLength;
 import static org.klojang.util.InvokeMethods.setArrayElement;
 import static org.klojang.convert.NumberMethods.toInt;

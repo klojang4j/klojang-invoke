@@ -5,8 +5,8 @@ import org.klojang.util.Path;
 
 import java.util.Map;
 
-import static org.klojang.path.PathWalkerException.segmentDeserializationFailed;
-import static org.klojang.path.PathWalkerException.noSuchKey;
+import static org.klojang.path.DeadEndException.segmentDeserializationFailed;
+import static org.klojang.path.DeadEndException.noSuchKey;
 
 final class MapSegmentReader extends SegmentReader<Map<?, ?>> {
 

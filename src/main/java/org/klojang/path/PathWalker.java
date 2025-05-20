@@ -13,7 +13,7 @@ import static org.klojang.check.CommonProperties.length;
 import static org.klojang.util.ClassMethods.cast;
 
 /**
- * <p>A {@code PathWalker} lets you read from and write to objects using {@link Path} objects. The value you
+ * <p>A {@code PathWalker} lets you read from, and write to objects using {@link Path} objects. The value you
  * read or write can be deeply nested inside the object. The {@code Path} object specifies where inside the
  * object the value is located. A {@code PathWalker} can read almost any type of object it encounters as it
  * walks down the path towards the last path segment: JavaBeans, records, maps, collections, arrays and scalar
@@ -30,7 +30,7 @@ import static org.klojang.util.ClassMethods.cast;
  * purposes listed above. Instead, it just returns {@link Result#notAvailable()} when reading values and
  * {@code false} when writing values. However, the {@code PathWalker} contains a constructor that enables
  * you to enable and disable exception suppression. Without exception suppression a {@code PathWalker} will
- * throw a {@link PathWalkerException} when failing to read/write a value, which may be useful when debugging.
+ * throw a {@link DeadEndException} when failing to read/write a value, which may be useful when debugging.
  *
  * @author Ayco Holleman
  */
@@ -111,7 +111,7 @@ public final class PathWalker {
    * @param paths The action to take if a path could not be read or written
    * @param suppressExceptions If {@code true}, the {@code read} methods will return {@code null} for
    *     paths that could not be read. The {@code write} methods will quietly return without having written
-   *     the value. If {@code false}, a {@link PathWalkerException} will be thrown detailing the error.
+   *     the value. If {@code false}, a {@link DeadEndException} will be thrown detailing the error.
    */
   public PathWalker(List<Path> paths, boolean suppressExceptions) {
     Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());
@@ -126,7 +126,7 @@ public final class PathWalker {
    * @param paths The paths to walk
    * @param suppressExceptions If {@code true}, the {@code read} methods will return {@code null} for
    *     paths that could not be read. The {@code write} methods will quietly return without having written
-   *     the value. If {@code false}, a {@link PathWalkerException} will be thrown detailing the error.
+   *     the value. If {@code false}, a {@link DeadEndException} will be thrown detailing the error.
    * @param segmentDeserializer A function that converts path segments to map keys. You need to provide
    *     this when reading from, or writing to {@code Map} objects with a non-String key type.
    */
@@ -153,10 +153,10 @@ public final class PathWalker {
    *
    * @param host the object to read the values from
    * @return the values of all paths specified through the constructor
-   * @throws PathWalkerException If {@code suppressExceptions} is false and the {@code PathWalker} fails
+   * @throws DeadEndException If {@code suppressExceptions} is false and the {@code PathWalker} fails
    *     to retrieve the values of one or more paths.
    */
-  public Result<Object>[] readValues(Object host) throws PathWalkerException {
+  public Result<Object>[] readValues(Object host) throws DeadEndException {
     ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);
     return Arrays.stream(paths).map(path -> reader.read(host, path, 0)).toArray(Result[]::new);
   }
@@ -167,10 +167,10 @@ public final class PathWalker {
    * @param host the object to read the path values from
    * @param output an array into which to place the values. The length of the output array must be equal
    *     to, or greater than the number of paths specified through the constructor.
-   * @throws PathWalkerException If {@code suppressExceptions} is false and the {@code PathWalker} fails
+   * @throws DeadEndException If {@code suppressExceptions} is false and the {@code PathWalker} fails
    *     to retrieve the values of one or more paths.
    */
-  public void readValues(Object host, Result<Object>[] output) throws PathWalkerException {
+  public void readValues(Object host, Result<Object>[] output) throws DeadEndException {
     Check.notNull(output, Tag.OUTPUT).has(length(), gte(), paths.length);
     ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);
     for (int i = 0; i < paths.length; ++i) {
@@ -185,7 +185,7 @@ public final class PathWalker {
    * @param <T> The type of the value being returned
    * @param host the object from which to read the value
    * @return the value of the first path specified through the constructor
-   * @throws PathWalkerException If {@code suppressExceptions} is false and the {@code PathWalker} fails
+   * @throws DeadEndException If {@code suppressExceptions} is false and the {@code PathWalker} fails
    *     to retrieve the value of the first path.
    */
   public <T> Result<T> read(Object host) {

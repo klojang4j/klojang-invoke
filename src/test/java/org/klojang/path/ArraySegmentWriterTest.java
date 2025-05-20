@@ -39,13 +39,13 @@ public class ArraySegmentWriterTest {
     assertFalse(writer.write(array, Path.from("8"), 42));
   }
 
-  @Test(expected = PathWalkerException.class)
+  @Test(expected = DeadEndException.class)
   public void test03b() throws Throwable {
     Object[] array = new Object[] {1, 2, 3, 4};
     ArraySegmentWriter writer = new ArraySegmentWriter(false, null);
     try {
       writer.write(array, Path.from("8"), 42);
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       assertTrue(e.getMessage().contains("Index out of bounds"));
       throw e;
     }
@@ -59,13 +59,13 @@ public class ArraySegmentWriterTest {
     assertFalse(writer.write(array, Path.from("path.to.array.8"), 42));
   }
 
-  @Test(expected = PathWalkerException.class)
+  @Test(expected = DeadEndException.class)
   public void test04b() throws Throwable {
     Object[] array = new Object[] {1, 2, 3, 4};
     ArraySegmentWriter writer = new ArraySegmentWriter(false, null);
     try {
       writer.write(array, Path.from("path.to.array.8"), 42);
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       assertTrue(e.getMessage().contains("Index out of bounds"));
       throw e;
     }
@@ -79,13 +79,13 @@ public class ArraySegmentWriterTest {
     assertFalse(writer.write(array, Path.from("path.to.array.foo"), 42));
   }
 
-  @Test(expected = PathWalkerException.class)
+  @Test(expected = DeadEndException.class)
   public void test05b() throws Throwable {
     Object[] array = new Object[] {1, 2, 3, 4};
     ArraySegmentWriter writer = new ArraySegmentWriter(false, null);
     try {
       writer.write(array, Path.from("path.to.array.foo"), 42);
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       assertTrue(e.getMessage().contains("index expected"));
       throw e;
     }
@@ -97,7 +97,7 @@ public class ArraySegmentWriterTest {
     ArraySegmentWriter writer = new ArraySegmentWriter(false, null);
     try {
       writer.write(array, Path.from("path.to.array."), 42);
-    } catch (PathWalkerException e) {
+    } catch (DeadEndException e) {
       assertTrue(e.getMessage().contains("index expected"));
       return;
     }
