@@ -22,10 +22,16 @@ import static org.klojang.util.ClassMethods.cast;
  * <ul>
  *   <li>When processing large batches of sparsely populated objects
  *   <li>When processing large batches of variously typed objects
- *   <li>When it doesn't really matter whether a deeply nested value is {@code null} or just not present at
+ *   <li>When it does not really matter whether a deeply nested value is {@code null} or just not present at
  *   all
  *   <li>To keep your code concise and clean when reading a deeply nested value.
  * </ul>
+ * <p>By default, a {@code PathWalker} will not throw an exception if it cannot read or write a value
+ * &#8212; that is, if it cannot walk a path all the way down to the last path segment. That would defy the
+ * purposes listed above. Instead, it just returns {@link Result#notAvailable()} when reading values and
+ * {@code false} when writing values. However, the {@code PathWalker} contains a constructor that enables
+ * you to enable and disable exception suppression. Without exception suppression a {@code PathWalker} will
+ * throw a {@link PathWalkerException} when failing to read/write a value, which may be useful when debugging.
  *
  * @author Ayco Holleman
  */
