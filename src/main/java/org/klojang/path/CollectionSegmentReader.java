@@ -2,9 +2,7 @@ package org.klojang.path;
 
 import org.klojang.util.Path;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.OptionalInt;
+import java.util.*;
 
 import static org.klojang.path.PathWalkerException.indexExpected;
 import static org.klojang.path.PathWalkerException.indexOutOfBounds;
@@ -14,7 +12,7 @@ import static org.klojang.convert.NumberMethods.toInt;
 final class CollectionSegmentReader extends SegmentReader<Collection> {
 
   CollectionSegmentReader(boolean suppressExceptions,
-      KeyDeserializer keyDeserializer) {
+      PathSegmentDeserializer keyDeserializer) {
     super(suppressExceptions, keyDeserializer);
   }
 
@@ -26,12 +24,15 @@ final class CollectionSegmentReader extends SegmentReader<Collection> {
     }
     int idx = opt.getAsInt();
     if (idx < collection.size()) {
-      Iterator iter = collection.iterator();
-      for (; idx != 0 && iter.hasNext(); --idx, iter.next())
-        ;
-      if (iter.hasNext()) {
-        return new ObjectReader(se, kd).read(iter.next(), path, ++segment);
+      Object elem;
+      if (collection instanceof List list) {
+        elem = list.get(idx);
+      } else {
+        Iterator iter = collection.iterator();
+        for (; idx != 0 && iter.hasNext(); --idx, iter.next());
+        elem = iter.next();
       }
+      return new ObjectReader(se, kd).read(elem, path, ++segment);
     }
     return deadEnd(indexOutOfBounds(path, segment));
   }

@@ -9,7 +9,7 @@ import static org.klojang.convert.NumberMethods.toInt;
 
 final class ArraySegmentWriter extends SegmentWriter<Object[]> {
 
-  ArraySegmentWriter(boolean suppressExceptions, KeyDeserializer keyDeserializer) {
+  ArraySegmentWriter(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {
     super(suppressExceptions, keyDeserializer);
   }
 

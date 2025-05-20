@@ -7,9 +7,9 @@ abstract sealed class SegmentWriter<T> permits
     ListSegmentWriter, MapSegmentWriter, PrimitiveArraySegmentWriter {
 
   final boolean se;
-  final KeyDeserializer kd;
+  final PathSegmentDeserializer kd;
 
-  SegmentWriter(boolean suppressExceptions, KeyDeserializer keyDeserializer) {
+  SegmentWriter(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {
     this.se = suppressExceptions;
     this.kd = keyDeserializer;
   }

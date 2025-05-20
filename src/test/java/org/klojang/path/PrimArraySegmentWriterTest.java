@@ -4,8 +4,6 @@ import org.junit.Test;
 import org.klojang.util.Path;
 
 import static org.junit.Assert.*;
-import static org.klojang.path.ErrorCode.INDEX_EXPECTED;
-import static org.klojang.path.ErrorCode.INDEX_OUT_OF_BOUNDS;
 
 public class PrimArraySegmentWriterTest {
 
@@ -51,7 +49,7 @@ public class PrimArraySegmentWriterTest {
       writer.write(array, Path.from("8"), 42);
     } catch (PathWalkerException e) {
       System.out.println(e.toString());
-      assertEquals(INDEX_OUT_OF_BOUNDS, e.getErrorCode());
+      assertTrue(e.getMessage().contains("Index out of bounds"));
       return;
     }
     fail();
@@ -72,7 +70,7 @@ public class PrimArraySegmentWriterTest {
     try {
       writer.write(array, Path.from("path.to.array.8"), 42);
     } catch (PathWalkerException e) {
-      assertEquals(INDEX_OUT_OF_BOUNDS, e.getErrorCode());
+      assertTrue(e.getMessage().contains("Index out of bounds"));
       throw e;
     }
   }
@@ -92,7 +90,7 @@ public class PrimArraySegmentWriterTest {
     try {
       writer.write(array, Path.from("path.to.array.foo"), 42);
     } catch (PathWalkerException e) {
-      assertEquals(INDEX_EXPECTED, e.getErrorCode());
+      assertTrue(e.getMessage().contains("index expected"));
       throw e;
     }
   }
@@ -105,7 +103,7 @@ public class PrimArraySegmentWriterTest {
     try {
       writer.write(array, Path.from("path.to.array."), 42);
     } catch (PathWalkerException e) {
-      assertEquals(INDEX_EXPECTED, e.getErrorCode());
+      assertTrue(e.getMessage().contains("index expected"));
       return;
     }
     fail();

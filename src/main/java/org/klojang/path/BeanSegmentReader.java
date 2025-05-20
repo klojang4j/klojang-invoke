@@ -11,7 +11,7 @@ import static org.klojang.path.PathWalkerException.*;
 @SuppressWarnings({"rawtypes", "unchecked"})
 final class BeanSegmentReader extends SegmentReader<Object> {
 
-  BeanSegmentReader(boolean suppressExceptions, KeyDeserializer keyDeserializer) {
+  BeanSegmentReader(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {
     super(suppressExceptions, keyDeserializer);
   }
 

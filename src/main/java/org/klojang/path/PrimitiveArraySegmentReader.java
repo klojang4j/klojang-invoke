@@ -14,7 +14,7 @@ final class PrimitiveArraySegmentReader extends
     SegmentReader<Object> {
 
   PrimitiveArraySegmentReader(boolean suppressExceptions,
-      KeyDeserializer keyDeserializer) {
+      PathSegmentDeserializer keyDeserializer) {
     super(suppressExceptions, keyDeserializer);
   }
 

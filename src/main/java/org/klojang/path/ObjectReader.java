@@ -5,15 +5,15 @@ import org.klojang.util.Path;
 import java.util.Collection;
 import java.util.Map;
 
-import static org.klojang.util.ClassMethods.isPrimitiveArray;
 import static org.klojang.path.PathWalkerException.nullValue;
+import static org.klojang.util.ClassMethods.isPrimitiveArray;
 
 final class ObjectReader {
 
   private final boolean se;
-  private final KeyDeserializer kd;
+  private final PathSegmentDeserializer kd;
 
-  ObjectReader(boolean suppressExceptions, KeyDeserializer keyDeserializer) {
+  ObjectReader(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {
     this.se = suppressExceptions;
     this.kd = keyDeserializer;
   }

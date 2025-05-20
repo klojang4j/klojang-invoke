@@ -7,12 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.*;
-import static org.klojang.path.ErrorCode.KEY_DESERIALIZATION_FAILED;
-import static org.klojang.path.ErrorCode.NOT_MODIFIABLE;
 
 public class MapSegmentWriterTest {
 
-  KeyDeserializer kds = (path, segment) -> {
+  PathSegmentDeserializer kds = (path, segment) -> {
     try {
       return Integer.valueOf(path.segment(-1));
     } catch (Exception e) {
@@ -89,8 +87,8 @@ public class MapSegmentWriterTest {
     try {
       writer.write(m, Path.from("path.to.map.foo"), 42);
     } catch (PathWalkerException e) {
-      System.out.println(e.getMessage());
-      assertEquals(KEY_DESERIALIZATION_FAILED, e.getErrorCode());
+      //System.out.println(e.getMessage());
+      assertTrue(e.getMessage().contains("Failed to deserialize"));
       throw e;
     }
   }
@@ -102,7 +100,8 @@ public class MapSegmentWriterTest {
     try {
       writer.write(m, Path.from("foo"), "fox");
     } catch (PathWalkerException e) {
-      assertEquals(NOT_MODIFIABLE, e.getErrorCode());
+      //System.out.println(e.getMessage());
+      assertTrue(e.getMessage().contains("not modifiable"));
       throw e;
     }
   }

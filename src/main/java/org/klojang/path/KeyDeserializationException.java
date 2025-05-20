@@ -1,7 +1,7 @@
 package org.klojang.path;
 
 /**
- * Thrown by a {@link KeyDeserializer} if it fails to deserialize a path segment into
+ * Thrown by a {@link PathSegmentDeserializer} if it fails to deserialize a path segment into
  * a map key.
  */
 public final class KeyDeserializationException extends Exception {

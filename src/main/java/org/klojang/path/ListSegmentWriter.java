@@ -11,7 +11,7 @@ import static org.klojang.convert.NumberMethods.toInt;
 @SuppressWarnings({"rawtypes", "unchecked"})
 final class ListSegmentWriter extends SegmentWriter<List> {
 
-  ListSegmentWriter(boolean suppressExceptions, KeyDeserializer keyDeserializer) {
+  ListSegmentWriter(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {
     super(suppressExceptions, keyDeserializer);
   }
 

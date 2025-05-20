@@ -58,8 +58,8 @@ public class ObjectWriterTest {
     try {
       ow.write(map, Path.from("foo.bar.bozo.teapot"), 42);
     } catch (PathWalkerException e) {
-      assertEquals(ErrorCode.TERMINAL_VALUE, e.getErrorCode());
-      throw e;
+      assertTrue(e.getMessage().contains("Terminal value encountered"));
+     throw e;
     }
   }
 
@@ -81,7 +81,7 @@ public class ObjectWriterTest {
     try {
       ow.write(map, Path.from("foo.bar.bozo.teapot"), "one step too far");
     } catch (PathWalkerException e) {
-      assertEquals(ErrorCode.TERMINAL_VALUE, e.getErrorCode());
+      assertTrue(e.getMessage().contains("Terminal value encountered"));
       throw e;
     }
   }
@@ -98,7 +98,7 @@ public class ObjectWriterTest {
     try {
       ow.write(null, Path.of("foo"), 7);
     } catch (PathWalkerException e) {
-      assertEquals(ErrorCode.TERMINAL_VALUE, e.getErrorCode());
+      assertTrue(e.getMessage().contains("Terminal value encountered"));
       throw e;
     }
   }

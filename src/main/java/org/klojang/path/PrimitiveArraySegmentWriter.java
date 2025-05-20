@@ -14,7 +14,7 @@ final class PrimitiveArraySegmentWriter extends
     SegmentWriter<Object> {
 
   PrimitiveArraySegmentWriter(boolean suppressExceptions,
-      KeyDeserializer keyDeserializer) {
+      PathSegmentDeserializer keyDeserializer) {
     super(suppressExceptions, keyDeserializer);
   }
 

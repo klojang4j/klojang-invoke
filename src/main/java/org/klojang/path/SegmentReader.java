@@ -6,9 +6,9 @@ abstract sealed class SegmentReader<T> permits ArraySegmentReader, BeanSegmentRe
     CollectionSegmentReader, MapSegmentReader, PrimitiveArraySegmentReader {
 
   final boolean se;
-  final KeyDeserializer kd;
+  final PathSegmentDeserializer kd;
 
-  SegmentReader(boolean suppressExceptions, KeyDeserializer keyDeserializer) {
+  SegmentReader(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {
     this.se = suppressExceptions;
     this.kd = keyDeserializer;
   }

@@ -1,12 +1,10 @@
 package org.klojang.path;
 
 
-
 import org.klojang.util.Path;
 
 import java.util.function.Supplier;
 
-import static org.klojang.path.ErrorCode.*;
 import static org.klojang.util.ClassMethods.className;
 import static org.klojang.util.ClassMethods.simpleClassName;
 
@@ -17,127 +15,117 @@ public final class PathWalkerException extends RuntimeException {
 
   interface Factory extends Supplier<PathWalkerException> {}
 
-  private static final String INVALID_PATH = "invalid path: \"%s\" (segment %d)";
-  private static final String PATH_SEGMENT = "path %s, segment %s: ";
+  private static final String INVALID_PATH = "Invalid path: \"%s\" (segment %d). ";
+  private static final String PATH_SEGMENT = "Path %s, segment %s: ";
 
   static Factory noSuchProperty(Path path, int segment, Class<?> clazz) {
-    String fmt = INVALID_PATH
-        + " *** no accessible property named \"%s\" in %s.class";
-    String className = className(clazz);
-    String msg = String.format(fmt,
-        path,
-        segment + 1,
-        path.segment(segment),
-        className);
-    return () -> new PathWalkerException(NO_SUCH_PROPERTY, msg);
+    return () -> {
+      String fmt = INVALID_PATH + "No accessible property named \"%s\" in %s";
+      String msg = fmt.formatted(path, segment + 1, path.segment(segment), className(clazz));
+      return new PathWalkerException(msg);
+    };
   }
 
   static Factory noSuchKey(Path path, int segment, Object key) {
-    String fmt = INVALID_PATH + " *** no such key: \"%s\"";
-    String msg = String.format(fmt, path, segment + 1, path.segment(segment));
-    return () -> new PathWalkerException(NO_SUCH_KEY, msg);
+    return () -> {
+      String fmt = INVALID_PATH + "No such key: \"%s\"";
+      String msg = fmt.formatted(path, segment + 1, key);
+      return new PathWalkerException(msg);
+    };
   }
 
   static Factory indexExpected(Path path, int segment) {
-    String fmt = INVALID_PATH + " *** array index expected; found: \"%s\"";
-    String msg = String.format(fmt, path, segment + 1, path.segment(segment));
-    return () -> new PathWalkerException(INDEX_EXPECTED, msg);
+    return () -> {
+      String fmt = INVALID_PATH + "Array or list index expected. Found: \"%s\"";
+      String msg = fmt.formatted(path, segment + 1, path.segment(segment));
+      return new PathWalkerException(msg);
+    };
   }
 
   static Factory indexOutOfBounds(Path path, int segment) {
-    String fmt = INVALID_PATH + " *** index out of bounds: %s";
-    String msg = String.format(fmt, path, segment + 1, path.segment(segment));
-    return () -> new PathWalkerException(INDEX_OUT_OF_BOUNDS, msg);
+    return () -> {
+      String fmt = INVALID_PATH + "Index out of bounds: %s";
+      String msg = fmt.formatted(path, segment + 1, path.segment(segment));
+      return new PathWalkerException(msg);
+    };
   }
 
   static Factory nullValue(Path path, int segment) {
-    String fmt = INVALID_PATH
-        + " *** terminal value encountered at segment \"%s\": null";
-    String msg = String.format(fmt, path, segment + 1, path.segment(segment));
-    return () -> new PathWalkerException(TERMINAL_VALUE, msg);
+    return () -> {
+      String fmt = INVALID_PATH + "Terminal value encountered at segment \"%s\": null";
+      String msg = fmt.formatted(path, segment + 1, path.segment(segment));
+      return new PathWalkerException(msg);
+    };
   }
 
   static Factory terminalValue(Path path, int segment, Object value) {
-    String fmt = INVALID_PATH
-        + " *** terminal value encountered at segment \"%s\": (%s) %s";
-    String className = simpleClassName(value.getClass());
-    String msg = String.format(fmt,
-        path,
-        segment + 1,
-        path.segment(segment),
-        className,
-        value);
-    return () -> new PathWalkerException(TERMINAL_VALUE, msg);
+    return () -> {
+      String fmt = INVALID_PATH + "Terminal value encountered at segment \"%s\": (%s) %s";
+      String className = simpleClassName(value.getClass());
+      String msg = fmt.formatted(path, segment + 1, path.segment(segment), className, value);
+      return new PathWalkerException(msg);
+    };
   }
 
   static Factory emptySegment(Path path, int segment) {
-    String fmt = INVALID_PATH + " *** segment must not be null or empty";
-    String msg = String.format(fmt, path, segment + 1);
-    return () -> new PathWalkerException(EMPTY_SEGMENT, msg);
+    return () -> {
+      String fmt = INVALID_PATH + "Segment must not be null or empty";
+      String msg = fmt.formatted(path, segment + 1);
+      return new PathWalkerException(msg);
+    };
   }
 
   static Factory typeMismatch(Path path, int segment, String message) {
-    String fmt = PATH_SEGMENT + "%s";
-    String msg = String.format(fmt, path, segment + 1, message);
-    return () -> new PathWalkerException(TYPE_MISMATCH, msg);
+    return () -> {
+      String fmt = PATH_SEGMENT + "%s";
+      String msg = fmt.formatted(path, segment + 1, message);
+      return new PathWalkerException(msg);
+    };
   }
 
   static Factory typeMismatch(Path path, int segment, Class<?> expected, Class<?> actual) {
-    String fmt = PATH_SEGMENT + "cannot assign %s to %s";
-    String scn0 = simpleClassName(expected);
-    String scn1 = simpleClassName(actual);
-    String msg = String.format(fmt, path, segment + 1, scn0, scn1);
-    return () -> new PathWalkerException(TYPE_MISMATCH, msg);
+    return () -> {
+      String fmt = PATH_SEGMENT + "cannot assign %s to %s";
+      String scn0 = simpleClassName(expected);
+      String scn1 = simpleClassName(actual);
+      String msg = fmt.formatted(path, segment + 1, scn0, scn1);
+      return new PathWalkerException(msg);
+    };
   }
 
-  static Factory notModifiable(Path path,
-      int segment,
-      Class<?> type) {
-    String fmt = PATH_SEGMENT
-        + "%s implementation encountered at segment \"%s\" appears to be unmodifiable";
-    String msg = String.format(fmt,
-        path,
-        segment + 1,
-        simpleClassName(type),
-        path.segment(segment));
-    return () -> new PathWalkerException(NOT_MODIFIABLE, msg);
+  static Factory notModifiable(Path path, int segment, Class<?> type) {
+    return () -> {
+      String fmt = PATH_SEGMENT + "%s at segment \"%s\" not modifiable";
+      String scn = simpleClassName(type);
+      String msg = fmt.formatted(path, segment + 1, scn, path.segment(segment));
+      return new PathWalkerException(msg);
+    };
   }
 
-  static Factory keyDeserializationFailed(Path path,
-      int segment,
-      KeyDeserializationException exc) {
-    String msg;
-    if (exc.getMessage() == null) {
-      String fmt = INVALID_PATH + " *** failed to deserialize \"%s\" into map key";
-      msg = String.format(fmt, path, segment + 1, path.segment(segment));
-      return () -> new PathWalkerException(KEY_DESERIALIZATION_FAILED, msg);
-    } else {
-      String fmt = INVALID_PATH + " *** %s";
-      msg = String.format(fmt, path, segment + 1, exc.getMessage());
-    }
-    return () -> new PathWalkerException(KEY_DESERIALIZATION_FAILED, msg);
+  static Factory keyDeserializationFailed(Path path, int segment, Exception exc) {
+    return () -> {
+      String msg;
+      if (exc.getMessage() == null) {
+        String fmt = INVALID_PATH + "Failed to deserialize \"%s\" into map key";
+        msg = fmt.formatted(path, segment + 1, path.segment(segment));
+      } else {
+        String fmt = INVALID_PATH + "%s";
+        msg = fmt.formatted(path, segment + 1, exc.getMessage());
+      }
+      return new PathWalkerException(msg);
+    };
   }
 
   static Factory unexpectedError(Path path, int segment, Throwable t) {
-    String fmt = PATH_SEGMENT + "unexpected error *** %s";
-    String msg = String.format(fmt, path, segment + 1, t);
-    return () -> new PathWalkerException(EXCEPTION, msg);
+    return () -> {
+      String fmt = PATH_SEGMENT + "Unexpected error. %s";
+      String msg = fmt.formatted(path, segment + 1, t);
+      return new PathWalkerException(msg);
+    };
   }
 
-  private final ErrorCode errorCode;
-
-  private PathWalkerException(ErrorCode errorCode, String message) {
+  private PathWalkerException(String message) {
     super(message);
-    this.errorCode = errorCode;
-  }
-
-  /**
-   * Return a symbolic constant for the error encountered by the {@link PathWalker}
-   *
-   * @return A symbolic constant for the error encountered by the {@link PathWalker}.
-   */
-  public ErrorCode getErrorCode() {
-    return errorCode;
   }
 
 }

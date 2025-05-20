@@ -9,7 +9,7 @@ import static org.klojang.path.PathWalkerException.noSuchKey;
 
 final class MapSegmentReader extends SegmentReader<Map<?, ?>> {
 
-  MapSegmentReader(boolean suppressExceptions, KeyDeserializer keyDeserializer) {
+  MapSegmentReader(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {
     super(suppressExceptions, keyDeserializer);
   }
 

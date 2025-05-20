@@ -12,7 +12,7 @@ import static org.klojang.path.PathWalkerException.*;
 @SuppressWarnings({"rawtypes", "unchecked"})
 final class BeanSegmentWriter extends SegmentWriter<Object> {
 
-  BeanSegmentWriter(boolean suppressExceptions, KeyDeserializer keyDeserializer) {
+  BeanSegmentWriter(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {
     super(suppressExceptions, keyDeserializer);
   }
 

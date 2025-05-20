@@ -11,9 +11,9 @@ import static org.klojang.util.ClassMethods.isPrimitiveArray;
 final class ObjectWriter {
 
   private final boolean se;
-  private final KeyDeserializer kd;
+  private final PathSegmentDeserializer kd;
 
-  ObjectWriter(boolean suppressExceptions, KeyDeserializer keyDeserializer) {
+  ObjectWriter(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {
     this.se = suppressExceptions;
     this.kd = keyDeserializer;
   }

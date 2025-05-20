@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
-import static org.klojang.path.ErrorCode.INDEX_EXPECTED;
-import static org.klojang.path.ErrorCode.INDEX_OUT_OF_BOUNDS;
 
 public class ListSegmentWriterTest {
 
@@ -50,7 +48,7 @@ public class ListSegmentWriterTest {
     try {
       writer.write(l, Path.from("8"), 42);
     } catch (PathWalkerException e) {
-      assertEquals(INDEX_OUT_OF_BOUNDS, e.getErrorCode());
+      assertTrue(e.getMessage().contains("Index out of bounds"));
       throw e;
     }
   }
@@ -69,7 +67,7 @@ public class ListSegmentWriterTest {
     try {
       writer.write(l, Path.from("path.to.list.8"), 42);
     } catch (PathWalkerException e) {
-      assertEquals(INDEX_OUT_OF_BOUNDS, e.getErrorCode());
+      assertTrue(e.getMessage().contains("Index out of bounds"));
       throw e;
     }
   }
@@ -88,7 +86,7 @@ public class ListSegmentWriterTest {
     try {
       writer.write(l, Path.from("path.to.list.foo"), 42);
     } catch (PathWalkerException e) {
-      assertEquals(INDEX_EXPECTED, e.getErrorCode());
+      assertTrue(e.getMessage().contains("index expected"));
       throw e;
     }
   }
@@ -100,8 +98,8 @@ public class ListSegmentWriterTest {
     try {
       writer.write(l, Path.from("path.to.list."), 42);
     } catch (PathWalkerException e) {
-      assertEquals(INDEX_EXPECTED, e.getErrorCode());
-      return;
+      assertTrue(e.getMessage().contains("index expected"));
+     return;
     }
     fail();
   }

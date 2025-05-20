@@ -10,8 +10,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
-import static org.klojang.path.ErrorCode.INDEX_OUT_OF_BOUNDS;
-import static org.klojang.path.ErrorCode.NO_SUCH_KEY;
 import static org.klojang.util.CollectionMethods.newHashMap;
 
 public class PathWalkerTest {
@@ -73,7 +71,8 @@ public class PathWalkerTest {
     try {
       new PathWalker(paths, false).read(shell);
     } catch (PathWalkerException e) {
-      assertEquals(INDEX_OUT_OF_BOUNDS, e.getErrorCode());
+      //System.out.println(e.getMessage());
+      assertTrue(e.getMessage().contains("Index out of bounds"));
       return;
     }
     fail();
@@ -123,7 +122,7 @@ public class PathWalkerTest {
     try {
       new PathWalker(paths, false).read(shell);
     } catch (PathWalkerException e) {
-      assertEquals(NO_SUCH_KEY, e.getErrorCode());
+      assertTrue(e.getMessage().contains("No such key"));
       return;
     }
     fail();

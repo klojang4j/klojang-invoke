@@ -10,7 +10,7 @@ import static org.klojang.path.PathWalkerException.notModifiable;
 @SuppressWarnings({"rawtypes", "unchecked"})
 final class MapSegmentWriter extends SegmentWriter<Map> {
 
-  MapSegmentWriter(boolean suppressExceptions, KeyDeserializer keyDeserializer) {
+  MapSegmentWriter(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {
     super(suppressExceptions, keyDeserializer);
   }
 

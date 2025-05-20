@@ -11,7 +11,7 @@ import static org.klojang.convert.NumberMethods.toInt;
 final class ArraySegmentReader extends
     SegmentReader<Object[]> {
 
-  ArraySegmentReader(boolean suppressExceptions, KeyDeserializer keyDeserializer) {
+  ArraySegmentReader(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {
     super(suppressExceptions, keyDeserializer);
   }
 
