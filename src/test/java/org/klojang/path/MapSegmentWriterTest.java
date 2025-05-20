@@ -10,13 +10,7 @@ import static org.junit.Assert.*;
 
 public class MapSegmentWriterTest {
 
-  PathSegmentDeserializer kds = (path, segment) -> {
-    try {
-      return Integer.valueOf(path.segment(-1));
-    } catch (Exception e) {
-      throw new KeyDeserializationException();
-    }
-  };
+  PathSegmentDeserializer kds = (path, segment) -> Integer.valueOf(path.segment(-1));
 
   @Test
   public void test01a() {
@@ -86,8 +80,8 @@ public class MapSegmentWriterTest {
     MapSegmentWriter writer = new MapSegmentWriter(false, kds);
     try {
       writer.write(m, Path.from("path.to.map.foo"), 42);
-    } catch (PathWalkerException e) {
-      //System.out.println(e.getMessage());
+    } catch (Exception e) {
+      e.printStackTrace();
       assertTrue(e.getMessage().contains("Failed to deserialize"));
       throw e;
     }

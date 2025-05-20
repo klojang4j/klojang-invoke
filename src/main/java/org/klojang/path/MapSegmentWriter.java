@@ -4,8 +4,8 @@ import org.klojang.util.Path;
 
 import java.util.Map;
 
-import static org.klojang.path.PathWalkerException.keyDeserializationFailed;
 import static org.klojang.path.PathWalkerException.notModifiable;
+import static org.klojang.path.PathWalkerException.segmentDeserializationFailed;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 final class MapSegmentWriter extends SegmentWriter<Map> {
@@ -23,8 +23,8 @@ final class MapSegmentWriter extends SegmentWriter<Map> {
     } else {
       try {
         key = kd.deserialize(path, segment);
-      } catch (KeyDeserializationException e) {
-        return deadEnd(keyDeserializationFailed(path, segment, e));
+      } catch (Exception e) {
+        return deadEnd(segmentDeserializationFailed(path, segment, e));
       }
     }
     try {

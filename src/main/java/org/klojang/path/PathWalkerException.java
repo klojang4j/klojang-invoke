@@ -102,16 +102,15 @@ public final class PathWalkerException extends RuntimeException {
     };
   }
 
-  static Factory keyDeserializationFailed(Path path, int segment, Exception exc) {
+  static Factory segmentDeserializationFailed(Path path, int segment, Exception exc) {
     return () -> {
-      String msg;
+      String fmt;
       if (exc.getMessage() == null) {
-        String fmt = INVALID_PATH + "Failed to deserialize \"%s\" into map key";
-        msg = fmt.formatted(path, segment + 1, path.segment(segment));
+        fmt = INVALID_PATH + "Failed to deserialize \"%s\" into map key";
       } else {
-        String fmt = INVALID_PATH + "%s";
-        msg = fmt.formatted(path, segment + 1, exc.getMessage());
+        fmt = INVALID_PATH + "Failed to deserialize \"%s\" into map key. " + exc;
       }
+      String msg = fmt.formatted(path, segment + 1, path.segment(segment));
       return new PathWalkerException(msg);
     };
   }

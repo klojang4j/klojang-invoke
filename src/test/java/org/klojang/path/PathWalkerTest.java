@@ -132,13 +132,7 @@ public class PathWalkerTest {
   public void test15() throws MalformedURLException {
     Company shell = shell();
     List<Path> paths = paths("departments.0.employees.0.extraInfo.https://nos^.nl");
-    PathWalker pw = new PathWalker(paths, true, (p, s) -> {
-      try {
-        return new URL(p.segment(-1));
-      } catch (MalformedURLException e) {
-        throw new KeyDeserializationException();
-      }
-    });
+    PathWalker pw = new PathWalker(paths, true, (p, s) -> new URL(p.segment(-1)));
     assertEquals("OkiDoki", pw.read(shell));
   }
 
@@ -147,13 +141,7 @@ public class PathWalkerTest {
     Company shell = shell();
     List<Path> paths = paths("departments.0.employees.0.extraInfo."
         + Path.escape("https://nos.nl"));
-    PathWalker pw = new PathWalker(paths, true, (p, s) -> {
-      try {
-        return new URL(p.segment(-1));
-      } catch (MalformedURLException e) {
-        throw new KeyDeserializationException();
-      }
-    });
+    PathWalker pw = new PathWalker(paths, true, (p, s) -> new URL(p.segment(-1)));
     assertEquals("OkiDoki", pw.read(shell));
   }
 

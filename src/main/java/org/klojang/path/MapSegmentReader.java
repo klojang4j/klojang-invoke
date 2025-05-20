@@ -4,7 +4,7 @@ import org.klojang.util.Path;
 
 import java.util.Map;
 
-import static org.klojang.path.PathWalkerException.keyDeserializationFailed;
+import static org.klojang.path.PathWalkerException.segmentDeserializationFailed;
 import static org.klojang.path.PathWalkerException.noSuchKey;
 
 final class MapSegmentReader extends SegmentReader<Map<?, ?>> {
@@ -21,8 +21,8 @@ final class MapSegmentReader extends SegmentReader<Map<?, ?>> {
     } else {
       try {
         key = kd.deserialize(path, segment);
-      } catch (KeyDeserializationException e) {
-        return deadEnd(keyDeserializationFailed(path, segment, e));
+      } catch (Exception e) {
+        return deadEnd(segmentDeserializationFailed(path, segment, e));
       }
     }
     Object val = map.get(key);

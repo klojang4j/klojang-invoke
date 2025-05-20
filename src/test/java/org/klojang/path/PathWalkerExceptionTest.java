@@ -37,18 +37,18 @@ public class PathWalkerExceptionTest {
   }
 
   @Test
-  public void keyDeserializationFailed00() {
-    PathWalkerException.Factory excFactory = PathWalkerException.keyDeserializationFailed(
-        Path.from("foo.bar.bozo"), 0, new KeyDeserializationException("no can do"));
+  public void segmentDeserializationFailed00() {
+    PathWalkerException.Factory excFactory = PathWalkerException.segmentDeserializationFailed(
+        Path.from("foo.bar.bozo"), 0, new Exception("no can do"));
     assertEquals(
-        "Invalid path: \"foo.bar.bozo\" (segment 1). no can do",
+        "Invalid path: \"foo.bar.bozo\" (segment 1). Failed to deserialize \"foo\" into map key. java.lang.Exception: no can do",
         excFactory.get().getMessage());
   }
 
   @Test
-  public void keyDeserializationFailed01() {
-    PathWalkerException.Factory excFactory = PathWalkerException.keyDeserializationFailed(
-        Path.from("foo.bar.bozo"), 0, new KeyDeserializationException());
+  public void segmentDeserializationFailed01() {
+    PathWalkerException.Factory excFactory = PathWalkerException.segmentDeserializationFailed(
+        Path.from("foo.bar.bozo"), 0, new Exception());
     assertEquals(
         "Invalid path: \"foo.bar.bozo\" (segment 1). Failed to deserialize \"foo\" into map key",
         excFactory.get().getMessage());
