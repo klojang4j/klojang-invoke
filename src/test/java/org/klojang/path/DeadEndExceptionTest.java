@@ -37,8 +37,8 @@ public class DeadEndExceptionTest {
   }
 
   @Test
-  public void segmentDeserializationFailed00() {
-    DeadEndException.Factory excFactory = DeadEndException.segmentDeserializationFailed(
+  public void deserializationFailed00() {
+    DeadEndException.Factory excFactory = DeadEndException.deserializationFailed(
         Path.from("foo.bar.bozo"), 0, new Exception("no can do"));
     assertEquals(
         "Invalid path: \"foo.bar.bozo\" (segment 1). Failed to deserialize \"foo\" into map key. java.lang.Exception: no can do",
@@ -46,8 +46,8 @@ public class DeadEndExceptionTest {
   }
 
   @Test
-  public void segmentDeserializationFailed01() {
-    DeadEndException.Factory excFactory = DeadEndException.segmentDeserializationFailed(
+  public void deserializationFailed01() {
+    DeadEndException.Factory excFactory = DeadEndException.deserializationFailed(
         Path.from("foo.bar.bozo"), 0, new Exception());
     assertEquals(
         "Invalid path: \"foo.bar.bozo\" (segment 1). Failed to deserialize \"foo\" into map key",

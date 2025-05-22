@@ -17,14 +17,16 @@ import static org.klojang.check.CommonChecks.empty;
  * turn the paths you specify through one of the constructors into a tree of path segments. This guarantees
  * that the {@code PathTreeWalker} makes a minimal amount of "movements" through the object from which to
  * retrieve the values. For example, say you have specified the following paths:
+ *
  * <blockquote><pre>{@code
  * person.address.street
  * person.address.zipCode
  * parson.address.city
  * }</pre></blockquote>
+ *
  * A {@code PathWalker} would perform 9 read operations as it retrieves the values for {@code street},
- * {@code zipCode}, and {@code city}. The {@code PathTreeWalker} on the other hand would perform only 5 read
- * operations, because it would retrieve the values for {@code person} and {@code address} just once. Thus the
+ * {@code zipCode}, and {@code city}. The {@code PathTreeWalker} on the other hand performs only 5 read
+ * operations, because it retrieves the values for {@code person} and {@code address} just once. Thus the
  * {@code PathTreeWalker} is likely to be more performant when reading a relatively large number of paths
  * that, together, constitute a somewhat flat hierarchy.
  *
@@ -35,6 +37,7 @@ public final class PathTreeWalker {
   private static final String PATHS = "paths";
 
   private final List<Path> paths;
+  private final SegmentNode root;
   private final boolean suppressExceptions;
   private final PathSegmentDeserializer segmentDeserializer;
 
@@ -44,10 +47,7 @@ public final class PathTreeWalker {
    * @param paths One or more paths representing possibly deeply-nested properties
    */
   public PathTreeWalker(Path... paths) {
-    Check.notNull(paths, PATHS);
-    this.paths = List.of(paths);
-    this.suppressExceptions = true;
-    this.segmentDeserializer = null;
+    this(List.of(Check.notNull(paths, PATHS).ok()));
   }
 
   /**
@@ -56,10 +56,7 @@ public final class PathTreeWalker {
    * @param paths The paths to walk through the provided host objects
    */
   public PathTreeWalker(String... paths) {
-    Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());
-    this.paths = Arrays.stream(paths).map(Path::from).toList();
-    this.suppressExceptions = true;
-    this.segmentDeserializer = null;
+    this(toPathList(paths), true);
   }
 
   /**
@@ -81,7 +78,8 @@ public final class PathTreeWalker {
    */
   public PathTreeWalker(List<Path> paths, boolean suppressExceptions) {
     Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());
-    this.paths = List.copyOf(paths);
+    this.paths = paths;
+    this.root = SegmentNode.buildTree(paths);
     this.suppressExceptions = suppressExceptions;
     this.segmentDeserializer = null;
   }
@@ -102,7 +100,8 @@ public final class PathTreeWalker {
       PathSegmentDeserializer segmentDeserializer) {
     Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());
     Check.notNull(segmentDeserializer, "segment deserializer");
-    this.paths = List.copyOf(paths);
+    this.paths = paths;
+    this.root = SegmentNode.buildTree(paths);
     this.suppressExceptions = suppressExceptions;
     this.segmentDeserializer = segmentDeserializer;
   }
@@ -116,12 +115,16 @@ public final class PathTreeWalker {
    *     retrieve the values of one or more paths.
    */
   public Map<Path, Result<Object>> read(Object host) throws DeadEndException {
-    SegmentNode root = SegmentNode.buildTree(paths);
     Map<Path, Result<Object>> results = HashMap.newHashMap(paths.size());
     paths.forEach(path -> results.put(path, Result.notAvailable()));
     ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);
     reader.read(results, host, root);
     return results;
+  }
+
+  private static List<Path> toPathList(String[] paths) {
+    Check.notNull(paths, PATHS);
+    return Arrays.stream(paths).map(Path::from).toList();
   }
 
 }

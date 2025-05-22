@@ -102,7 +102,7 @@ public final class DeadEndException extends RuntimeException {
     };
   }
 
-  static Factory segmentDeserializationFailed(Path path, int segment, Exception exc) {
+  static Factory deserializationFailed(Path path, int segment, Exception exc) {
     return () -> {
       String fmt;
       if (exc.getMessage() == null) {

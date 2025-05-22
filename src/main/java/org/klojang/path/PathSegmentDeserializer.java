@@ -2,12 +2,10 @@ package org.klojang.path;
 
 import org.klojang.util.Path;
 
-import java.util.List;
-
 /**
- * Specifies how to deserialize a path segment. A {@code PathSegmentDeserializer} can optionally be passed to
- * the {@link PathWalker#PathWalker(List, boolean, PathSegmentDeserializer) constructor} of the
- * {@link PathWalker} class. It is needed when reading or writing to maps that have a non-String key type.
+ * Specifies how to deserialize a path segment. A {@code PathSegmentDeserializer} can optionally be specified
+ * for {@link PathWalker} and {@link PathTreeWalker} instances. It is needed when reading or writing to maps
+ * that have a non-String key type.
  */
 @FunctionalInterface
 public interface PathSegmentDeserializer {

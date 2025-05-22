@@ -5,7 +5,7 @@ import org.klojang.util.Path;
 import java.util.Map;
 
 import static org.klojang.path.DeadEndException.notModifiable;
-import static org.klojang.path.DeadEndException.segmentDeserializationFailed;
+import static org.klojang.path.DeadEndException.deserializationFailed;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 final class MapSegmentWriter extends SegmentWriter<Map> {
@@ -24,7 +24,7 @@ final class MapSegmentWriter extends SegmentWriter<Map> {
       try {
         key = kd.deserialize(path, segment);
       } catch (Exception e) {
-        return deadEnd(segmentDeserializationFailed(path, segment, e));
+        return deadEnd(deserializationFailed(path, segment, e));
       }
     }
     try {

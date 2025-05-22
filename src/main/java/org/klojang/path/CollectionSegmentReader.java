@@ -30,9 +30,9 @@ final class CollectionSegmentReader extends SegmentReader<Collection> {
           ;
         return Result.of(iter.next());
       }
-      return deadEnd(indexOutOfBounds(node.getFirstFullPath(), node.segmentIndex()));
+      return deadEnd(indexOutOfBounds(node.getArbitraryFullPath(), node.segmentIndex()));
     }
-    return deadEnd(indexExpected(node.getFirstFullPath(), node.segmentIndex()));
+    return deadEnd(indexExpected(node.getArbitraryFullPath(), node.segmentIndex()));
   }
 
   @Override
@@ -50,7 +50,7 @@ final class CollectionSegmentReader extends SegmentReader<Collection> {
             ;
           elem = iter.next();
         }
-        return new ObjectReader(se, kd).read(elem, path, ++segment);
+        return new ObjectReader(suppressExceptions, keyDeserializer).read(elem, path, ++segment);
       }
       return deadEnd(indexOutOfBounds(path, segment));
     }

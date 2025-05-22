@@ -22,7 +22,7 @@ final class PrimitiveArraySegmentReader extends
   Result<Object> read(Object array, SegmentNode node) {
     OptionalInt opt = toInt(node.segment());
     if (opt.isEmpty()) {
-      return deadEnd(indexExpected(node.getFirstFullPath(), node.segmentIndex()));
+      return deadEnd(indexExpected(node.getArbitraryFullPath(), node.segmentIndex()));
     }
     int idx = opt.getAsInt();
     int len = getArrayLength(array);
@@ -30,7 +30,7 @@ final class PrimitiveArraySegmentReader extends
       Object val = getArrayElement(array, idx);
       return Result.of(val);
     }
-    return deadEnd(indexOutOfBounds(node.getFirstFullPath(), node.segmentIndex()));
+    return deadEnd(indexOutOfBounds(node.getArbitraryFullPath(), node.segmentIndex()));
   }
 
   @Override
@@ -43,7 +43,7 @@ final class PrimitiveArraySegmentReader extends
     int len = getArrayLength(array);
     if (idx >= 0 && idx < len) {
       Object val = getArrayElement(array, idx);
-      return new ObjectReader(se, kd).read(val, path, ++segment);
+      return new ObjectReader(suppressExceptions, keyDeserializer).read(val, path, ++segment);
     }
     return deadEnd(indexOutOfBounds(path, segment));
   }

@@ -6,7 +6,7 @@ import org.klojang.util.Path;
 import java.util.Map;
 
 import static org.klojang.path.DeadEndException.noSuchKey;
-import static org.klojang.path.DeadEndException.segmentDeserializationFailed;
+import static org.klojang.path.DeadEndException.deserializationFailed;
 
 final class MapSegmentReader extends SegmentReader<Map<?, ?>> {
 
@@ -17,18 +17,18 @@ final class MapSegmentReader extends SegmentReader<Map<?, ?>> {
   @Override
   Result<Object> read(Map<?, ?> map, SegmentNode node) {
     Object key;
-    if (kd == null) {
+    if (keyDeserializer == null) {
       key = node.segment();
     } else {
       try {
-        key = kd.deserialize(node.toPath(), node.segmentIndex());
+        key = keyDeserializer.deserialize(node.toPath(), node.segmentIndex());
       } catch (Exception e) {
-        return deadEnd(segmentDeserializationFailed(node.toPath(), node.segmentIndex(), e));
+        return deadEnd(deserializationFailed(node.getArbitraryFullPath(), node.segmentIndex(), e));
       }
     }
     Object val = map.get(key);
     if (val == null && !map.containsKey(key)) {
-      return deadEnd(noSuchKey(node.getFirstFullPath(), node.segmentIndex(), key));
+      return deadEnd(noSuchKey(node.getArbitraryFullPath(), node.segmentIndex(), key));
     }
     return Result.of(val);
   }
@@ -36,20 +36,20 @@ final class MapSegmentReader extends SegmentReader<Map<?, ?>> {
   @Override
   Result<Object> read(Map<?, ?> map, Path path, int segment) {
     Object key;
-    if (kd == null) {
+    if (keyDeserializer == null) {
       key = path.segment(segment);
     } else {
       try {
-        key = kd.deserialize(path, segment);
+        key = keyDeserializer.deserialize(path, segment);
       } catch (Exception e) {
-        return deadEnd(segmentDeserializationFailed(path, segment, e));
+        return deadEnd(deserializationFailed(path, segment, e));
       }
     }
     Object val = map.get(key);
     if (val == null && !map.containsKey(key)) {
       return deadEnd(noSuchKey(path, segment, key));
     }
-    return new ObjectReader(se, kd).read(val, path, ++segment);
+    return new ObjectReader(suppressExceptions, keyDeserializer).read(val, path, ++segment);
   }
 
 }

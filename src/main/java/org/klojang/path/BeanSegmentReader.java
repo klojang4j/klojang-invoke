@@ -20,18 +20,18 @@ final class BeanSegmentReader extends SegmentReader<Object> {
   Result<Object> read(Object bean, SegmentNode node) {
     String property = node.segment();
     if (isEmpty(property)) {
-      return deadEnd(emptySegment(node.getFirstFullPath(), node.segmentIndex()));
+      return deadEnd(emptySegment(node.getArbitraryFullPath(), node.segmentIndex()));
     }
     BeanReader reader;
     try {
       reader = new BeanReader(bean.getClass());
     } catch (NoPublicGettersException e) {
-      return deadEnd(terminalValue(node.getFirstFullPath(), node.segmentIndex(), bean.getClass()));
+      return deadEnd(terminalValue(node.getArbitraryFullPath(), node.segmentIndex(), bean.getClass()));
     }
     try {
       return Result.of(reader.read(bean, property));
     } catch (NoSuchPropertyException e) {
-      return deadEnd(noSuchProperty(node.getFirstFullPath(), node.segmentIndex(), bean.getClass()));
+      return deadEnd(noSuchProperty(node.getArbitraryFullPath(), node.segmentIndex(), bean.getClass()));
     }
   }
 
@@ -49,7 +49,7 @@ final class BeanSegmentReader extends SegmentReader<Object> {
     }
     try {
       Object val = reader.read(bean, property);
-      return new ObjectReader(se, kd).read(val, path, ++segment);
+      return new ObjectReader(suppressExceptions, keyDeserializer).read(val, path, ++segment);
     } catch (NoSuchPropertyException e) {
       return deadEnd(noSuchProperty(path, segment, bean.getClass()));
     }

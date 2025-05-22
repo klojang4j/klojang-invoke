@@ -23,9 +23,9 @@ final class ArraySegmentReader extends SegmentReader<Object[]> {
       if (idx < array.length) {
         return Result.of(array[idx]);
       }
-      return deadEnd(indexOutOfBounds(node.getFirstFullPath(), node.segmentIndex()));
+      return deadEnd(indexOutOfBounds(node.getArbitraryFullPath(), node.segmentIndex()));
     }
-    return deadEnd(indexExpected(node.getFirstFullPath(), node.segmentIndex()));
+    return deadEnd(indexExpected(node.getArbitraryFullPath(), node.segmentIndex()));
   }
 
   @Override
@@ -34,7 +34,7 @@ final class ArraySegmentReader extends SegmentReader<Object[]> {
     if (opt.isPresent()) {
       int idx = opt.getAsInt();
       if (idx < array.length) {
-        return new ObjectReader(se, kd).read(array[idx], path, ++segment);
+        return new ObjectReader(suppressExceptions, keyDeserializer).read(array[idx], path, ++segment);
       }
       return deadEnd(indexOutOfBounds(path, segment));
     }

@@ -2,40 +2,43 @@ package org.klojang.path;
 
 import org.klojang.util.Path;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Collections.reverse;
-
 final class SegmentNode {
 
   static SegmentNode buildTree(List<Path> paths) {
-    SegmentNode root = new SegmentNode(null, null);
-    paths.forEach(root::addPath);
+    SegmentNode root = new SegmentNode(null, -1);
+    paths.forEach(p -> root.addPath(p, 0));
     return root;
   }
 
-  private final String segment;
-  private final SegmentNode parent;
-  private final Map<String, SegmentNode> children = new HashMap<>();
 
-  SegmentNode(String segment, SegmentNode parent) {
-    this.segment = segment;
-    this.parent = parent;
+  private final Path path;
+  private final int index;
+  private final Map<String, SegmentNode> children;
+
+  SegmentNode(Path path, int index) {
+    this.path = path;
+    this.index = index;
+    this.children = new HashMap<>();
   }
 
   String segment() {
-    return segment;
+    return path.segment(index);
   }
 
-  boolean isRoot() {
-    return parent == null;
+  /*
+   * We don't mean here the first segment of any of the paths passed to PathTreeWalker, but the "virtual" node
+   * created by buildTree()
+   */
+  boolean isRootNode() {
+    return path == null;
   }
 
   boolean isLeaf() {
-    return children.isEmpty();
+    return index == path.size() - 1;
   }
 
   Map<String, SegmentNode> children() {
@@ -43,40 +46,38 @@ final class SegmentNode {
   }
 
   int segmentIndex() {
-    int idx = 0;
-    SegmentNode current = this;
-    while (current.parent != null) {
-      ++idx;
-      current = current.parent;
-    }
-    return idx;
+    return index;
   }
 
-  Path getFirstFullPath() {
-    List<String> segments = new ArrayList<>();
-    SegmentNode current = this;
-    while (current.parent != null) {
-      segments.add(current.segment);
-      current = current.parent;
-    }
-    reverse(segments);
-    current = this;
-    while (!current.children.isEmpty()) {
-      current = current.children.values().iterator().next();
-      segments.add(current.segment);
-    }
-    return Path.ofSegments(segments);
+  /*
+   * Returns the first path that caused a new entry to be created in the parent node's children map. Take for
+   * example:
+   *
+   * person.address.street
+   * person.address.city
+   *
+   * When creating a node for the address segment, that node will have "person.address.street" as its path
+   * (and segment index 1, which points to the "address" segment). That's simply because, when building the
+   * tree, "person.address.street" was encountered before "person.address.city". The address node will have
+   * two child nodes. One will again have "person.address.street" as its path (and segment index 2), and the
+   * other "person.address.city" (also with segment index 2). So the "person.address.city" node will have as
+   * its parent a node with path "person.address.street".
+   *
+   * Why does this not matter? Because this method will only be called if something went wrong while reading
+   * the address segment. With the PathTreeWalker class you can't really say whether you were retrieving the
+   * value for "person.address.street" or for "person.address.city" when something already went wrong while
+   * reading the preceding segments. So we just pick one so that the error reporting looks the same as with
+   * the PathWalker class.
+   */
+  Path getArbitraryFullPath() {
+    return path;
   }
 
   Path toPath() {
-    List<String> segments = new ArrayList<>();
-    SegmentNode current = this;
-    while (current.parent != null) {
-      segments.add(current.segment);
-      current = current.parent;
+    if (segmentIndex() == path.size() - 1) {
+      return path;
     }
-    reverse(segments);
-    return Path.ofSegments(segments);
+    return path.subPath(0, index + 1);
   }
 
   @Override
@@ -84,9 +85,10 @@ final class SegmentNode {
     return toPath().toString();
   }
 
-  private void addPath(Path path) {
-    if (!path.isEmpty()) {
-      children.computeIfAbsent(path.segment(0), k -> new SegmentNode(k, this)).addPath(path.shift());
+  private void addPath(Path path, int index) {
+    if (index < path.size()) {
+      SegmentNode node = children.computeIfAbsent(path.segment(index), _ -> new SegmentNode(path, index));
+      node.addPath(path, index + 1);
     }
   }
 

@@ -6,12 +6,12 @@ import org.klojang.util.Path;
 abstract sealed class SegmentReader<T> permits ArraySegmentReader, BeanSegmentReader,
     CollectionSegmentReader, MapSegmentReader, PrimitiveArraySegmentReader {
 
-  final boolean se;
-  final PathSegmentDeserializer kd;
+  final boolean suppressExceptions;
+  final PathSegmentDeserializer keyDeserializer;
 
   SegmentReader(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {
-    this.se = suppressExceptions;
-    this.kd = keyDeserializer;
+    this.suppressExceptions = suppressExceptions;
+    this.keyDeserializer = keyDeserializer;
   }
 
   abstract Result<Object> read(T obj, SegmentNode node);
@@ -19,7 +19,7 @@ abstract sealed class SegmentReader<T> permits ArraySegmentReader, BeanSegmentRe
   abstract Result<Object> read(T obj, Path path, int segment);
 
   Result<Object> deadEnd(DeadEndException.Factory excFactory) {
-    if (se) {
+    if (suppressExceptions) {
       return Result.notAvailable();
     }
     throw excFactory.get();
