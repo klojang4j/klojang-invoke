@@ -11,8 +11,7 @@ import static org.klojang.path.DeadEndException.indexOutOfBounds;
 import static org.klojang.util.InvokeMethods.getArrayElement;
 import static org.klojang.util.InvokeMethods.getArrayLength;
 
-final class PrimitiveArraySegmentReader extends
-    SegmentReader<Object> {
+final class PrimitiveArraySegmentReader extends SegmentReader<Object> {
 
   PrimitiveArraySegmentReader(boolean suppressExceptions,
       PathSegmentDeserializer keyDeserializer) {

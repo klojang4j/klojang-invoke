@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SegmentNode.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Klojang Invoke</a> &gt; <a href="index.source.html" class="el_package">org.klojang.path</a> &gt; <span class="el_source">SegmentNode.java</span></div><h1>SegmentNode.java</h1><pre class="source lang-java linenums">package org.klojang.path;
+
+import org.klojang.util.Path;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+final class SegmentNode {
+
+  static SegmentNode buildTree(List&lt;Path&gt; paths) {
+<span class="fc" id="L12">    SegmentNode root = new SegmentNode(null, -1);</span>
+<span class="fc" id="L13">    paths.forEach(p -&gt; root.addPath(p, 0));</span>
+<span class="fc" id="L14">    return root;</span>
+  }
+
+
+  private final Path path;
+  private final int index;
+  private final Map&lt;String, SegmentNode&gt; children;
+
+<span class="fc" id="L22">  SegmentNode(Path path, int index) {</span>
+<span class="fc" id="L23">    this.path = path;</span>
+<span class="fc" id="L24">    this.index = index;</span>
+<span class="fc" id="L25">    this.children = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L26">  }</span>
+
+  String segment() {
+<span class="fc" id="L29">    return path.segment(index);</span>
+  }
+
+  /*
+   * We don't mean here the first segment of any of the paths passed to PathTreeWalker, but the &quot;virtual&quot; node
+   * created by buildTree()
+   */
+  boolean isRootNode() {
+<span class="fc bfc" id="L37" title="All 2 branches covered.">    return path == null;</span>
+  }
+
+  boolean isLeaf() {
+<span class="fc bfc" id="L41" title="All 2 branches covered.">    return index == path.size() - 1;</span>
+  }
+
+  Map&lt;String, SegmentNode&gt; children() {
+<span class="fc" id="L45">    return children;</span>
+  }
+
+  int segmentIndex() {
+<span class="fc" id="L49">    return index;</span>
+  }
+
+  /*
+   * Returns the first path that caused a new entry to be created in the parent node's children map. Take for
+   * example:
+   *
+   * person.address.street
+   * person.address.city
+   *
+   * When creating a node for the address segment, that node will have &quot;person.address.street&quot; as its path
+   * (and segment index 1, which points to the &quot;address&quot; segment). That's simply because, when building the
+   * tree, &quot;person.address.street&quot; was encountered before &quot;person.address.city&quot;. The address node will have
+   * two child nodes. One will again have &quot;person.address.street&quot; as its path (and segment index 2), and the
+   * other &quot;person.address.city&quot; (also with segment index 2). So the &quot;person.address.city&quot; node will have as
+   * its parent a node with path &quot;person.address.street&quot;.
+   *
+   * Why does this not matter? Because this method will only be called if something went wrong while reading
+   * the address segment. With the PathTreeWalker class you can't really say whether you were retrieving the
+   * value for &quot;person.address.street&quot; or for &quot;person.address.city&quot; when something already went wrong while
+   * reading the preceding segments. So we just pick one so that the error reporting looks the same as with
+   * the PathWalker class.
+   */
+  Path getArbitraryFullPath() {
+<span class="fc" id="L73">    return path;</span>
+  }
+
+  Path toPath() {
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">    if (segmentIndex() == path.size() - 1) {</span>
+<span class="fc" id="L78">      return path;</span>
+    }
+<span class="nc" id="L80">    return path.subPath(0, index + 1);</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L85">    return toPath().toString();</span>
+  }
+
+  private void addPath(Path path, int index) {
+<span class="fc bfc" id="L89" title="All 2 branches covered.">    if (index &lt; path.size()) {</span>
+<span class="fc" id="L90">      SegmentNode node = children.computeIfAbsent(path.segment(index), _ -&gt; new SegmentNode(path, index));</span>
+<span class="fc" id="L91">      node.addPath(path, index + 1);</span>
+    }
+<span class="fc" id="L93">  }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

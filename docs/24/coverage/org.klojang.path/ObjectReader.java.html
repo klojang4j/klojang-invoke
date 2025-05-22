@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ObjectReader.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Klojang Invoke</a> &gt; <a href="index.source.html" class="el_package">org.klojang.path</a> &gt; <span class="el_source">ObjectReader.java</span></div><h1>ObjectReader.java</h1><pre class="source lang-java linenums">package org.klojang.path;
+
+import org.klojang.check.extra.Result;
+import org.klojang.util.Path;
+
+import java.util.Collection;
+import java.util.Map;
+
+import static org.klojang.path.DeadEndException.nullValue;
+import static org.klojang.util.ClassMethods.isPrimitiveArray;
+
+final class ObjectReader {
+
+  private final boolean suppressExceptions;
+  private final PathSegmentDeserializer keyDeserializer;
+
+<span class="fc" id="L17">  ObjectReader(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {</span>
+<span class="fc" id="L18">    this.suppressExceptions = suppressExceptions;</span>
+<span class="fc" id="L19">    this.keyDeserializer = keyDeserializer;</span>
+<span class="fc" id="L20">  }</span>
+
+  void read(Map&lt;Path, Result&lt;Object&gt;&gt; results, Object obj, SegmentNode node) {
+<span class="fc bfc" id="L23" title="All 2 branches covered.">    if (node.isRootNode()) {</span>
+<span class="fc" id="L24">      node.children().values().forEach(child -&gt; read(results, obj, child));</span>
+<span class="pc bpc" id="L25" title="1 of 2 branches missed.">    } else if (obj == null) {</span>
+<span class="nc bnc" id="L26" title="All 2 branches missed.">      if (!suppressExceptions) {</span>
+<span class="nc" id="L27">        throw nullValue(node.getArbitraryFullPath(), node.segmentIndex()).get();</span>
+      }
+    } else {
+      Result&lt;Object&gt; next;
+<span class="fc bfc" id="L31" title="All 2 branches covered.">      if (obj instanceof Collection&lt;?&gt; x) {</span>
+<span class="fc" id="L32">        next = new CollectionSegmentReader(suppressExceptions, keyDeserializer).read(x, node);</span>
+<span class="pc bpc" id="L33" title="1 of 2 branches missed.">      } else if (obj instanceof Object[] x) {</span>
+<span class="nc" id="L34">        next = new ArraySegmentReader(suppressExceptions, keyDeserializer).read(x, node);</span>
+<span class="pc bpc" id="L35" title="1 of 2 branches missed.">      } else if (obj instanceof Map&lt;?, ?&gt; x) {</span>
+<span class="fc" id="L36">        next = new MapSegmentReader(suppressExceptions, keyDeserializer).read(x, node);</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">      } else if (isPrimitiveArray(obj)) {</span>
+<span class="nc" id="L38">        next = new PrimitiveArraySegmentReader(suppressExceptions, keyDeserializer).read(obj, node);</span>
+      } else {
+<span class="nc" id="L40">        next = new BeanSegmentReader(suppressExceptions, keyDeserializer).read(obj, node);</span>
+      }
+<span class="fc bfc" id="L42" title="All 2 branches covered.">      if (next.isAvailable()) {</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        if (node.isLeaf()) {</span>
+<span class="fc" id="L44">          results.put(node.toPath(), next);</span>
+        } else {
+<span class="fc" id="L46">          node.children().values().forEach(child -&gt; read(results, next.get(), child));</span>
+        }
+      }
+    }
+<span class="fc" id="L50">  }</span>
+
+  Result&lt;Object&gt; read(Object obj, Path path, int segment) {
+<span class="fc bfc" id="L53" title="All 2 branches covered.">    if (segment == path.size()) {</span>
+<span class="fc" id="L54">      return Result.of(obj);</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">    } else if (obj == null) {</span>
+<span class="nc" id="L56">      return deadEnd(nullValue(path, segment));</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">    } else if (obj instanceof Collection&lt;?&gt; x) {</span>
+<span class="fc" id="L58">      return new CollectionSegmentReader(suppressExceptions, keyDeserializer).read(x, path, segment);</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">    } else if (obj instanceof Object[] x) {</span>
+<span class="fc" id="L60">      return new ArraySegmentReader(suppressExceptions, keyDeserializer).read(x, path, segment);</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">    } else if (obj instanceof Map&lt;?, ?&gt; x) {</span>
+<span class="fc" id="L62">      return new MapSegmentReader(suppressExceptions, keyDeserializer).read(x, path, segment);</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">    } else if (isPrimitiveArray(obj)) {</span>
+<span class="fc" id="L64">      return new PrimitiveArraySegmentReader(suppressExceptions, keyDeserializer).read(obj, path, segment);</span>
+    }
+<span class="fc" id="L66">    return new BeanSegmentReader(suppressExceptions, keyDeserializer).read(obj, path, segment);</span>
+  }
+
+  Result&lt;Object&gt; deadEnd(DeadEndException.Factory excFactory) {
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">    if (suppressExceptions) {</span>
+<span class="nc" id="L71">      return Result.notAvailable();</span>
+    }
+<span class="fc" id="L73">    throw excFactory.get();</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
