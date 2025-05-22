@@ -2,13 +2,10 @@
 
 _Klojang Invoke_ is a Java module focused on path-based object access and dynamic
 invocation. Its central class is the
-[PathWalker](https://klojang4j.github.io/klojang-invoke/api/org.klojang.invoke/org/klojang/path/PathWalker.html)
+[PathWalker](https://klojang4j.github.io/klojang-invoke/24/api/org.klojang.invoke/org/klojang/path/PathWalker.html)
 class. This class lets you read from, and write to a wide variety of types using
-`org.klojang.util.Path` objects (this class is defined in the klojang-util module).
-
-_Klojang Invoke_ is mainly intended as a supporting library for
-[Klojang Templates](https://github.com/klojang4j/klojang-templates), but can be used and
-useful separately from it.
+[org.klojang.util.Path](https://klojang4j.github.io/klojang-util/24/api/org.klojang.util/org/klojang/util/Path.html)
+objects (this class is defined in the klojang-util module).
 
 ## Getting Started
 
@@ -19,14 +16,14 @@ To use _Klojang Invoke_, add the following dependency to your Maven POM file:
 <dependency>
     <groupId>org.klojang</groupId>
     <artifactId>klojang-invoke</artifactId>
-    <version>21.3.0</version>
+    <version>24.0.0</version>
 </dependency>
 ```
 
 or Gradle build script:
 
 ```
-implementation group: 'org.klojang', name: 'klojang-invoke', version: '21.3.0'
+implementation group: 'org.klojang', name: 'klojang-invoke', version: '24.0.0'
 ```
 
 ## Documentation
