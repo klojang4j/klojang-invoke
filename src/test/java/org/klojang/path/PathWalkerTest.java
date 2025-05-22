@@ -2,6 +2,7 @@ package org.klojang.path;
 
 import org.junit.Test;
 import org.klojang.check.extra.Result;
+import org.klojang.util.JSONObject;
 import org.klojang.util.Path;
 
 import java.math.BigDecimal;
@@ -305,5 +306,32 @@ public class PathWalkerTest {
     assertEquals(200, vals.get(1).get());
     assertEquals(300, vals.get(2).get());
   }
+
+//  @Test
+//  public void readAsTree00() {
+//    Map<String, Object> map = JSONObject.empty().
+//        in("person.address")
+//        .set("street", "Main St.")
+//        .set("zip", "CA12345")
+//        .set("city", "San Francisco")
+//        .up("person")
+//        .set("hobbies", List.of("football", "tennis"))
+//        .set("insurance", null)
+//        .build();
+////    PathWalker pathWalker = new PathWalker("person.insurance");
+//    PathWalker pathWalker = new PathWalker("person.address.street",
+//        "person.address.zip",
+//        "person.hobbies.0",
+//        "person.hobbies.1",
+//        "foo",
+//        "person.insurance");
+//    Map<Path, Result<Object>> results = pathWalker.readAsTree(map);
+//    assertEquals("Main St.", results.get(Path.from("person.address.street")).get());
+//    assertEquals("CA12345", results.get(Path.from("person.address.zip")).get());
+//    assertEquals("football", results.get(Path.from("person.hobbies.0")).get());
+//    assertEquals("tennis", results.get(Path.from("person.hobbies.1")).get());
+//    assertEquals(Result.notAvailable(), results.get(Path.from("foo")));
+//    assertNull(results.get(Path.from("person.insurance")).get());
+//  }
 
 }

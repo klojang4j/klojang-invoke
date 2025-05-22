@@ -14,7 +14,9 @@ abstract sealed class SegmentReader<T> permits ArraySegmentReader, BeanSegmentRe
     this.kd = keyDeserializer;
   }
 
-  abstract Object read(T obj, Path path, int segment);
+  abstract Result<Object> read(T obj, SegmentNode node);
+
+  abstract Result<Object> read(T obj, Path path, int segment);
 
   Result<Object> deadEnd(DeadEndException.Factory excFactory) {
     if (se) {

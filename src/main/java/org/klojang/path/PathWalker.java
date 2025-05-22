@@ -6,7 +6,9 @@ import org.klojang.check.extra.Result;
 import org.klojang.util.Path;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.klojang.check.CommonChecks.*;
 import static org.klojang.check.CommonProperties.size;

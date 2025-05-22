@@ -12,9 +12,27 @@ import static org.klojang.convert.NumberMethods.toInt;
 @SuppressWarnings("rawtypes")
 final class CollectionSegmentReader extends SegmentReader<Collection> {
 
-  CollectionSegmentReader(boolean suppressExceptions,
-      PathSegmentDeserializer keyDeserializer) {
+  CollectionSegmentReader(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {
     super(suppressExceptions, keyDeserializer);
+  }
+
+  @Override
+  Result<Object> read(Collection collection, SegmentNode node) {
+    OptionalInt opt = toInt(node.segment());
+    if (opt.isPresent()) {
+      int idx = opt.getAsInt();
+      if (idx < collection.size()) {
+        if (collection instanceof List list) {
+          return Result.of(list.get(idx));
+        }
+        Iterator iter = collection.iterator();
+        for (; idx != 0 && iter.hasNext(); --idx, iter.next())
+          ;
+        return Result.of(iter.next());
+      }
+      return deadEnd(indexOutOfBounds(node.getFirstFullPath(), node.segmentIndex()));
+    }
+    return deadEnd(indexExpected(node.getFirstFullPath(), node.segmentIndex()));
   }
 
   @Override

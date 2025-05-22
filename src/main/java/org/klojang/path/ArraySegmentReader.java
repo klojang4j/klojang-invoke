@@ -5,15 +5,27 @@ import org.klojang.util.Path;
 
 import java.util.OptionalInt;
 
+import static org.klojang.convert.NumberMethods.toInt;
 import static org.klojang.path.DeadEndException.indexExpected;
 import static org.klojang.path.DeadEndException.indexOutOfBounds;
-import static org.klojang.convert.NumberMethods.toInt;
 
-final class ArraySegmentReader extends
-    SegmentReader<Object[]> {
+final class ArraySegmentReader extends SegmentReader<Object[]> {
 
   ArraySegmentReader(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {
     super(suppressExceptions, keyDeserializer);
+  }
+
+  @Override
+  Result<Object> read(Object[] array, SegmentNode node) {
+    OptionalInt opt = toInt(node.segment());
+    if (opt.isPresent()) {
+      int idx = opt.getAsInt();
+      if (idx < array.length) {
+        return Result.of(array[idx]);
+      }
+      return deadEnd(indexOutOfBounds(node.getFirstFullPath(), node.segmentIndex()));
+    }
+    return deadEnd(indexExpected(node.getFirstFullPath(), node.segmentIndex()));
   }
 
   @Override

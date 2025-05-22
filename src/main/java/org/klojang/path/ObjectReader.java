@@ -11,12 +11,42 @@ import static org.klojang.util.ClassMethods.isPrimitiveArray;
 
 final class ObjectReader {
 
-  private final boolean se;
-  private final PathSegmentDeserializer kd;
+  private final boolean suppressExceptions;
+  private final PathSegmentDeserializer keyDeserializer;
 
   ObjectReader(boolean suppressExceptions, PathSegmentDeserializer keyDeserializer) {
-    this.se = suppressExceptions;
-    this.kd = keyDeserializer;
+    this.suppressExceptions = suppressExceptions;
+    this.keyDeserializer = keyDeserializer;
+  }
+
+  void read(Map<Path, Result<Object>> results, Object obj, SegmentNode node) {
+    if (node.isRoot()) {
+      node.children().values().forEach(child -> read(results, obj, child));
+    } else if (obj == null) {
+      if (!suppressExceptions) {
+        throw nullValue(node.getFirstFullPath(), node.segmentIndex()).get();
+      }
+    } else {
+      Result<Object> next;
+      if (obj instanceof Collection<?> x) {
+        next = new CollectionSegmentReader(suppressExceptions, keyDeserializer).read(x, node);
+      } else if (obj instanceof Object[] x) {
+        next = new ArraySegmentReader(suppressExceptions, keyDeserializer).read(x, node);
+      } else if (obj instanceof Map<?, ?> x) {
+        next = new MapSegmentReader(suppressExceptions, keyDeserializer).read(x, node);
+      } else if (isPrimitiveArray(obj)) {
+        next = new PrimitiveArraySegmentReader(suppressExceptions, keyDeserializer).read(obj, node);
+      } else {
+        next = new BeanSegmentReader(suppressExceptions, keyDeserializer).read(obj, node);
+      }
+      if (next.isAvailable()) {
+        if (node.isLeaf()) {
+          results.put(node.toPath(), next);
+        } else {
+          node.children().values().forEach(child -> read(results, next.get(), child));
+        }
+      }
+    }
   }
 
   Result<Object> read(Object obj, Path path, int segment) {
@@ -24,20 +54,20 @@ final class ObjectReader {
       return Result.of(obj);
     } else if (obj == null) {
       return deadEnd(nullValue(path, segment));
-    } else if (obj instanceof Collection<?> c) {
-      return new CollectionSegmentReader(se, kd).read(c, path, segment);
-    } else if (obj instanceof Object[] o) {
-      return new ArraySegmentReader(se, kd).read(o, path, segment);
-    } else if (obj instanceof Map<?, ?> m) {
-      return new MapSegmentReader(se, kd).read(m, path, segment);
+    } else if (obj instanceof Collection<?> x) {
+      return new CollectionSegmentReader(suppressExceptions, keyDeserializer).read(x, path, segment);
+    } else if (obj instanceof Object[] x) {
+      return new ArraySegmentReader(suppressExceptions, keyDeserializer).read(x, path, segment);
+    } else if (obj instanceof Map<?, ?> x) {
+      return new MapSegmentReader(suppressExceptions, keyDeserializer).read(x, path, segment);
     } else if (isPrimitiveArray(obj)) {
-      return new PrimitiveArraySegmentReader(se, kd).read(obj, path, segment);
+      return new PrimitiveArraySegmentReader(suppressExceptions, keyDeserializer).read(obj, path, segment);
     }
-    return new BeanSegmentReader(se, kd).read(obj, path, segment);
+    return new BeanSegmentReader(suppressExceptions, keyDeserializer).read(obj, path, segment);
   }
 
   Result<Object> deadEnd(DeadEndException.Factory excFactory) {
-    if (se) {
+    if (suppressExceptions) {
       return Result.notAvailable();
     }
     throw excFactory.get();
