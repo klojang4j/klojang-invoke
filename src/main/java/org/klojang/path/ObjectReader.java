@@ -20,9 +20,7 @@ final class ObjectReader {
   }
 
   void read(Map<Path, Result<Object>> results, Object obj, SegmentNode node) {
-    if (node.isRootNode()) {
-      node.children().values().forEach(child -> read(results, obj, child));
-    } else if (obj == null) {
+    if (obj == null) {
       if (!suppressExceptions) {
         throw nullValue(node.getArbitraryFullPath(), node.segmentIndex()).get();
       }

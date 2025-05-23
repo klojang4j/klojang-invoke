@@ -29,14 +29,6 @@ final class SegmentNode {
     return path.segment(index);
   }
 
-  /*
-   * We don't mean here the first segment of any of the paths passed to PathTreeWalker, but the "virtual" node
-   * created by buildTree()
-   */
-  boolean isRootNode() {
-    return path == null;
-  }
-
   boolean isLeaf() {
     return index == path.size() - 1;
   }
@@ -56,25 +48,25 @@ final class SegmentNode {
    * person.address.street
    * person.address.city
    *
-   * When creating a node for the address segment, that node will have "person.address.street" as its path
-   * (and segment index 1, which points to the "address" segment). That's simply because, when building the
-   * tree, "person.address.street" was encountered before "person.address.city". The address node will have
-   * two child nodes. One will again have "person.address.street" as its path (and segment index 2), and the
-   * other "person.address.city" (also with segment index 2). So the "person.address.city" node will have as
-   * its parent a node with path "person.address.street".
+   * When creating a node for the address segment, that node will have person.address.street as its path (and
+   * segment index 1, which points to the address segment). That's simply because, when building the tree,
+   * person.address.street happened to be processed before person.address.city. The address node will have two
+   * child nodes. One will again have person.address.street as its path (but now with segment index 2), and
+   * the other person.address.city (also with segment index 2). So the city node will have as its parent a
+   * node with path person.address.street.
    *
-   * Why does this not matter? Because this method will only be called if something went wrong while reading
-   * the address segment. With the PathTreeWalker class you can't really say whether you were retrieving the
-   * value for "person.address.street" or for "person.address.city" when something already went wrong while
-   * reading the preceding segments. So we just pick one so that the error reporting looks the same as with
-   * the PathWalker class.
+   * Why does this not matter? Because this path will only be reported to the user if something went wrong
+   * while reading the address segment. With the PathTreeWalker class you can't really say whether at that
+   * point you were retrieving the value for street or for city. So we just pick one so that the error
+   * reporting looks the same as with the PathWalker class. The reported error will be valid, although it
+   * would also have been valid if we had picked person.address.city.
    */
   Path getArbitraryFullPath() {
     return path;
   }
 
   Path toPath() {
-    if (segmentIndex() == path.size() - 1) {
+    if (isLeaf()) {
       return path;
     }
     return path.subPath(0, index + 1);

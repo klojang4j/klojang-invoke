@@ -29,7 +29,7 @@ implementation group: 'org.klojang', name: 'klojang-invoke', version: '24.0.0'
 ## Documentation
 
 The **Javadocs** for _Klojang Invoke_ can be
-found **[here](https://klojang4j.github.io/klojang-invoke/api)**.
+found **[here](https://klojang4j.github.io/klojang-invoke/24/api)**.
 
 The latest **test coverage report** can be
-found **[here](https://klojang4j.github.io/klojang-invoke/coverage)**.
+found **[here](https://klojang4j.github.io/klojang-invoke/24/coverage)**.

@@ -21,7 +21,7 @@ final class MapSegmentReader extends SegmentReader<Map<?, ?>> {
       key = node.segment();
     } else {
       try {
-        key = keyDeserializer.deserialize(node.toPath(), node.segmentIndex());
+        key = keyDeserializer.deserialize(node.getArbitraryFullPath(), node.segmentIndex());
       } catch (Exception e) {
         return deadEnd(deserializationFailed(node.getArbitraryFullPath(), node.segmentIndex(), e));
       }

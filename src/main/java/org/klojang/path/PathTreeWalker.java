@@ -13,9 +13,9 @@ import static org.klojang.check.CommonChecks.deepNotNull;
 import static org.klojang.check.CommonChecks.empty;
 
 /**
- * <p>The {@code PathTreeWalker} is functionally the same as the {@link PathWalker} class. However, it will
- * turn the paths you specify through one of the constructors into a tree of path segments. This guarantees
- * that the {@code PathTreeWalker} makes a minimal amount of "movements" through the object from which to
+ * <p>The {@code PathTreeWalker} is functionally the same as the {@link PathWalker} class. However, a
+ * {@code PathTreeWalker} will turn the paths you specify through the constructors into a tree of path
+ * segments. This guarantees that it makes a minimal amount of "movements" through the object from which to
  * retrieve the values. For example, say you have specified the following paths:
  *
  * <blockquote><pre>{@code
@@ -44,7 +44,7 @@ public final class PathTreeWalker {
   /**
    * Creates a {@code PathWalker} for the specified paths.
    *
-   * @param paths One or more paths representing possibly deeply-nested properties
+   * @param paths the paths to read or write
    */
   public PathTreeWalker(Path... paths) {
     this(List.of(Check.notNull(paths, PATHS).ok()));
@@ -53,7 +53,7 @@ public final class PathTreeWalker {
   /**
    * Creates a {@code PathWalker} for the specified paths.
    *
-   * @param paths The paths to walk through the provided host objects
+   * @param paths the paths to read or write
    */
   public PathTreeWalker(String... paths) {
     this(toPathList(paths), true);
@@ -62,7 +62,7 @@ public final class PathTreeWalker {
   /**
    * Creates a {@code PathWalker} for the specified paths.
    *
-   * @param paths The paths to walk through the provided host objects
+   * @param paths the paths to read or write
    */
   public PathTreeWalker(List<Path> paths) {
     this(paths, true);
@@ -71,10 +71,8 @@ public final class PathTreeWalker {
   /**
    * Creates a {@code PathWalker} for the specified paths.
    *
-   * @param paths The action to take if a path could not be read or written
-   * @param suppressExceptions If {@code true}, the {@code read} methods will return {@code null} for
-   *     paths that could not be read. The {@code write} methods will quietly return without having written
-   *     the value. If {@code false}, a {@link DeadEndException} will be thrown detailing the error.
+   * @param paths the paths to read or write
+   * @param suppressExceptions whether to enable exception suppression
    */
   public PathTreeWalker(List<Path> paths, boolean suppressExceptions) {
     Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());
@@ -87,12 +85,9 @@ public final class PathTreeWalker {
   /**
    * Creates a {@code PathWalker} for the specified paths.
    *
-   * @param paths The paths to walk
-   * @param suppressExceptions If {@code true}, the {@code read} methods will return {@code null} for
-   *     paths that could not be read. The {@code write} methods will quietly return without having written
-   *     the value. If {@code false}, a {@link DeadEndException} will be thrown detailing the error.
-   * @param segmentDeserializer A function that converts path segments to map keys. You need to provide
-   *     this when reading from, or writing to {@code Map} objects with a non-String key type.
+   * @param paths the paths to read or write
+   * @param suppressExceptions whether to enable exception suppression
+   * @param segmentDeserializer a function that deserializes path segments into non-String map keys
    */
   public PathTreeWalker(
       List<Path> paths,
@@ -107,18 +102,36 @@ public final class PathTreeWalker {
   }
 
   /**
-   * Returns the values of all paths specified through the constructor.
+   * Returns the values of the paths specified through the constructor. The returned map maps the paths to
+   * their values.
    *
    * @param host the object to read the values from
    * @return the values of all paths specified through the constructor
-   * @throws DeadEndException If {@code suppressExceptions} is false and the {@code PathWalker} fails to
+   * @throws DeadEndException if exception suppression is disabled and the {@code PathWalker} fails to
    *     retrieve the values of one or more paths.
    */
-  public Map<Path, Result<Object>> read(Object host) throws DeadEndException {
+  public Map<Path, Result<Object>> readValues(Object host) throws DeadEndException {
     Map<Path, Result<Object>> results = HashMap.newHashMap(paths.size());
-    paths.forEach(path -> results.put(path, Result.notAvailable()));
+    if (suppressExceptions) {
+      paths.forEach(path -> results.put(path, Result.notAvailable()));
+    }
     ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);
-    reader.read(results, host, root);
+    root.children().values().forEach(child -> reader.read(results, host, child));
+    return results;
+  }
+
+  /**
+   * Returns the values of the paths specified through the constructor. The returned map maps the path strings
+   * to their values.
+   *
+   * @param host the object to read the values from
+   * @return the values of all paths specified through the constructor
+   * @throws DeadEndException if exception suppression is disabled and the {@code PathWalker} fails to
+   *     retrieve the values of one or more paths.
+   */
+  public Map<String, Result<Object>> readAll(Object host) throws DeadEndException {
+    Map<String, Result<Object>> results = HashMap.newHashMap(paths.size());
+    readValues(host).forEach((path, result) -> results.put(path.toString(), result));
     return results;
   }
 

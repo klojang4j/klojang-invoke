@@ -1,1 +1,1 @@
-tagSearchIndex = [{"l":"Serialized Form","h":"","u":"serialized-form.html"}];updateSearchResults();
+tagSearchIndex = [{"l":"Exception Suppression","h":"class org.klojang.path.PathWalker","d":"Section","u":"org.klojang.invoke/org/klojang/path/PathWalker.html#exception-suppression-heading"},{"l":"Path Segment Deserialization","h":"class org.klojang.path.PathWalker","d":"Section","u":"org.klojang.invoke/org/klojang/path/PathWalker.html#path-segment-deserialization-heading"},{"l":"Serialized Form","h":"","u":"serialized-form.html"}];updateSearchResults();
