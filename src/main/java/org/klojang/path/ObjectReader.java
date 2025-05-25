@@ -39,7 +39,8 @@ final class ObjectReader {
       }
       if (next.isAvailable()) {
         if (node.isLeaf()) {
-          results.put(node.toPath(), next);
+          // path is no longer arbitrary; it is the exact path to that node
+          results.put(node.getArbitraryFullPath(), next);
         } else {
           node.children().values().forEach(child -> read(results, next.get(), child));
         }

@@ -2,7 +2,6 @@ package org.klojang.path;
 
 import org.junit.Test;
 import org.klojang.check.extra.Result;
-import org.klojang.util.JSONObject;
 import org.klojang.util.Path;
 
 import java.math.BigDecimal;
@@ -172,11 +171,6 @@ public class PathWalkerTest {
   }
 
   @Test
-  public void test20() throws MalformedURLException {
-    assertEquals("Einstein", PathWalker.get(shell(), "departments.0.employees.0.extraInfo.deep stuff.e=mc2"));
-  }
-
-  @Test
   public void write01() throws MalformedURLException {
     Company shell = shell();
     String newName = "Royal Dutch Oil Company";
@@ -297,10 +291,10 @@ public class PathWalkerTest {
   }
 
   @Test
-  public void readValues00() {
+  public void readAll00() {
     PathWalker pw = new PathWalker(Path.from("a"), Path.from("b"), Path.from("c"));
     Map<String, Integer> map = Map.of("a", 100, "b", 200, "c", 300);
-    Map<Path, Result<Object>> vals = pw.readValues(map);
+    Map<Path, Result<Object>> vals = pw.readAll(map);
     assertEquals(3, vals.size());
     assertEquals(100, vals.get(Path.from("a")).get());
     assertEquals(200, vals.get(Path.from("b")).get());
@@ -308,10 +302,10 @@ public class PathWalkerTest {
   }
 
   @Test
-  public void readAll00() {
+  public void readIntoMap00() {
     PathWalker pw = new PathWalker(Path.from("a"), Path.from("b"), Path.from("c"));
     Map<String, Integer> map = Map.of("a", 100, "b", 200, "c", 300);
-    Map<String, Result<Object>> vals = pw.readAll(map);
+    Map<String, Result<Object>> vals = pw.readIntoMap(map);
     assertEquals(3, vals.size());
     assertEquals(100, vals.get("a").get());
     assertEquals(200, vals.get("b").get());

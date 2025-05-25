@@ -39,36 +39,37 @@ final class ObjectReader {
       }
 <span class="fc bfc" id="L40" title="All 2 branches covered.">      if (next.isAvailable()) {</span>
 <span class="fc bfc" id="L41" title="All 2 branches covered.">        if (node.isLeaf()) {</span>
-<span class="fc" id="L42">          results.put(node.toPath(), next);</span>
+          // path is no longer arbitrary; it is the exact path to that node
+<span class="fc" id="L43">          results.put(node.getArbitraryFullPath(), next);</span>
         } else {
-<span class="fc" id="L44">          node.children().values().forEach(child -&gt; read(results, next.get(), child));</span>
+<span class="fc" id="L45">          node.children().values().forEach(child -&gt; read(results, next.get(), child));</span>
         }
       }
     }
-<span class="fc" id="L48">  }</span>
+<span class="fc" id="L49">  }</span>
 
   Result&lt;Object&gt; read(Object obj, Path path, int segment) {
-<span class="fc bfc" id="L51" title="All 2 branches covered.">    if (segment == path.size()) {</span>
-<span class="fc" id="L52">      return Result.of(obj);</span>
-<span class="fc bfc" id="L53" title="All 2 branches covered.">    } else if (obj == null) {</span>
-<span class="nc" id="L54">      return deadEnd(nullValue(path, segment));</span>
-<span class="fc bfc" id="L55" title="All 2 branches covered.">    } else if (obj instanceof Collection&lt;?&gt; x) {</span>
-<span class="fc" id="L56">      return new CollectionSegmentReader(suppressExceptions, keyDeserializer).read(x, path, segment);</span>
-<span class="fc bfc" id="L57" title="All 2 branches covered.">    } else if (obj instanceof Object[] x) {</span>
-<span class="fc" id="L58">      return new ArraySegmentReader(suppressExceptions, keyDeserializer).read(x, path, segment);</span>
-<span class="fc bfc" id="L59" title="All 2 branches covered.">    } else if (obj instanceof Map&lt;?, ?&gt; x) {</span>
-<span class="fc" id="L60">      return new MapSegmentReader(suppressExceptions, keyDeserializer).read(x, path, segment);</span>
-<span class="fc bfc" id="L61" title="All 2 branches covered.">    } else if (isPrimitiveArray(obj)) {</span>
-<span class="fc" id="L62">      return new PrimitiveArraySegmentReader(suppressExceptions, keyDeserializer).read(obj, path, segment);</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">    if (segment == path.size()) {</span>
+<span class="fc" id="L53">      return Result.of(obj);</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">    } else if (obj == null) {</span>
+<span class="nc" id="L55">      return deadEnd(nullValue(path, segment));</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">    } else if (obj instanceof Collection&lt;?&gt; x) {</span>
+<span class="fc" id="L57">      return new CollectionSegmentReader(suppressExceptions, keyDeserializer).read(x, path, segment);</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">    } else if (obj instanceof Object[] x) {</span>
+<span class="fc" id="L59">      return new ArraySegmentReader(suppressExceptions, keyDeserializer).read(x, path, segment);</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">    } else if (obj instanceof Map&lt;?, ?&gt; x) {</span>
+<span class="fc" id="L61">      return new MapSegmentReader(suppressExceptions, keyDeserializer).read(x, path, segment);</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">    } else if (isPrimitiveArray(obj)) {</span>
+<span class="fc" id="L63">      return new PrimitiveArraySegmentReader(suppressExceptions, keyDeserializer).read(obj, path, segment);</span>
     }
-<span class="fc" id="L64">    return new BeanSegmentReader(suppressExceptions, keyDeserializer).read(obj, path, segment);</span>
+<span class="fc" id="L65">    return new BeanSegmentReader(suppressExceptions, keyDeserializer).read(obj, path, segment);</span>
   }
 
   Result&lt;Object&gt; deadEnd(DeadEndException.Factory excFactory) {
-<span class="pc bpc" id="L68" title="1 of 2 branches missed.">    if (suppressExceptions) {</span>
-<span class="nc" id="L69">      return Result.notAvailable();</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">    if (suppressExceptions) {</span>
+<span class="nc" id="L70">      return Result.notAvailable();</span>
     }
-<span class="fc" id="L71">    throw excFactory.get();</span>
+<span class="fc" id="L72">    throw excFactory.get();</span>
   }
 
 }

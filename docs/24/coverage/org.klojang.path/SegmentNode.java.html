@@ -60,29 +60,25 @@ final class SegmentNode {
    * point you were retrieving the value for street or for city. So we just pick one so that the error
    * reporting looks the same as with the PathWalker class. The reported error will be valid, although it
    * would also have been valid if we had picked person.address.city.
+   *
+   * Note that if this is a leaf node, the returned path no longer is an arbitrary path. It is guaranteed to
+   * be the exact path to that node.
    */
   Path getArbitraryFullPath() {
-<span class="fc" id="L65">    return path;</span>
-  }
-
-  Path toPath() {
-<span class="pc bpc" id="L69" title="1 of 2 branches missed.">    if (isLeaf()) {</span>
-<span class="fc" id="L70">      return path;</span>
-    }
-<span class="nc" id="L72">    return path.subPath(0, index + 1);</span>
+<span class="fc" id="L68">    return path;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L77">    return toPath().toString();</span>
+<span class="nc" id="L73">    return &quot;SegmentNode{path=&quot; + path + &quot;,index=&quot; + index + &quot;}&quot;;</span>
   }
 
   private void addPath(Path path, int index) {
-<span class="fc bfc" id="L81" title="All 2 branches covered.">    if (index &lt; path.size()) {</span>
-<span class="fc" id="L82">      SegmentNode node = children.computeIfAbsent(path.segment(index), _ -&gt; new SegmentNode(path, index));</span>
-<span class="fc" id="L83">      node.addPath(path, index + 1);</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">    if (index &lt; path.size()) {</span>
+<span class="fc" id="L78">      SegmentNode node = children.computeIfAbsent(path.segment(index), _ -&gt; new SegmentNode(path, index));</span>
+<span class="fc" id="L79">      node.addPath(path, index + 1);</span>
     }
-<span class="fc" id="L85">  }</span>
+<span class="fc" id="L81">  }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

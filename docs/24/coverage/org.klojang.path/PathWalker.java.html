@@ -5,11 +5,9 @@ import org.klojang.check.Tag;
 import org.klojang.check.extra.Result;
 import org.klojang.util.Path;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import static java.util.stream.Collectors.toList;
 import static org.klojang.check.CommonChecks.*;
 import static org.klojang.check.CommonProperties.size;
 import static org.klojang.util.ClassMethods.cast;
@@ -49,23 +47,7 @@ import static org.klojang.util.ClassMethods.cast;
  *
  * @author Ayco Holleman
  */
-@SuppressWarnings({&quot;unchecked&quot;})
 public final class PathWalker {
-
-  /**
-   * Returns the value at the specified path. If the value could not be read a
-   * {@link java.util.NoSuchElementException} exception is thrown (see {@link Result#get()}). This method is
-   * useful if you already know for sure that the specified path can be traced through the specified host
-   * object.
-   *
-   * @param host the object from which to read the value
-   * @param path the path specifying where to find the value
-   * @param &lt;T&gt; the type of the value
-   * @return the value at the specified path
-   */
-  public static &lt;T&gt; T get(Object host, String path) {
-<span class="fc" id="L67">    return (T) read(host, path).get();</span>
-  }
 
   /**
    * Returns a {@code Result} object containing the value at the specified path or
@@ -78,7 +60,7 @@ public final class PathWalker {
    *     {@link Result#notAvailable()} if the value could not be retrieved
    */
   public static &lt;T&gt; Result&lt;T&gt; read(Object host, String path) {
-<span class="fc" id="L81">    return new PathWalker(path).read(host);</span>
+<span class="fc" id="L63">    return new PathWalker(path).read(host);</span>
   }
 
   private static final String PATHS = &quot;paths&quot;;
@@ -93,8 +75,8 @@ public final class PathWalker {
    * @param paths the paths to read or write
    */
   public PathWalker(Path... paths) {
-<span class="fc" id="L96">    this(List.of(Check.notNull(paths, PATHS).ok()));</span>
-<span class="fc" id="L97">  }</span>
+<span class="fc" id="L78">    this(List.of(Check.notNull(paths, PATHS).ok()));</span>
+<span class="fc" id="L79">  }</span>
 
   /**
    * Creates a {@code PathWalker} for the specified paths.
@@ -102,8 +84,8 @@ public final class PathWalker {
    * @param paths the paths to read or write
    */
   public PathWalker(String... paths) {
-<span class="fc" id="L105">    this(toPathList(paths), true);</span>
-<span class="fc" id="L106">  }</span>
+<span class="fc" id="L87">    this(toPathList(paths), true);</span>
+<span class="fc" id="L88">  }</span>
 
   /**
    * Creates a {@code PathWalker} for the specified paths.
@@ -111,8 +93,8 @@ public final class PathWalker {
    * @param paths the paths to read or write
    */
   public PathWalker(List&lt;Path&gt; paths) {
-<span class="fc" id="L114">    this(paths, true);</span>
-<span class="fc" id="L115">  }</span>
+<span class="fc" id="L96">    this(paths, true);</span>
+<span class="fc" id="L97">  }</span>
 
   /**
    * Creates a {@code PathWalker} for the specified paths.
@@ -120,12 +102,15 @@ public final class PathWalker {
    * @param paths the paths to read or write
    * @param suppressExceptions whether to enable exception suppression
    */
-<span class="fc" id="L123">  public PathWalker(List&lt;Path&gt; paths, boolean suppressExceptions) {</span>
-<span class="fc" id="L124">    Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());</span>
-<span class="fc" id="L125">    this.paths = List.copyOf(paths);</span>
-<span class="fc" id="L126">    this.suppressExceptions = suppressExceptions;</span>
-<span class="fc" id="L127">    this.segmentDeserializer = null;</span>
-<span class="fc" id="L128">  }</span>
+<span class="fc" id="L105">  public PathWalker(List&lt;Path&gt; paths, boolean suppressExceptions) {</span>
+<span class="fc" id="L106">    Check.that(new HashSet&lt;&gt;(paths), PATHS)</span>
+<span class="fc" id="L107">        .isNot(empty())</span>
+<span class="fc" id="L108">        .is(deepNotNull())</span>
+<span class="fc" id="L109">        .has(size(), eq(), paths.size(), &quot;paths must be unique&quot;);</span>
+<span class="fc" id="L110">    this.paths = List.copyOf(paths);</span>
+<span class="fc" id="L111">    this.suppressExceptions = suppressExceptions;</span>
+<span class="fc" id="L112">    this.segmentDeserializer = null;</span>
+<span class="fc" id="L113">  }</span>
 
   /**
    * Creates a {@code PathWalker} for the specified paths.
@@ -137,35 +122,38 @@ public final class PathWalker {
   public PathWalker(
       List&lt;Path&gt; paths,
       boolean suppressExceptions,
-<span class="fc" id="L140">      PathSegmentDeserializer segmentDeserializer) {</span>
-<span class="fc" id="L141">    Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());</span>
-<span class="fc" id="L142">    Check.notNull(segmentDeserializer, &quot;segment deserializer&quot;);</span>
-<span class="fc" id="L143">    this.paths = List.copyOf(paths);</span>
-<span class="fc" id="L144">    this.suppressExceptions = suppressExceptions;</span>
-<span class="fc" id="L145">    this.segmentDeserializer = segmentDeserializer;</span>
-<span class="fc" id="L146">  }</span>
+<span class="fc" id="L125">      PathSegmentDeserializer segmentDeserializer) {</span>
+<span class="fc" id="L126">    Check.that(new HashSet&lt;&gt;(paths), PATHS)</span>
+<span class="fc" id="L127">        .isNot(empty())</span>
+<span class="fc" id="L128">        .is(deepNotNull())</span>
+<span class="fc" id="L129">        .has(size(), eq(), paths.size(), &quot;paths must be unique&quot;);</span>
+<span class="fc" id="L130">    Check.notNull(segmentDeserializer, &quot;segment deserializer&quot;);</span>
+<span class="fc" id="L131">    this.paths = List.copyOf(paths);</span>
+<span class="fc" id="L132">    this.suppressExceptions = suppressExceptions;</span>
+<span class="fc" id="L133">    this.segmentDeserializer = segmentDeserializer;</span>
+<span class="fc" id="L134">  }</span>
 
   // For internal use
-<span class="fc" id="L149">  PathWalker(Path path, boolean suppressExceptions, PathSegmentDeserializer segmentDeserializer) {</span>
-<span class="fc" id="L150">    this.paths = List.of(path);</span>
-<span class="fc" id="L151">    this.suppressExceptions = suppressExceptions;</span>
-<span class="fc" id="L152">    this.segmentDeserializer = segmentDeserializer;</span>
-<span class="fc" id="L153">  }</span>
+<span class="fc" id="L137">  PathWalker(Path path, boolean suppressExceptions, PathSegmentDeserializer segmentDeserializer) {</span>
+<span class="fc" id="L138">    this.paths = List.of(path);</span>
+<span class="fc" id="L139">    this.suppressExceptions = suppressExceptions;</span>
+<span class="fc" id="L140">    this.segmentDeserializer = segmentDeserializer;</span>
+<span class="fc" id="L141">  }</span>
 
   /**
    * Returns the values of the paths specified through the constructor. The returned map maps the paths to
    * their values.
    *
    * @param host the object to read the values from
-   * @return the values of all paths specified through the constructor
+   * @return the values of the paths specified through the constructor
    * @throws DeadEndException if exception suppression is disabled and the {@code PathWalker} fails to
    *     retrieve the values of one or more paths.
    */
-  public Map&lt;Path, Result&lt;Object&gt;&gt; readValues(Object host) throws DeadEndException {
-<span class="fc" id="L165">    ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);</span>
-<span class="fc" id="L166">    Map&lt;Path, Result&lt;Object&gt;&gt; results = HashMap.newHashMap(paths.size());</span>
-<span class="fc" id="L167">    paths.forEach(path -&gt; results.put(path, reader.read(host, path, 0)));</span>
-<span class="fc" id="L168">    return results;</span>
+  public Map&lt;Path, Result&lt;Object&gt;&gt; readAll(Object host) throws DeadEndException {
+<span class="fc" id="L153">    ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);</span>
+<span class="fc" id="L154">    Map&lt;Path, Result&lt;Object&gt;&gt; results = HashMap.newHashMap(paths.size());</span>
+<span class="fc" id="L155">    paths.forEach(path -&gt; results.put(path, reader.read(host, path, 0)));</span>
+<span class="fc" id="L156">    return results;</span>
   }
 
   /**
@@ -173,15 +161,29 @@ public final class PathWalker {
    * to their values.
    *
    * @param host the object to read the values from
-   * @return the values of all paths specified through the constructor
+   * @return the values of the paths specified through the constructor
    * @throws DeadEndException if exception suppression is disabled and the {@code PathWalker} fails to
    *     retrieve the values of one or more paths.
    */
-  public Map&lt;String, Result&lt;Object&gt;&gt; readAll(Object host) throws DeadEndException {
-<span class="fc" id="L181">    ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);</span>
-<span class="fc" id="L182">    Map&lt;String, Result&lt;Object&gt;&gt; results = HashMap.newHashMap(paths.size());</span>
-<span class="fc" id="L183">    paths.forEach(path -&gt; results.put(path.toString(), reader.read(host, path, 0)));</span>
-<span class="fc" id="L184">    return results;</span>
+  public Map&lt;String, Result&lt;Object&gt;&gt; readIntoMap(Object host) throws DeadEndException {
+<span class="fc" id="L169">    ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);</span>
+<span class="fc" id="L170">    Map&lt;String, Result&lt;Object&gt;&gt; results = HashMap.newHashMap(paths.size());</span>
+<span class="fc" id="L171">    paths.forEach(path -&gt; results.put(path.toString(), reader.read(host, path, 0)));</span>
+<span class="fc" id="L172">    return results;</span>
+  }
+
+  /**
+   * Returns the values of the paths specified through the constructor. The values are returned in the same
+   * order as the paths.
+   *
+   * @param host the object to read the values from
+   * @return the values of the paths specified through the constructor
+   * @throws DeadEndException if exception suppression is disabled and the {@code PathWalker} fails to
+   *     retrieve the values of one or more paths.
+   */
+  public List&lt;Result&lt;Object&gt;&gt; readIntoList(Object host) throws DeadEndException {
+<span class="nc" id="L185">    ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);</span>
+<span class="nc" id="L186">    return paths.stream().map(path -&gt; reader.read(host, path, 0)).collect(toList());</span>
   }
 
   /**
@@ -195,7 +197,7 @@ public final class PathWalker {
    *     retrieve the values of one or more paths.
    */
   public &lt;T&gt; Result&lt;T&gt; read(Object host) {
-<span class="fc" id="L198">    return cast(new ObjectReader(suppressExceptions, segmentDeserializer).read(host, paths.getFirst(), 0));</span>
+<span class="fc" id="L200">    return cast(new ObjectReader(suppressExceptions, segmentDeserializer).read(host, paths.getFirst(), 0));</span>
   }
 
   /**
@@ -207,7 +209,7 @@ public final class PathWalker {
    * @return a {@code boolean} array indicating which paths could successfully be set, and which could not.
    */
   public boolean[] writeValues(Object host, Object... values) {
-<span class="fc" id="L210">    return writeValues(host, List.of(values));</span>
+<span class="fc" id="L212">    return writeValues(host, List.of(values));</span>
   }
 
   /**
@@ -219,15 +221,15 @@ public final class PathWalker {
    * @return a {@code boolean} array indicating which paths could successfully be set, and which could not.
    */
   public boolean[] writeValues(Object host, List&lt;Object&gt; values) {
-<span class="fc" id="L222">    Check.notNull(values, Tag.VALUES).has(size(), eq(), paths.size());</span>
-<span class="fc" id="L223">    ObjectWriter writer = new ObjectWriter(suppressExceptions, segmentDeserializer);</span>
-<span class="fc" id="L224">    boolean[] result = new boolean[paths.size()];</span>
-<span class="fc bfc" id="L225" title="All 2 branches covered.">    for (int i = 0; i &lt; paths.size(); ++i) {</span>
-<span class="pc bpc" id="L226" title="1 of 2 branches missed.">      if (writer.write(host, paths.get(i), values.get(i))) {</span>
-<span class="fc" id="L227">        result[i] = true;</span>
+<span class="fc" id="L224">    Check.notNull(values, Tag.VALUES).has(size(), eq(), paths.size());</span>
+<span class="fc" id="L225">    ObjectWriter writer = new ObjectWriter(suppressExceptions, segmentDeserializer);</span>
+<span class="fc" id="L226">    boolean[] result = new boolean[paths.size()];</span>
+<span class="fc bfc" id="L227" title="All 2 branches covered.">    for (int i = 0; i &lt; paths.size(); ++i) {</span>
+<span class="pc bpc" id="L228" title="1 of 2 branches missed.">      if (writer.write(host, paths.get(i), values.get(i))) {</span>
+<span class="fc" id="L229">        result[i] = true;</span>
       }
     }
-<span class="fc" id="L230">    return result;</span>
+<span class="fc" id="L232">    return result;</span>
   }
 
   /**
@@ -239,13 +241,13 @@ public final class PathWalker {
    * @return {@code true} if the value was successfully written
    */
   public boolean write(Object host, Object value) {
-<span class="fc" id="L242">    return new ObjectWriter(suppressExceptions, segmentDeserializer).write(host, paths.getFirst(), value);</span>
+<span class="fc" id="L244">    return new ObjectWriter(suppressExceptions, segmentDeserializer).write(host, paths.getFirst(), value);</span>
   }
 
 
   private static List&lt;Path&gt; toPathList(String[] paths) {
-<span class="fc" id="L247">    Check.notNull(paths, PATHS);</span>
-<span class="fc" id="L248">    return Arrays.stream(paths).map(Path::from).toList();</span>
+<span class="fc" id="L249">    Check.notNull(paths, PATHS);</span>
+<span class="fc" id="L250">    return Arrays.stream(paths).map(Path::from).toList();</span>
   }
 
 }

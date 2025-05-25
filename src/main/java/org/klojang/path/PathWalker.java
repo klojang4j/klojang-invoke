@@ -5,11 +5,9 @@ import org.klojang.check.Tag;
 import org.klojang.check.extra.Result;
 import org.klojang.util.Path;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import static java.util.stream.Collectors.toList;
 import static org.klojang.check.CommonChecks.*;
 import static org.klojang.check.CommonProperties.size;
 import static org.klojang.util.ClassMethods.cast;
@@ -49,23 +47,7 @@ import static org.klojang.util.ClassMethods.cast;
  *
  * @author Ayco Holleman
  */
-@SuppressWarnings({"unchecked"})
 public final class PathWalker {
-
-  /**
-   * Returns the value at the specified path. If the value could not be read a
-   * {@link java.util.NoSuchElementException} exception is thrown (see {@link Result#get()}). This method is
-   * useful if you already know for sure that the specified path can be traced through the specified host
-   * object.
-   *
-   * @param host the object from which to read the value
-   * @param path the path specifying where to find the value
-   * @param <T> the type of the value
-   * @return the value at the specified path
-   */
-  public static <T> T get(Object host, String path) {
-    return (T) read(host, path).get();
-  }
 
   /**
    * Returns a {@code Result} object containing the value at the specified path or
@@ -121,7 +103,10 @@ public final class PathWalker {
    * @param suppressExceptions whether to enable exception suppression
    */
   public PathWalker(List<Path> paths, boolean suppressExceptions) {
-    Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());
+    Check.that(new HashSet<>(paths), PATHS)
+        .isNot(empty())
+        .is(deepNotNull())
+        .has(size(), eq(), paths.size(), "paths must be unique");
     this.paths = List.copyOf(paths);
     this.suppressExceptions = suppressExceptions;
     this.segmentDeserializer = null;
@@ -138,7 +123,10 @@ public final class PathWalker {
       List<Path> paths,
       boolean suppressExceptions,
       PathSegmentDeserializer segmentDeserializer) {
-    Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());
+    Check.that(new HashSet<>(paths), PATHS)
+        .isNot(empty())
+        .is(deepNotNull())
+        .has(size(), eq(), paths.size(), "paths must be unique");
     Check.notNull(segmentDeserializer, "segment deserializer");
     this.paths = List.copyOf(paths);
     this.suppressExceptions = suppressExceptions;
@@ -157,11 +145,11 @@ public final class PathWalker {
    * their values.
    *
    * @param host the object to read the values from
-   * @return the values of all paths specified through the constructor
+   * @return the values of the paths specified through the constructor
    * @throws DeadEndException if exception suppression is disabled and the {@code PathWalker} fails to
    *     retrieve the values of one or more paths.
    */
-  public Map<Path, Result<Object>> readValues(Object host) throws DeadEndException {
+  public Map<Path, Result<Object>> readAll(Object host) throws DeadEndException {
     ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);
     Map<Path, Result<Object>> results = HashMap.newHashMap(paths.size());
     paths.forEach(path -> results.put(path, reader.read(host, path, 0)));
@@ -173,15 +161,29 @@ public final class PathWalker {
    * to their values.
    *
    * @param host the object to read the values from
-   * @return the values of all paths specified through the constructor
+   * @return the values of the paths specified through the constructor
    * @throws DeadEndException if exception suppression is disabled and the {@code PathWalker} fails to
    *     retrieve the values of one or more paths.
    */
-  public Map<String, Result<Object>> readAll(Object host) throws DeadEndException {
+  public Map<String, Result<Object>> readIntoMap(Object host) throws DeadEndException {
     ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);
     Map<String, Result<Object>> results = HashMap.newHashMap(paths.size());
     paths.forEach(path -> results.put(path.toString(), reader.read(host, path, 0)));
     return results;
+  }
+
+  /**
+   * Returns the values of the paths specified through the constructor. The values are returned in the same
+   * order as the paths.
+   *
+   * @param host the object to read the values from
+   * @return the values of the paths specified through the constructor
+   * @throws DeadEndException if exception suppression is disabled and the {@code PathWalker} fails to
+   *     retrieve the values of one or more paths.
+   */
+  public List<Result<Object>> readIntoList(Object host) throws DeadEndException {
+    ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);
+    return paths.stream().map(path -> reader.read(host, path, 0)).collect(toList());
   }
 
   /**

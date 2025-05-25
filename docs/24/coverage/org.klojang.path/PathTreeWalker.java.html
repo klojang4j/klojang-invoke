@@ -4,13 +4,10 @@ import org.klojang.check.Check;
 import org.klojang.check.extra.Result;
 import org.klojang.util.Path;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static org.klojang.check.CommonChecks.deepNotNull;
-import static org.klojang.check.CommonChecks.empty;
+import static org.klojang.check.CommonChecks.*;
+import static org.klojang.check.CommonProperties.size;
 
 /**
  * &lt;p&gt;The {@code PathTreeWalker} is functionally the same as the {@link PathWalker} class. However, a
@@ -47,8 +44,8 @@ public final class PathTreeWalker {
    * @param paths the paths to read or write
    */
   public PathTreeWalker(Path... paths) {
-<span class="nc" id="L50">    this(List.of(Check.notNull(paths, PATHS).ok()));</span>
-<span class="nc" id="L51">  }</span>
+<span class="nc" id="L47">    this(List.of(Check.notNull(paths, PATHS).ok()));</span>
+<span class="nc" id="L48">  }</span>
 
   /**
    * Creates a {@code PathWalker} for the specified paths.
@@ -56,8 +53,8 @@ public final class PathTreeWalker {
    * @param paths the paths to read or write
    */
   public PathTreeWalker(String... paths) {
-<span class="fc" id="L59">    this(toPathList(paths), true);</span>
-<span class="fc" id="L60">  }</span>
+<span class="fc" id="L56">    this(toPathList(paths), true);</span>
+<span class="fc" id="L57">  }</span>
 
   /**
    * Creates a {@code PathWalker} for the specified paths.
@@ -65,8 +62,8 @@ public final class PathTreeWalker {
    * @param paths the paths to read or write
    */
   public PathTreeWalker(List&lt;Path&gt; paths) {
-<span class="nc" id="L68">    this(paths, true);</span>
-<span class="nc" id="L69">  }</span>
+<span class="nc" id="L65">    this(paths, true);</span>
+<span class="nc" id="L66">  }</span>
 
   /**
    * Creates a {@code PathWalker} for the specified paths.
@@ -74,8 +71,11 @@ public final class PathTreeWalker {
    * @param paths the paths to read or write
    * @param suppressExceptions whether to enable exception suppression
    */
-<span class="fc" id="L77">  public PathTreeWalker(List&lt;Path&gt; paths, boolean suppressExceptions) {</span>
-<span class="fc" id="L78">    Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());</span>
+<span class="fc" id="L74">  public PathTreeWalker(List&lt;Path&gt; paths, boolean suppressExceptions) {</span>
+<span class="fc" id="L75">    Check.that(new HashSet&lt;&gt;(paths), PATHS)</span>
+<span class="fc" id="L76">        .isNot(empty())</span>
+<span class="fc" id="L77">        .is(deepNotNull())</span>
+<span class="fc" id="L78">        .has(size(), eq(), paths.size(), &quot;paths must be unique&quot;);</span>
 <span class="fc" id="L79">    this.paths = paths;</span>
 <span class="fc" id="L80">    this.root = SegmentNode.buildTree(paths);</span>
 <span class="fc" id="L81">    this.suppressExceptions = suppressExceptions;</span>
@@ -93,13 +93,16 @@ public final class PathTreeWalker {
       List&lt;Path&gt; paths,
       boolean suppressExceptions,
 <span class="nc" id="L95">      PathSegmentDeserializer segmentDeserializer) {</span>
-<span class="nc" id="L96">    Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());</span>
-<span class="nc" id="L97">    Check.notNull(segmentDeserializer, &quot;segment deserializer&quot;);</span>
-<span class="nc" id="L98">    this.paths = paths;</span>
-<span class="nc" id="L99">    this.root = SegmentNode.buildTree(paths);</span>
-<span class="nc" id="L100">    this.suppressExceptions = suppressExceptions;</span>
-<span class="nc" id="L101">    this.segmentDeserializer = segmentDeserializer;</span>
-<span class="nc" id="L102">  }</span>
+<span class="nc" id="L96">    Check.that(new HashSet&lt;&gt;(paths), PATHS)</span>
+<span class="nc" id="L97">        .isNot(empty())</span>
+<span class="nc" id="L98">        .is(deepNotNull())</span>
+<span class="nc" id="L99">        .has(size(), eq(), paths.size(), &quot;paths must be unique&quot;);</span>
+<span class="nc" id="L100">    Check.notNull(segmentDeserializer, &quot;segment deserializer&quot;);</span>
+<span class="nc" id="L101">    this.paths = paths;</span>
+<span class="nc" id="L102">    this.root = SegmentNode.buildTree(paths);</span>
+<span class="nc" id="L103">    this.suppressExceptions = suppressExceptions;</span>
+<span class="nc" id="L104">    this.segmentDeserializer = segmentDeserializer;</span>
+<span class="nc" id="L105">  }</span>
 
   /**
    * Returns the values of the paths specified through the constructor. The returned map maps the paths to
@@ -110,14 +113,14 @@ public final class PathTreeWalker {
    * @throws DeadEndException if exception suppression is disabled and the {@code PathWalker} fails to
    *     retrieve the values of one or more paths.
    */
-  public Map&lt;Path, Result&lt;Object&gt;&gt; readValues(Object host) throws DeadEndException {
-<span class="fc" id="L114">    Map&lt;Path, Result&lt;Object&gt;&gt; results = HashMap.newHashMap(paths.size());</span>
-<span class="pc bpc" id="L115" title="1 of 2 branches missed.">    if (suppressExceptions) {</span>
-<span class="fc" id="L116">      paths.forEach(path -&gt; results.put(path, Result.notAvailable()));</span>
+  public Map&lt;Path, Result&lt;Object&gt;&gt; readAll(Object host) throws DeadEndException {
+<span class="fc" id="L117">    Map&lt;Path, Result&lt;Object&gt;&gt; results = HashMap.newHashMap(paths.size());</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">    if (suppressExceptions) {</span>
+<span class="fc" id="L119">      paths.forEach(path -&gt; results.put(path, Result.notAvailable()));</span>
     }
-<span class="fc" id="L118">    ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);</span>
-<span class="fc" id="L119">    root.children().values().forEach(child -&gt; reader.read(results, host, child));</span>
-<span class="fc" id="L120">    return results;</span>
+<span class="fc" id="L121">    ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);</span>
+<span class="fc" id="L122">    root.children().values().forEach(child -&gt; reader.read(results, host, child));</span>
+<span class="fc" id="L123">    return results;</span>
   }
 
   /**
@@ -129,15 +132,34 @@ public final class PathTreeWalker {
    * @throws DeadEndException if exception suppression is disabled and the {@code PathWalker} fails to
    *     retrieve the values of one or more paths.
    */
-  public Map&lt;String, Result&lt;Object&gt;&gt; readAll(Object host) throws DeadEndException {
-<span class="fc" id="L133">    Map&lt;String, Result&lt;Object&gt;&gt; results = HashMap.newHashMap(paths.size());</span>
-<span class="fc" id="L134">    readValues(host).forEach((path, result) -&gt; results.put(path.toString(), result));</span>
-<span class="fc" id="L135">    return results;</span>
+  public Map&lt;String, Result&lt;Object&gt;&gt; readIntoMap(Object host) throws DeadEndException {
+<span class="fc" id="L136">    Map&lt;String, Result&lt;Object&gt;&gt; results = HashMap.newHashMap(paths.size());</span>
+<span class="fc" id="L137">    readAll(host).forEach((path, result) -&gt; results.put(path.toString(), result));</span>
+<span class="fc" id="L138">    return results;</span>
+  }
+
+  /**
+   * Returns the values of the paths specified through the constructor. The values are returned in the same
+   * order as the paths.
+   *
+   * @param host the object to read the values from
+   * @return the values of the paths specified through the constructor
+   * @throws DeadEndException if exception suppression is disabled and the {@code PathWalker} fails to
+   *     retrieve the values of one or more paths.
+   */
+  public List&lt;Result&lt;Object&gt;&gt; readIntoList(Object host) throws DeadEndException {
+<span class="nc" id="L151">    Map&lt;Path, Result&lt;Object&gt;&gt; results = LinkedHashMap.newLinkedHashMap(paths.size());</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">    if (suppressExceptions) {</span>
+<span class="nc" id="L153">      paths.forEach(path -&gt; results.put(path, Result.notAvailable()));</span>
+    }
+<span class="nc" id="L155">    ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);</span>
+<span class="nc" id="L156">    root.children().values().forEach(child -&gt; reader.read(results, host, child));</span>
+<span class="nc" id="L157">    return List.copyOf(results.values());</span>
   }
 
   private static List&lt;Path&gt; toPathList(String[] paths) {
-<span class="fc" id="L139">    Check.notNull(paths, PATHS);</span>
-<span class="fc" id="L140">    return Arrays.stream(paths).map(Path::from).toList();</span>
+<span class="fc" id="L161">    Check.notNull(paths, PATHS);</span>
+<span class="fc" id="L162">    return Arrays.stream(paths).map(Path::from).toList();</span>
   }
 
 }

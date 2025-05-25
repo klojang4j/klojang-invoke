@@ -60,21 +60,17 @@ final class SegmentNode {
    * point you were retrieving the value for street or for city. So we just pick one so that the error
    * reporting looks the same as with the PathWalker class. The reported error will be valid, although it
    * would also have been valid if we had picked person.address.city.
+   *
+   * Note that if this is a leaf node, the returned path no longer is an arbitrary path. It is guaranteed to
+   * be the exact path to that node.
    */
   Path getArbitraryFullPath() {
     return path;
   }
 
-  Path toPath() {
-    if (isLeaf()) {
-      return path;
-    }
-    return path.subPath(0, index + 1);
-  }
-
   @Override
   public String toString() {
-    return toPath().toString();
+    return "SegmentNode{path=" + path + ",index=" + index + "}";
   }
 
   private void addPath(Path path, int index) {

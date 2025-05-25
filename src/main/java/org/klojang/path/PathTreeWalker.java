@@ -4,13 +4,10 @@ import org.klojang.check.Check;
 import org.klojang.check.extra.Result;
 import org.klojang.util.Path;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static org.klojang.check.CommonChecks.deepNotNull;
-import static org.klojang.check.CommonChecks.empty;
+import static org.klojang.check.CommonChecks.*;
+import static org.klojang.check.CommonProperties.size;
 
 /**
  * <p>The {@code PathTreeWalker} is functionally the same as the {@link PathWalker} class. However, a
@@ -75,7 +72,10 @@ public final class PathTreeWalker {
    * @param suppressExceptions whether to enable exception suppression
    */
   public PathTreeWalker(List<Path> paths, boolean suppressExceptions) {
-    Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());
+    Check.that(new HashSet<>(paths), PATHS)
+        .isNot(empty())
+        .is(deepNotNull())
+        .has(size(), eq(), paths.size(), "paths must be unique");
     this.paths = paths;
     this.root = SegmentNode.buildTree(paths);
     this.suppressExceptions = suppressExceptions;
@@ -93,7 +93,10 @@ public final class PathTreeWalker {
       List<Path> paths,
       boolean suppressExceptions,
       PathSegmentDeserializer segmentDeserializer) {
-    Check.that(paths, PATHS).isNot(empty()).is(deepNotNull());
+    Check.that(new HashSet<>(paths), PATHS)
+        .isNot(empty())
+        .is(deepNotNull())
+        .has(size(), eq(), paths.size(), "paths must be unique");
     Check.notNull(segmentDeserializer, "segment deserializer");
     this.paths = paths;
     this.root = SegmentNode.buildTree(paths);
@@ -110,7 +113,7 @@ public final class PathTreeWalker {
    * @throws DeadEndException if exception suppression is disabled and the {@code PathWalker} fails to
    *     retrieve the values of one or more paths.
    */
-  public Map<Path, Result<Object>> readValues(Object host) throws DeadEndException {
+  public Map<Path, Result<Object>> readAll(Object host) throws DeadEndException {
     Map<Path, Result<Object>> results = HashMap.newHashMap(paths.size());
     if (suppressExceptions) {
       paths.forEach(path -> results.put(path, Result.notAvailable()));
@@ -129,10 +132,29 @@ public final class PathTreeWalker {
    * @throws DeadEndException if exception suppression is disabled and the {@code PathWalker} fails to
    *     retrieve the values of one or more paths.
    */
-  public Map<String, Result<Object>> readAll(Object host) throws DeadEndException {
+  public Map<String, Result<Object>> readIntoMap(Object host) throws DeadEndException {
     Map<String, Result<Object>> results = HashMap.newHashMap(paths.size());
-    readValues(host).forEach((path, result) -> results.put(path.toString(), result));
+    readAll(host).forEach((path, result) -> results.put(path.toString(), result));
     return results;
+  }
+
+  /**
+   * Returns the values of the paths specified through the constructor. The values are returned in the same
+   * order as the paths.
+   *
+   * @param host the object to read the values from
+   * @return the values of the paths specified through the constructor
+   * @throws DeadEndException if exception suppression is disabled and the {@code PathWalker} fails to
+   *     retrieve the values of one or more paths.
+   */
+  public List<Result<Object>> readIntoList(Object host) throws DeadEndException {
+    Map<Path, Result<Object>> results = LinkedHashMap.newLinkedHashMap(paths.size());
+    if (suppressExceptions) {
+      paths.forEach(path -> results.put(path, Result.notAvailable()));
+    }
+    ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);
+    root.children().values().forEach(child -> reader.read(results, host, child));
+    return List.copyOf(results.values());
   }
 
   private static List<Path> toPathList(String[] paths) {
