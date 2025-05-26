@@ -24,8 +24,8 @@ final class ObjectReader {
       results.put(node.path(), Result.of(obj));
     } else if (obj == null) {
       if (!suppressExceptions) {
-        throw nullValue(node.path(), node.segmentIndex()).get();
-      } // Otherwise: we have already initialized all values to Result.notAvailable()
+        throw nullValue(node.path(), node.segmentIndex() - 1).get();
+      }
     } else {
       Result<Object> next;
       if (obj instanceof Collection<?> x) {
@@ -53,7 +53,7 @@ final class ObjectReader {
     if (segmentIndex == path.size()) {
       return Result.of(obj);
     } else if (obj == null) {
-      return deadEnd(nullValue(path, segmentIndex));
+      return deadEnd(nullValue(path, segmentIndex - 1));
     } else if (obj instanceof Collection<?> x) {
       return new CollectionSegmentReader(suppressExceptions, keyDeserializer).read(x, path, segmentIndex);
     } else if (obj instanceof Object[] x) {
