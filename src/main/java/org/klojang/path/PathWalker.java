@@ -33,17 +33,13 @@ import static org.klojang.util.ClassMethods.cast;
  * value, and {@code false} when failing to write a value. However, the {@code PathWalker} class contains
  * {@linkplain #PathWalker(List, boolean) constructors} that allow you to disable exception suppression.
  * With exception suppression disabled a {@code PathWalker} will throw a {@link DeadEndException} when
- * failing to read/write a value, which may be useful when debugging. Note that even with exception
- * suppression enabled, runtime exceptions may still occur. The only exceptions that are actively suppressed
- * are those anticipated by the {@code PathWalker} as it moves through sparsely populated or differently
- * structured objects.
+ * failing to read/write a value, which may be useful for debugging.
  *
  * <h2>Path Segment Deserialization</h2>
- * <p>A {@code PathWalker} has no problem reading from, or writing to {@code Map<String, Object} objects.
- * However, if you want a {@code PathWalker} to be able to read from, or write to maps with a non-String
+ * <p>If you want a {@code PathWalker} to be able to read from, or write to maps with a non-String
  * key type, you must instruct the {@code PathWalker} how to deserialize the path segment representing the
- * key into an object of the appropriate type. This is done using a {@link PathSegmentDeserializer}. The
- * {@code PathWalker} class has a constructor that enables you to specify a {@code PathSegmentDeserializer}.
+ * key. This is done using a {@link PathSegmentDeserializer}. The {@code PathWalker} class has a
+ * constructor that enables you to specify a {@code PathSegmentDeserializer}.
  *
  * @author Ayco Holleman
  */
@@ -63,8 +59,6 @@ public final class PathWalker {
     return new PathWalker(path).read(host);
   }
 
-  private static final String PATHS = "paths";
-
   private final List<Path> paths;
   private final boolean suppressExceptions;
   private final PathSegmentDeserializer segmentDeserializer;
@@ -75,7 +69,7 @@ public final class PathWalker {
    * @param paths the paths to read or write
    */
   public PathWalker(Path... paths) {
-    this(List.of(Check.notNull(paths, PATHS).ok()));
+    this(List.of(Check.notNull(paths, "paths").ok()));
   }
 
   /**
@@ -103,10 +97,8 @@ public final class PathWalker {
    * @param suppressExceptions whether to enable exception suppression
    */
   public PathWalker(List<Path> paths, boolean suppressExceptions) {
-    Check.that(new HashSet<>(paths), PATHS)
-        .isNot(empty())
-        .is(deepNotNull())
-        .has(size(), eq(), paths.size(), "paths must be unique");
+    Check.that(paths, "paths").isNot(empty()).is(deepNotNull());
+    Check.that(new HashSet<>(paths)).has(size(), eq(), paths.size(), "paths must be unique");
     this.paths = List.copyOf(paths);
     this.suppressExceptions = suppressExceptions;
     this.segmentDeserializer = null;
@@ -123,10 +115,8 @@ public final class PathWalker {
       List<Path> paths,
       boolean suppressExceptions,
       PathSegmentDeserializer segmentDeserializer) {
-    Check.that(new HashSet<>(paths), PATHS)
-        .isNot(empty())
-        .is(deepNotNull())
-        .has(size(), eq(), paths.size(), "paths must be unique");
+    Check.that(paths, "paths").isNot(empty()).is(deepNotNull());
+    Check.that(new HashSet<>(paths)).has(size(), eq(), paths.size(), "paths must be unique");
     Check.notNull(segmentDeserializer, "segment deserializer");
     this.paths = List.copyOf(paths);
     this.suppressExceptions = suppressExceptions;
@@ -246,7 +236,7 @@ public final class PathWalker {
 
 
   private static List<Path> toPathList(String[] paths) {
-    Check.notNull(paths, PATHS);
+    Check.notNull(paths, "paths");
     return Arrays.stream(paths).map(Path::from).toList();
   }
 

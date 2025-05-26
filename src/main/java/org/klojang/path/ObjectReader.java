@@ -20,10 +20,12 @@ final class ObjectReader {
   }
 
   void read(Map<Path, Result<Object>> results, Object obj, SegmentNode node) {
-    if (obj == null) {
+    if (node.segmentIndex() == node.path().size()) {
+      results.put(node.path(), Result.of(obj));
+    } else if (obj == null) {
       if (!suppressExceptions) {
-        throw nullValue(node.getArbitraryFullPath(), node.segmentIndex()).get();
-      }
+        throw nullValue(node.path(), node.segmentIndex()).get();
+      } // Otherwise: we have already initialized all values to Result.notAvailable()
     } else {
       Result<Object> next;
       if (obj instanceof Collection<?> x) {
@@ -39,8 +41,7 @@ final class ObjectReader {
       }
       if (next.isAvailable()) {
         if (node.isLeaf()) {
-          // path is no longer arbitrary; it is the exact path to that node
-          results.put(node.getArbitraryFullPath(), next);
+          results.put(node.path(), next);
         } else {
           node.children().values().forEach(child -> read(results, next.get(), child));
         }
@@ -48,24 +49,25 @@ final class ObjectReader {
     }
   }
 
-  Result<Object> read(Object obj, Path path, int segment) {
-    if (segment == path.size()) {
+  Result<Object> read(Object obj, Path path, int segmentIndex) {
+    if (segmentIndex == path.size()) {
       return Result.of(obj);
     } else if (obj == null) {
-      return deadEnd(nullValue(path, segment));
+      return deadEnd(nullValue(path, segmentIndex));
     } else if (obj instanceof Collection<?> x) {
-      return new CollectionSegmentReader(suppressExceptions, keyDeserializer).read(x, path, segment);
+      return new CollectionSegmentReader(suppressExceptions, keyDeserializer).read(x, path, segmentIndex);
     } else if (obj instanceof Object[] x) {
-      return new ArraySegmentReader(suppressExceptions, keyDeserializer).read(x, path, segment);
+      return new ArraySegmentReader(suppressExceptions, keyDeserializer).read(x, path, segmentIndex);
     } else if (obj instanceof Map<?, ?> x) {
-      return new MapSegmentReader(suppressExceptions, keyDeserializer).read(x, path, segment);
+      return new MapSegmentReader(suppressExceptions, keyDeserializer).read(x, path, segmentIndex);
     } else if (isPrimitiveArray(obj)) {
-      return new PrimitiveArraySegmentReader(suppressExceptions, keyDeserializer).read(obj, path, segment);
+      return new PrimitiveArraySegmentReader(suppressExceptions, keyDeserializer)
+          .read(obj, path, segmentIndex);
     }
-    return new BeanSegmentReader(suppressExceptions, keyDeserializer).read(obj, path, segment);
+    return new BeanSegmentReader(suppressExceptions, keyDeserializer).read(obj, path, segmentIndex);
   }
 
-  Result<Object> deadEnd(DeadEndException.Factory excFactory) {
+  private Result<Object> deadEnd(DeadEndException.Factory excFactory) {
     if (suppressExceptions) {
       return Result.notAvailable();
     }

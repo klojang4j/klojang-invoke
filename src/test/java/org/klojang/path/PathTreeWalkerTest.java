@@ -65,4 +65,30 @@ public class PathTreeWalkerTest {
     assertNull(results.get("person.insurance").get());
   }
 
+  @Test
+  public void readIntoList00() {
+    Map<String, Object> map = JSONObject.empty().
+        in("person.address")
+        .set("street", "Main St.")
+        .set("zip", "CA12345")
+        .set("city", "San Francisco")
+        .up("person")
+        .set("hobbies", List.of("football", "tennis"))
+        .set("insurance", null)
+        .build();
+    PathTreeWalker treeWalker = new PathTreeWalker("person.address.street",
+        "person.address.zip",
+        "person.hobbies.0",
+        "person.hobbies.1",
+        "foo",
+        "person.insurance");
+    List<Result<Object>> results = treeWalker.readIntoList(map);
+    assertEquals("Main St.", results.get(0).get());
+    assertEquals("CA12345", results.get(1).get());
+    assertEquals("football", results.get(2).get());
+    assertEquals("tennis", results.get(3).get());
+    assertEquals(Result.notAvailable(), results.get(4));
+    assertNull(results.get(5).get());
+  }
+
 }

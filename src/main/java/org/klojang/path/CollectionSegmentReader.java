@@ -30,9 +30,9 @@ final class CollectionSegmentReader extends SegmentReader<Collection> {
           ;
         return Result.of(iter.next());
       }
-      return deadEnd(indexOutOfBounds(node.getArbitraryFullPath(), node.segmentIndex()));
+      return deadEnd(indexOutOfBounds(node.path(), node.segmentIndex()));
     }
-    return deadEnd(indexExpected(node.getArbitraryFullPath(), node.segmentIndex()));
+    return deadEnd(indexExpected(node.path(), node.segmentIndex()));
   }
 
   @Override

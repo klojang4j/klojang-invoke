@@ -10,10 +10,10 @@ import static org.klojang.check.CommonChecks.*;
 import static org.klojang.check.CommonProperties.size;
 
 /**
- * <p>The {@code PathTreeWalker} is functionally the same as the {@link PathWalker} class. However, a
- * {@code PathTreeWalker} will turn the paths you specify through the constructors into a tree of path
- * segments. This guarantees that it makes a minimal amount of "movements" through the object from which to
- * retrieve the values. For example, say you have specified the following paths:
+ * <p>The {@code PathTreeWalker} is functionally equivalent to the {@link PathWalker} class. However, a
+ * {@code PathTreeWalker} will turn the paths specified through the constructors into a tree of path segments.
+ * This enables a {@code PathTreeWalker} to make a minimal amount of "movements" through the object from which
+ * it retrieves the values. For example, say you have specified the following paths:
  *
  * <blockquote><pre>{@code
  * person.address.street
@@ -31,8 +31,6 @@ import static org.klojang.check.CommonProperties.size;
  */
 public final class PathTreeWalker {
 
-  private static final String PATHS = "paths";
-
   private final List<Path> paths;
   private final SegmentNode root;
   private final boolean suppressExceptions;
@@ -44,7 +42,7 @@ public final class PathTreeWalker {
    * @param paths the paths to read or write
    */
   public PathTreeWalker(Path... paths) {
-    this(List.of(Check.notNull(paths, PATHS).ok()));
+    this(List.of(Check.notNull(paths, "paths").ok()));
   }
 
   /**
@@ -72,10 +70,8 @@ public final class PathTreeWalker {
    * @param suppressExceptions whether to enable exception suppression
    */
   public PathTreeWalker(List<Path> paths, boolean suppressExceptions) {
-    Check.that(new HashSet<>(paths), PATHS)
-        .isNot(empty())
-        .is(deepNotNull())
-        .has(size(), eq(), paths.size(), "paths must be unique");
+    Check.that(paths, "paths").isNot(empty()).is(deepNotNull());
+    Check.that(new HashSet<>(paths)).has(size(), eq(), paths.size(), "paths must be unique");
     this.paths = paths;
     this.root = SegmentNode.buildTree(paths);
     this.suppressExceptions = suppressExceptions;
@@ -93,10 +89,8 @@ public final class PathTreeWalker {
       List<Path> paths,
       boolean suppressExceptions,
       PathSegmentDeserializer segmentDeserializer) {
-    Check.that(new HashSet<>(paths), PATHS)
-        .isNot(empty())
-        .is(deepNotNull())
-        .has(size(), eq(), paths.size(), "paths must be unique");
+    Check.that(paths, "paths").isNot(empty()).is(deepNotNull());
+    Check.that(new HashSet<>(paths)).has(size(), eq(), paths.size(), "paths must be unique");
     Check.notNull(segmentDeserializer, "segment deserializer");
     this.paths = paths;
     this.root = SegmentNode.buildTree(paths);
@@ -115,11 +109,13 @@ public final class PathTreeWalker {
    */
   public Map<Path, Result<Object>> readAll(Object host) throws DeadEndException {
     Map<Path, Result<Object>> results = HashMap.newHashMap(paths.size());
-    if (suppressExceptions) {
-      paths.forEach(path -> results.put(path, Result.notAvailable()));
-    }
-    ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);
+    var reader = new ObjectReader(suppressExceptions, segmentDeserializer);
     root.children().values().forEach(child -> reader.read(results, host, child));
+    for (Path path : paths) {
+      if (!results.containsKey(path)) {
+        results.put(path, Result.notAvailable());
+      }
+    }
     return results;
   }
 
@@ -149,16 +145,14 @@ public final class PathTreeWalker {
    */
   public List<Result<Object>> readIntoList(Object host) throws DeadEndException {
     Map<Path, Result<Object>> results = LinkedHashMap.newLinkedHashMap(paths.size());
-    if (suppressExceptions) {
-      paths.forEach(path -> results.put(path, Result.notAvailable()));
-    }
-    ObjectReader reader = new ObjectReader(suppressExceptions, segmentDeserializer);
+    paths.forEach(path -> results.put(path, Result.notAvailable()));
+    var reader = new ObjectReader(suppressExceptions, segmentDeserializer);
     root.children().values().forEach(child -> reader.read(results, host, child));
     return List.copyOf(results.values());
   }
 
   private static List<Path> toPathList(String[] paths) {
-    Check.notNull(paths, PATHS);
+    Check.notNull(paths, "paths");
     return Arrays.stream(paths).map(Path::from).toList();
   }
 

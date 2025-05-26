@@ -21,14 +21,14 @@ final class MapSegmentReader extends SegmentReader<Map<?, ?>> {
       key = node.segment();
     } else {
       try {
-        key = keyDeserializer.deserialize(node.getArbitraryFullPath(), node.segmentIndex());
+        key = keyDeserializer.deserialize(node.path(), node.segmentIndex());
       } catch (Exception e) {
-        return deadEnd(deserializationFailed(node.getArbitraryFullPath(), node.segmentIndex(), e));
+        return deadEnd(deserializationFailed(node.path(), node.segmentIndex(), e));
       }
     }
     Object val = map.get(key);
     if (val == null && !map.containsKey(key)) {
-      return deadEnd(noSuchKey(node.getArbitraryFullPath(), node.segmentIndex(), key));
+      return deadEnd(noSuchKey(node.path(), node.segmentIndex(), key));
     }
     return Result.of(val);
   }

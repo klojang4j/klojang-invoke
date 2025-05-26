@@ -21,7 +21,7 @@ final class PrimitiveArraySegmentReader extends SegmentReader<Object> {
   Result<Object> read(Object array, SegmentNode node) {
     OptionalInt opt = toInt(node.segment());
     if (opt.isEmpty()) {
-      return deadEnd(indexExpected(node.getArbitraryFullPath(), node.segmentIndex()));
+      return deadEnd(indexExpected(node.path(), node.segmentIndex()));
     }
     int idx = opt.getAsInt();
     int len = getArrayLength(array);
@@ -29,7 +29,7 @@ final class PrimitiveArraySegmentReader extends SegmentReader<Object> {
       Object val = getArrayElement(array, idx);
       return Result.of(val);
     }
-    return deadEnd(indexOutOfBounds(node.getArbitraryFullPath(), node.segmentIndex()));
+    return deadEnd(indexOutOfBounds(node.path(), node.segmentIndex()));
   }
 
   @Override

@@ -312,5 +312,16 @@ public class PathWalkerTest {
     assertEquals(300, vals.get("c").get());
   }
 
+  @Test
+  public void readIntoList00() {
+    PathWalker pw = new PathWalker(Path.from("a"), Path.from("b"), Path.from("c"));
+    Map<String, Integer> map = Map.of("a", 100, "b", 200, "c", 300);
+    List<Result<Object>> vals = pw.readIntoList(map);
+    assertEquals(3, vals.size());
+    assertEquals(100, vals.get(0).get());
+    assertEquals(200, vals.get(1).get());
+    assertEquals(300, vals.get(2).get());
+  }
+
 
 }
