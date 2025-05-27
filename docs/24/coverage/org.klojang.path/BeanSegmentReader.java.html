@@ -20,18 +20,18 @@ final class BeanSegmentReader extends SegmentReader&lt;Object&gt; {
   Result&lt;Object&gt; read(Object bean, SegmentNode node) {
 <span class="fc" id="L21">    String property = node.segment();</span>
 <span class="pc bpc" id="L22" title="1 of 2 branches missed.">    if (isEmpty(property)) {</span>
-<span class="nc" id="L23">      return deadEnd(emptySegment(node.getArbitraryFullPath(), node.segmentIndex()));</span>
+<span class="nc" id="L23">      return deadEnd(emptySegment(node.path(), node.segmentIndex()));</span>
     }
     BeanReader reader;
     try {
 <span class="fc" id="L27">      reader = new BeanReader(bean.getClass());</span>
 <span class="nc" id="L28">    } catch (NoPublicGettersException e) {</span>
-<span class="nc" id="L29">      return deadEnd(terminalValue(node.getArbitraryFullPath(), node.segmentIndex(), bean.getClass()));</span>
+<span class="nc" id="L29">      return deadEnd(terminalValue(node.path(), node.segmentIndex(), bean.getClass()));</span>
 <span class="fc" id="L30">    }</span>
     try {
 <span class="fc" id="L32">      return Result.of(reader.read(bean, property));</span>
 <span class="fc" id="L33">    } catch (NoSuchPropertyException e) {</span>
-<span class="fc" id="L34">      return deadEnd(noSuchProperty(node.getArbitraryFullPath(), node.segmentIndex(), bean.getClass()));</span>
+<span class="fc" id="L34">      return deadEnd(noSuchProperty(node.path(), node.segmentIndex(), bean.getClass()));</span>
     }
   }
 

@@ -21,7 +21,7 @@ final class PrimitiveArraySegmentReader extends SegmentReader&lt;Object&gt; {
   Result&lt;Object&gt; read(Object array, SegmentNode node) {
 <span class="fc" id="L22">    OptionalInt opt = toInt(node.segment());</span>
 <span class="fc bfc" id="L23" title="All 2 branches covered.">    if (opt.isEmpty()) {</span>
-<span class="fc" id="L24">      return deadEnd(indexExpected(node.getArbitraryFullPath(), node.segmentIndex()));</span>
+<span class="fc" id="L24">      return deadEnd(indexExpected(node.path(), node.segmentIndex()));</span>
     }
 <span class="fc" id="L26">    int idx = opt.getAsInt();</span>
 <span class="fc" id="L27">    int len = getArrayLength(array);</span>
@@ -29,7 +29,7 @@ final class PrimitiveArraySegmentReader extends SegmentReader&lt;Object&gt; {
 <span class="fc" id="L29">      Object val = getArrayElement(array, idx);</span>
 <span class="fc" id="L30">      return Result.of(val);</span>
     }
-<span class="fc" id="L32">    return deadEnd(indexOutOfBounds(node.getArbitraryFullPath(), node.segmentIndex()));</span>
+<span class="fc" id="L32">    return deadEnd(indexOutOfBounds(node.path(), node.segmentIndex()));</span>
   }
 
   @Override

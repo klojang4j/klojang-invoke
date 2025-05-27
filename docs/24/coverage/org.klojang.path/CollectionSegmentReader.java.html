@@ -30,9 +30,9 @@ final class CollectionSegmentReader extends SegmentReader&lt;Collection&gt; {
           ;
 <span class="nc" id="L31">        return Result.of(iter.next());</span>
       }
-<span class="nc" id="L33">      return deadEnd(indexOutOfBounds(node.getArbitraryFullPath(), node.segmentIndex()));</span>
+<span class="nc" id="L33">      return deadEnd(indexOutOfBounds(node.path(), node.segmentIndex()));</span>
     }
-<span class="nc" id="L35">    return deadEnd(indexExpected(node.getArbitraryFullPath(), node.segmentIndex()));</span>
+<span class="nc" id="L35">    return deadEnd(indexExpected(node.path(), node.segmentIndex()));</span>
   }
 
   @Override

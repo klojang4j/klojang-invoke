@@ -23,9 +23,9 @@ final class ArraySegmentReader extends SegmentReader&lt;Object[]&gt; {
 <span class="fc bfc" id="L23" title="All 2 branches covered.">      if (idx &lt; array.length) {</span>
 <span class="fc" id="L24">        return Result.of(array[idx]);</span>
       }
-<span class="fc" id="L26">      return deadEnd(indexOutOfBounds(node.getArbitraryFullPath(), node.segmentIndex()));</span>
+<span class="fc" id="L26">      return deadEnd(indexOutOfBounds(node.path(), node.segmentIndex()));</span>
     }
-<span class="nc" id="L28">    return deadEnd(indexExpected(node.getArbitraryFullPath(), node.segmentIndex()));</span>
+<span class="nc" id="L28">    return deadEnd(indexExpected(node.path(), node.segmentIndex()));</span>
   }
 
   @Override

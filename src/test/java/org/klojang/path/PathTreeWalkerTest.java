@@ -20,7 +20,7 @@ public class PathTreeWalkerTest {
         .set("street", "Main St.")
         .set("zip", "CA12345")
         .set("city", "San Francisco")
-        .up("person")
+        .backTo("person")
         .set("hobbies", List.of("football", "tennis"))
         .set("insurance", null)
         .build();
@@ -46,7 +46,7 @@ public class PathTreeWalkerTest {
         .set("street", "Main St.")
         .set("zip", "CA12345")
         .set("city", "San Francisco")
-        .up("person")
+        .backTo("person")
         .set("hobbies", List.of("football", "tennis"))
         .set("insurance", null)
         .build();
@@ -72,7 +72,7 @@ public class PathTreeWalkerTest {
         .set("street", "Main St.")
         .set("zip", "CA12345")
         .set("city", "San Francisco")
-        .up("person")
+        .backTo("person")
         .set("hobbies", List.of("football", "tennis"))
         .set("insurance", null)
         .build();
